@@ -1,0 +1,8 @@
+/node_modules/
+/artifacts/
+/typechain/
+/.idea/
+/cache/
+
+#Hardhat files
+.env

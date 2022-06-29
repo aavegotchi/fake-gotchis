@@ -1,0 +1,52 @@
+{
+  "name": "fake-gotchi-diamond",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prettier": "prettier --write contracts/**/*.sol",
+    "solhint": "solhint 'contracts/**/*.sol'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mudgen/contracts-starter.git"
+  },
+  "author": "William",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mudgen/contracts-starter/issues"
+  },
+  "homepage": "https://github.com/mudgen/contracts-starter#readme",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.6",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "@typechain/ethers-v5": "^10.1.0",
+    "@typechain/hardhat": "^6.1.2",
+    "@types/chai": "^4.3.1",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^18.0.0",
+    "chai": "^4.3.6",
+    "diamond-util": "^1.1.1",
+    "ethereum-waffle": "^3.4.4",
+    "ethers": "^5.6.9",
+    "hardhat": "^2.9.9",
+    "hardhat-contract-sizer": "^2.0.3",
+    "prettier": "^2.3.2",
+    "prettier-plugin-solidity": "^1.0.0-beta.13",
+    "solidity-coverage": "^0.7.16",
+    "ts-node": "^10.8.1",
+    "typechain": "^8.1.0",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "@anders-t/ethers-ledger": "^1.0.4",
+    "@ethersproject/hardware-wallets": "github:mudgen/ethers-ledger",
+    "@nomiclabs/hardhat-etherscan": "^3.0.0",
+    "@openzeppelin/contracts": "^4.5.0",
+    "@openzeppelin/contracts-upgradeable": "^4.5.2",
+    "dotenv": "^16.0.1",
+    "solc": "^0.8.15",
+    "standard": "^17.0.0"
+  }
+}
