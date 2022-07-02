@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prettier": "prettier --write contracts/**/*.sol",
+    "prettier": "npm run prettier:ts && npm run prettier:sol",
+    "prettier:js": "prettier --write \"{scripts,tasks,test}/**/*.js\"",
+    "prettier:ts": "prettier --write \"{scripts,tasks,test}/**/*.ts\"",
+    "prettier:sol": "prettier --write contracts/**/*.sol",
     "solhint": "solhint 'contracts/**/*.sol'"
   },
   "repository": {

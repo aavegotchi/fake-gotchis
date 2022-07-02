@@ -6,3 +6,4 @@
 
 #Hardhat files
 .env
+/typechain-types/
