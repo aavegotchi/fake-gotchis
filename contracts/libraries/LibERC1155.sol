@@ -2,6 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {IERC1155TokenReceiver} from "../interfaces/IERC1155TokenReceiver.sol";
+import {LibAppStorage, AppStorage} from "./LibAppStorage.sol";
+import "./LibMeta.sol";
 
 library LibERC1155 {
     bytes4 internal constant ERC1155_ACCEPTED = 0xf23a6e61; // Return value from `onERC1155Received` call if a contract accepts receipt (i.e `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))`).
@@ -82,5 +84,78 @@ library LibERC1155 {
                 "LibERC1155: Transfer rejected/failed by _to"
             );
         }
+    }
+
+    /**
+     * @notice Creates `_amount` tokens of token type `_id`, and assigns them to `_to`.
+     * MUST revert if `_to` is the zero address.
+     * MUST emit the `TransferSingle` event to reflect the balance change.
+     * If `_to` refers to a smart contract, it must call `onERC1155Received` and return the acceptance magic value.
+     * @param _to      Target address
+     * @param _id      ID of the token type
+     * @param _amount  Mint amount
+     * @param _data    Additional data with no specified format, MUST be sent unaltered in call to `onERC1155Received` on `_to`
+     */
+    function _mint(
+        address _to,
+        uint256 _id,
+        uint256 _amount,
+        bytes memory _data
+    ) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        require(_to != address(0), "FGCard: Can't mint to the zero address");
+
+        address sender = LibMeta.msgSender();
+        s.cards[_to][_id] += _amount;
+        emit TransferSingle(sender, address(0), _to, _id, _amount);
+        onERC1155Received(sender, address(0), _to, _id, _amount, _data);
+    }
+
+    /**
+     * @notice Create `_amounts` of `_ids` to the `_to` address specified. (Batch operation of _mint)
+     * @param _to      Target address
+     * @param _ids     IDs of each token type (order and length must match _amounts array)
+     * @param _amounts Transfer amounts per token type (order and length must match _ids array)
+     * @param _data    Additional data with no specified format, MUST be sent unaltered in call to the `ERC1155TokenReceiver` hook(s) on `_to`
+     */
+    function _mintBatch(
+        address _to,
+        uint256[] calldata _ids,
+        uint256[] calldata _amounts,
+        bytes calldata _data
+    ) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        require(_to != address(0), "FGCard: Can't mint to 0 address");
+        require(_ids.length == _amounts.length, "FGCard: ids not same length as amounts");
+        address sender = LibMeta.msgSender();
+        for (uint256 i; i < _ids.length; i++) {
+            s.cards[_to][_ids[i]] += _amounts[i];
+        }
+        emit TransferBatch(sender, address(0), _to, _ids, _amounts);
+        onERC1155BatchReceived(sender, address(0), _to, _ids, _amounts, _data);
+    }
+
+    /**
+     * @notice Destroys `amount` tokens of token type `id` from `from`
+     * MUST revert if `_from` is the zero address.
+     * MUST revert if balance of holder for token `_id` is lower than the `_amount`.
+     * MUST emit the `TransferSingle` event to reflect the balance change.
+     * @param _from    Source address
+     * @param _id      ID of the token type
+     * @param _amount  Burn amount
+     */
+    function _burn(
+        address _from,
+        uint256 _id,
+        uint256 _amount
+    ) internal {
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        require(_from != address(0), "FGCard: Can't burn from the zero address");
+        address sender = LibMeta.msgSender();
+
+        uint256 bal = s.cards[_from][_id];
+        require(_amount <= bal, "FGCard: Burn amount exceeds balance");
+        s.cards[_from][_id] = bal - _amount;
+        emit TransferSingle(sender, _from, address(0), _id, _amount);
     }
 }
