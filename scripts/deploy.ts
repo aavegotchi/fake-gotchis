@@ -44,6 +44,8 @@ export async function deployDiamond() {
     "DiamondLoupeFacet",
     "OwnershipFacet",
     "FakeGotchiCardFacet",
+    "MetadataFacet",
+    "FakeGotchiNFTFacet",
   ];
   const cut = [];
   for (const FacetName of FacetNames) {

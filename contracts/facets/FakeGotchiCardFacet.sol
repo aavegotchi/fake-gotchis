@@ -7,6 +7,8 @@ import "../libraries/LibMeta.sol";
 import "../libraries/LibERC1155.sol";
 
 contract FakeGotchiCardFacet is Modifiers {
+    event NewSeriesStarted(uint256 indexed id, uint256 indexed amount);
+
     /**
      * @notice Start new card series with minting ERC1155 Cards to this
      * @param _amount Amount to mint in this series
@@ -17,29 +19,8 @@ contract FakeGotchiCardFacet is Modifiers {
         s.maxCards[newCardId] = _amount;
         LibERC1155._mint(address(this), newCardId, _amount, new bytes(0));
         s.nextCardId = newCardId + 1;
-    }
 
-    /**
-     * @notice Query if an address is an authorized operator for another address
-     * @param _owner The address that owns the NFTs
-     * @param _operator The address that acts on behalf of the owner
-     * @return approved_ True if `_operator` is an approved operator for `_owner`, false otherwise
-     */
-    function isApprovedForAll(address _owner, address _operator) external view returns (bool approved_) {
-        approved_ = s.cardOperators[_owner][_operator];
-    }
-
-    /**
-     * @notice Enable or disable approval for a third party ("operator") to manage all of `msg.sender`'s assets
-     * @dev Emits the ApprovalForAll event. The contract MUST allow multiple operators per owner.
-     * @param _operator Address to add to the set of authorized operators
-     * @param _approved True if the operator is approved, false to revoke approval
-     */
-    function setApprovalForAll(address _operator, bool _approved) external {
-        address sender = LibMeta.msgSender();
-        require(sender != _operator, "FGCard: setting approval status for self");
-        s.cardOperators[sender][_operator] = _approved;
-        emit LibERC1155.ApprovalForAll(sender, _operator, _approved);
+        emit NewSeriesStarted(newCardId, _amount);
     }
 
     /**
@@ -65,7 +46,7 @@ contract FakeGotchiCardFacet is Modifiers {
     ) external {
         require(_to != address(0), "FGCard: Can't transfer to 0 address");
         address sender = LibMeta.msgSender();
-        require(sender == _from || s.cardOperators[_from][sender] || sender == address(this), "FGCard: Not owner and not approved to transfer");
+        require(sender == _from || s.operators[_from][sender] || sender == address(this), "FGCard: Not owner and not approved to transfer");
         uint256 bal = s.cards[_from][_id];
         require(_amount <= bal, "FGCard: Doesn't have that many to transfer");
         s.cards[_from][_id] = bal - _amount;
@@ -100,7 +81,7 @@ contract FakeGotchiCardFacet is Modifiers {
         require(_to != address(0), "FGCard: Can't transfer to 0 address");
         require(_ids.length == _amounts.length, "FGCard: ids not same length as amounts");
         address sender = LibMeta.msgSender();
-        require(sender == _from || s.cardOperators[_from][sender], "FGCard: Not owner and not approved to transfer");
+        require(sender == _from || s.operators[_from][sender], "FGCard: Not owner and not approved to transfer");
         for (uint256 i; i < _ids.length; i++) {
             uint256 id = _ids[i];
             uint256 amount = _amounts[i];
@@ -157,5 +138,23 @@ contract FakeGotchiCardFacet is Modifiers {
             address owner = _owners[i];
             bals[i] = s.cards[owner][id];
         }
+    }
+
+    /**
+        @notice Handle the receipt of a single ERC1155 token type.
+        @dev An ERC1155-compliant smart contract MUST call this function on the token recipient contract, at the end of a `safeTransferFrom` after the balance has been updated.
+        This function MUST return `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))` (i.e. 0xf23a6e61) if it accepts the transfer.
+        This function MUST revert if it rejects the transfer.
+        Return of any other value than the prescribed keccak256 generated value MUST result in the transaction being reverted by the caller.
+        @return           `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))`
+    */
+    function onERC1155Received(
+        address, /*_operator*/
+        address, /*_from*/
+        uint256, /*_id*/
+        uint256, /*_value*/
+        bytes calldata /*_data*/
+    ) external pure returns (bytes4) {
+        return LibERC1155.ERC1155_ACCEPTED;
     }
 }

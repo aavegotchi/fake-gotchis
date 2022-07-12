@@ -30,7 +30,6 @@ struct AppStorage {
     string cardBaseUri;
     mapping(uint256 => uint256) maxCards; // card id => max card amount
     mapping(address => mapping(uint256 => uint256)) cards; // owner => card id
-    mapping(address => mapping(address => bool)) cardOperators; // owner => operator
     // Metadata
     mapping(address => bool) blocked;
     uint256 metadataIdCounter;
