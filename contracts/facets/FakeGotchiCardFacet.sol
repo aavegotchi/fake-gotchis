@@ -23,6 +23,18 @@ contract FakeGotchiCardFacet is Modifiers {
         emit NewSeriesStarted(newCardId, _amount);
     }
 
+    // TODO: Replace with sale logic, Current function is for test purpose
+    function sale(address _to, uint256 _amount) external onlyOwner {
+        uint256 _id = s.nextCardId - 1;
+        address _from = address(this);
+        uint256 bal = s.cards[_from][_id];
+        require(_amount <= bal, "FGCard: Doesn't have that many to transfer");
+        s.cards[_from][_id] = bal - _amount;
+        s.cards[_to][_id] += _amount;
+        emit LibERC1155.TransferSingle(_from, _from, _to, _id, _amount);
+        LibERC1155.onERC1155Received(_from, _from, _to, _id, _amount, new bytes(0));
+    }
+
     /**
      * @notice Transfers `_amount` of an `_id` from the `_from` address to the `_to` address specified (with safety call).
      * @dev Caller must be approved to manage the tokens being transferred out of the `_from` account (see "Approval" section of the standard).
