@@ -17,6 +17,13 @@ contract FakeGotchiNFTFacet is Modifiers {
         emit AavegotchiAddressUpdated(_aavegotchiDiamond);
     }
 
+    function getRoyaltyInfo(uint256 _tokenId) external view returns (address[2] memory, uint256[2] memory) {
+        require(_tokenId < s.tokenIdCounter, "ERC721: _tokenId is greater than total supply.");
+        // TODO: Check aavegotchi diamond only or allow all
+        Metadata memory mData = s.metadata[s.fakeGotchis[_tokenId]];
+        return ([mData.publisher, mData.artist], mData.royalty);
+    }
+
     function tokenIdsOfOwner(address _owner) external view returns (uint256[] memory tokenIds_) {
         return s.ownerTokenIds[_owner];
     }
