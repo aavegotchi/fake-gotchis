@@ -1,20 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../libraries/LibAppStorage.sol";
-import "../libraries/LibDiamond.sol";
-import "../libraries/LibStrings.sol";
-import "../libraries/LibMeta.sol";
-import "../libraries/LibERC721.sol";
-import {IERC721} from "../interfaces/IERC721.sol";
-import {ERC721Marketplace} from "../interfaces/ERC721Marketplace.sol";
+import "../../libraries/AppStorage.sol";
+import "../../libraries/LibDiamond.sol";
+import "../../libraries/LibStrings.sol";
+import "../../libraries/LibMeta.sol";
+import "../../libraries/LibERC721.sol";
+import {IERC721} from "../../interfaces/IERC721.sol";
+import {ERC721Marketplace} from "../../interfaces/ERC721Marketplace.sol";
 
 contract FakeGotchiNFTFacet is Modifiers {
     event AavegotchiAddressUpdated(address _aavegotchiDiamond);
+    event CardAddressUpdated(address _cardDiamond);
 
     function setAavegotchiAddress(address _aavegotchiDiamond) external onlyOwner {
         s.aavegotchiDiamond = _aavegotchiDiamond;
         emit AavegotchiAddressUpdated(_aavegotchiDiamond);
+    }
+
+    function setCardAddress(address _cardDiamond) external onlyOwner {
+        s.cardDiamond = _cardDiamond;
+        emit CardAddressUpdated(_cardDiamond);
     }
 
     function getRoyaltyInfo(uint256 _tokenId) external view returns (address[2] memory, uint256[2] memory) {

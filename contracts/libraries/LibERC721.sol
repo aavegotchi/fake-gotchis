@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "../interfaces/IERC721TokenReceiver.sol";
-import {LibAppStorage, AppStorage} from "./LibAppStorage.sol";
+import {LibAppStorage, AppStorage} from "./AppStorage.sol";
 import "./LibMeta.sol";
 
 library LibERC721 {

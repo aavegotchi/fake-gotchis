@@ -1,13 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../libraries/LibAppStorage.sol";
-import "../libraries/LibStrings.sol";
-import "../libraries/LibMeta.sol";
-import "../libraries/LibERC1155.sol";
+import "../../libraries/AppStorageCard.sol";
+import "../../libraries/LibStrings.sol";
+import "../../libraries/LibMeta.sol";
+import "../../libraries/LibERC1155.sol";
 
 contract FakeGotchiCardFacet is Modifiers {
     event NewSeriesStarted(uint256 indexed id, uint256 indexed amount);
+    event NftAddressUpdated(address _nftDiamond);
+
+    function setNftAddress(address _nftDiamond) external onlyOwner {
+        s.nftDiamond = _nftDiamond;
+        emit NftAddressUpdated(_nftDiamond);
+    }
 
     /**
      * @notice Start new card series with minting ERC1155 Cards to this
@@ -33,6 +39,38 @@ contract FakeGotchiCardFacet is Modifiers {
         s.cards[_to][_id] += _amount;
         emit LibERC1155.TransferSingle(_from, _from, _to, _id, _amount);
         LibERC1155.onERC1155Received(_from, _from, _to, _id, _amount, new bytes(0));
+    }
+
+    /**
+     * @notice Query if an address is an authorized operator for another address
+     * @param _owner The address that owns the NFTs
+     * @param _operator The address that acts on behalf of the owner
+     * @return approved_ True if `_operator` is an approved operator for `_owner`, false otherwise
+     */
+    function isApprovedForAll(address _owner, address _operator) external view returns (bool approved_) {
+        approved_ = s.operators[_owner][_operator];
+    }
+
+    /**
+     * @notice Enable or disable approval for a third party ("operator") to manage all of `msg.sender`'s assets
+     * @dev Emits the ApprovalForAll event. The contract MUST allow multiple operators per owner.
+     * @param _operator Address to add to the set of authorized operators
+     * @param _approved True if the operator is approved, false to revoke approval
+     */
+    function setApprovalForAll(address _operator, bool _approved) external {
+        address sender = LibMeta.msgSender();
+        require(sender != _operator, "FGCard: setting approval status for self");
+        s.operators[sender][_operator] = _approved;
+        emit LibERC1155.ApprovalForAll(sender, _operator, _approved);
+    }
+
+    function burn(address _cardOwner, uint256 _amount) external onlyNftDiamond {
+        // TODO: check new series started, check s.nextCardId > 0
+        // check card balance
+        uint256 currentCardId = s.nextCardId - 1;
+        // require(s.cards[_sender][currentCardId] >= count, "FGCard: Doesn't have enough card");
+        // burn card
+        LibERC1155._burn(_cardOwner, currentCardId, _amount);
     }
 
     /**

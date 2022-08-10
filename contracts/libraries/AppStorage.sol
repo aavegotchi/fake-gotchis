@@ -25,11 +25,7 @@ struct Metadata {
 
 struct AppStorage {
     address aavegotchiDiamond;
-    // Fake Gotchi Card ERC1155
-    uint256 nextCardId;
-    string cardBaseUri;
-    mapping(uint256 => uint256) maxCards; // card id => max card amount
-    mapping(address => mapping(uint256 => uint256)) cards; // owner => card id
+    address cardDiamond;
     // Metadata
     mapping(address => bool) blocked;
     uint256 metadataIdCounter;

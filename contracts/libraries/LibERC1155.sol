@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {IERC1155TokenReceiver} from "../interfaces/IERC1155TokenReceiver.sol";
-import {LibAppStorage, AppStorage} from "./LibAppStorage.sol";
+import {LibAppStorageCard, CardAppStorage} from "./AppStorageCard.sol";
 import "./LibMeta.sol";
 
 library LibERC1155 {
@@ -102,7 +102,7 @@ library LibERC1155 {
         uint256 _amount,
         bytes memory _data
     ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        CardAppStorage storage s = LibAppStorageCard.diamondStorage();
         require(_to != address(0), "FGCard: Can't mint to the zero address");
 
         address sender = LibMeta.msgSender();
@@ -124,7 +124,7 @@ library LibERC1155 {
         uint256[] calldata _amounts,
         bytes calldata _data
     ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        CardAppStorage storage s = LibAppStorageCard.diamondStorage();
         require(_to != address(0), "FGCard: Can't mint to 0 address");
         require(_ids.length == _amounts.length, "FGCard: ids not same length as amounts");
         address sender = LibMeta.msgSender();
@@ -149,7 +149,7 @@ library LibERC1155 {
         uint256 _id,
         uint256 _amount
     ) internal {
-        AppStorage storage s = LibAppStorage.diamondStorage();
+        CardAppStorage storage s = LibAppStorageCard.diamondStorage();
         require(_from != address(0), "FGCard: Can't burn from the zero address");
         address sender = LibMeta.msgSender();
 

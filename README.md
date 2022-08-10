@@ -1,4 +1,4 @@
-# Fake Gotchi NFT Diamond
+# Fake Gotchi Diamonds
 
 This is an implementation for Fake Gotchi NFT
 **Note:** The loupe functions in DiamondLoupeFacet.sol MUST be added to a diamond and are required by the EIP-2535 Diamonds standard.
@@ -18,7 +18,7 @@ npm install
 ## Deployment
 
 ```console
-npx hardhat run scripts/deploy.js
+npx hardhat run scripts/deploy.ts
 ```
 
 ### How the scripts/deploy.js script works
@@ -38,7 +38,7 @@ npx hardhat test
 
 ## Upgrade a diamond
 
-Check the `scripts/deploy.js` and or the `test/diamondTest.js` file for examples of upgrades.
+Check the `scripts/deploy.ts` and or the `test/diamondTest.js` file for examples of upgrades.
 
 Note that upgrade functionality is optional. It is possible to deploy a diamond that can't be upgraded, which is a 'Single Cut Diamond'.  It is also possible to deploy an upgradeable diamond and at a later date remove its `diamondCut` function so it can't be upgraded any more.
 
@@ -54,7 +54,7 @@ The `contracts/facets/DiamondLoupeFacet.sol` file shows how to implement the fou
 
 The `contracts/libraries/LibDiamond.sol` file shows how to implement Diamond Storage and a `diamondCut` internal function.
 
-The `scripts/deploy.js` file shows how to deploy a diamond.
+The `scripts/deploy.ts` file shows how to deploy a diamond.
 
 The `test/diamondTest.js` file gives tests for the `diamondCut` function and the Diamond Loupe functions.
 

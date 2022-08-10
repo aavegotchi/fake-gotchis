@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../libraries/LibAppStorage.sol";
-import "../libraries/LibDiamond.sol";
-import "../libraries/LibStrings.sol";
-import "../libraries/LibMeta.sol";
-import "../libraries/LibERC721.sol";
-import "../libraries/LibERC1155.sol";
-import {IERC721} from "../interfaces/IERC721.sol";
-import {ERC721Marketplace} from "../interfaces/ERC721Marketplace.sol";
+import "../../libraries/AppStorage.sol";
+import "../../libraries/LibDiamond.sol";
+import "../../libraries/LibStrings.sol";
+import "../../libraries/LibMeta.sol";
+import "../../libraries/LibERC721.sol";
+import "../../interfaces/ICardDiamond.sol";
+import {IERC721} from "../../interfaces/IERC721.sol";
+import {ERC721Marketplace} from "../../interfaces/ERC721Marketplace.sol";
 
 contract MetadataFacet is Modifiers {
     event MetadataActionLog(
@@ -54,12 +54,8 @@ contract MetadataFacet is Modifiers {
         // Parameter validation
         verifyMetadata(mData, count);
 
-        // TODO: check new series started, check s.nextCardId > 0
-        // check card balance
-        uint256 currentCardId = s.nextCardId - 1;
-        // require(s.cards[_sender][currentCardId] >= count, "Metadata: Doesn't have enough card");
-        // burn card
-        LibERC1155._burn(_sender, currentCardId, count);
+        // Burn card
+        ICardDiamond(s.cardDiamond).burn(_sender, count);
 
         // save
         uint256 _metadataId = s.metadataIdCounter;
