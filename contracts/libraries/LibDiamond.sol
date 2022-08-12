@@ -215,4 +215,9 @@ library LibDiamond {
         }
         require(contractSize > 0, _errorMessage);
     }
+
+    function addSupportForERC165(bytes4 _interfaceId) internal {
+        DiamondStorage storage ds = LibDiamond.diamondStorage();
+        ds.supportedInterfaces[_interfaceId] = true;
+    }
 }

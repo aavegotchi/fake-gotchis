@@ -21,6 +21,9 @@ contract Diamond {
         functionSelectors[0] = IDiamondCut.diamondCut.selector;
         cut[0] = IDiamondCut.FacetCut({facetAddress: _diamondCutFacet, action: IDiamondCut.FacetCutAction.Add, functionSelectors: functionSelectors});
         LibDiamond.diamondCut(cut, address(0), "");
+
+        // add supportedInterface
+        LibDiamond.addSupportForERC165(0x80ac58cd); // ERC721
     }
 
     // Find facet for function that is called and execute the
