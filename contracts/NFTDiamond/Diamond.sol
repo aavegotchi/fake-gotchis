@@ -10,9 +10,15 @@ pragma solidity ^0.8.0;
 
 import {LibDiamond} from "../libraries/LibDiamond.sol";
 import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
+import {LibAppStorage, AppStorage} from "../libraries/AppStorage.sol";
 
 contract Diamond {
-    constructor(address _contractOwner, address _diamondCutFacet) payable {
+    constructor(
+        address _contractOwner,
+        address _diamondCutFacet,
+        address _aavegotchiDiamond,
+        address _cardDiamond
+    ) payable {
         LibDiamond.setContractOwner(_contractOwner);
 
         // Add the diamondCut external function from the diamondCutFacet
@@ -24,6 +30,10 @@ contract Diamond {
 
         // add supportedInterface
         LibDiamond.addSupportForERC165(0x80ac58cd); // ERC721
+
+        AppStorage storage s = LibAppStorage.diamondStorage();
+        s.aavegotchiDiamond = _aavegotchiDiamond;
+        s.cardDiamond = _cardDiamond;
     }
 
     // Find facet for function that is called and execute the

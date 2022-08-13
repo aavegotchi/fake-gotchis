@@ -1,13 +1,17 @@
 //@ts-ignore
 import { Signer } from "@ethersproject/abstract-signer";
 import { ethers } from "hardhat";
-import { DiamondCutFacet, OwnershipFacet } from "../typechain-types";
-import { gasPrice } from "./helperFunctions";
+import { DiamondCutFacet, OwnershipFacet } from "../../typechain-types";
+import { gasPrice, maticAavegotchiDiamondAddress } from "../helperFunctions";
 
-// import {getSelectors, FacetCutAction} from '../libraries/diamond'
-const { getSelectors, FacetCutAction } = require("./libraries/diamond");
+const { getSelectors, FacetCutAction } = require("../libraries/diamond");
 
-export async function deployDiamond() {
+export async function deployNftDiamond(cardAddress: string) {
+  if (!cardAddress) {
+    throw Error(`Card diamond address empty`);
+  }
+  console.log("Deploying NFT Diamond contracts\n");
+
   const accounts: Signer[] = await ethers.getSigners();
   const deployer = accounts[0];
   const deployerAddress = await deployer.getAddress();
@@ -26,10 +30,12 @@ export async function deployDiamond() {
   const diamond = await Diamond.deploy(
     deployerAddress,
     diamondCutFacet.address,
+    maticAavegotchiDiamondAddress,
+    cardAddress,
     { gasPrice: gasPrice }
   );
   await diamond.deployed();
-  console.log("Diamond deployed:", diamond.address);
+  console.log("NFT Diamond deployed:", diamond.address);
 
   // deploy DiamondInit
   const DiamondInit = await ethers.getContractFactory("DiamondInit");
@@ -38,12 +44,10 @@ export async function deployDiamond() {
   console.log("DiamondInit deployed:", diamondInit.address);
 
   // deploy facets
-  console.log("");
-  console.log("Deploying facets");
+  console.log("Deploying facets for NFT Diamond\n");
   const FacetNames = [
     "DiamondLoupeFacet",
     "OwnershipFacet",
-    "FakeGotchiCardFacet",
     "MetadataFacet",
     "FakeGotchiNFTFacet",
   ];
@@ -72,7 +76,7 @@ export async function deployDiamond() {
     functionCall,
     { gasPrice: gasPrice }
   );
-  console.log("Diamond cut tx: ", tx.hash);
+  console.log("NFT Diamond cut tx: ", tx.hash);
   const receipt = await tx.wait();
   if (!receipt.status) {
     throw Error(`Diamond upgrade failed: ${tx.hash}`);
@@ -84,24 +88,13 @@ export async function deployDiamond() {
     diamond.address
   );
   const diamondOwner = await ownershipFacet.owner();
-  console.log("Diamond owner is:", diamondOwner);
+  console.log("NFT Diamond owner is:", diamondOwner);
 
   if (diamondOwner !== deployerAddress) {
     throw new Error(
-      `Diamond owner ${diamondOwner} is not deployer address ${deployerAddress}!`
+      `NFT Diamond owner ${diamondOwner} is not deployer address ${deployerAddress}!`
     );
   }
 
   return diamond.address;
-}
-
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-if (require.main === module) {
-  deployDiamond()
-    .then(() => process.exit(0))
-    .catch((error) => {
-      console.error(error);
-      process.exit(1);
-    });
 }

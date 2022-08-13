@@ -4,7 +4,7 @@ import {
 } from "../scripts/helperFunctions";
 import { expect } from "chai";
 import { ethers, network } from "hardhat";
-import { deployDiamond } from "../scripts/deploy";
+import { deployDiamonds } from "../scripts/deployDiamonds";
 import { BigNumberish, Signer } from "ethers";
 import {
   FakeGotchiCardFacet,
@@ -17,7 +17,6 @@ describe("Deploy tests", async function () {
   const testAddress = "0xf3678737dC45092dBb3fc1f49D89e3950Abb866d";
   const cardCount = 2535;
   const testCardBalance = 1000;
-  let diamondAddress: string;
   let cardFacet: FakeGotchiCardFacet;
   let nftFacet: FakeGotchiNFTFacet;
   let metadataFacet: MetadataFacet;
@@ -29,26 +28,24 @@ describe("Deploy tests", async function () {
   before(async function () {
     this.timeout(20000000);
 
-    diamondAddress = await deployDiamond();
-
-    console.log("diamond address:", diamondAddress);
+    const { cardDiamond, nftDiamond } = await deployDiamonds();
 
     accounts = await ethers.getSigners();
     const owner = await accounts[0].getAddress();
 
     cardFacet = (await ethers.getContractAt(
       "FakeGotchiCardFacet",
-      diamondAddress
+      cardDiamond
     )) as FakeGotchiCardFacet;
 
     nftFacet = (await ethers.getContractAt(
       "FakeGotchiNFTFacet",
-      diamondAddress
+      nftDiamond
     )) as FakeGotchiNFTFacet;
 
     metadataFacet = (await ethers.getContractAt(
       "MetadataFacet",
-      diamondAddress
+      nftDiamond
     )) as MetadataFacet;
 
     metadataFacetWithOwner = await impersonate(
@@ -63,12 +60,6 @@ describe("Deploy tests", async function () {
       ethers,
       network
     );
-  });
-
-  it("Set Diamond Address", async function () {
-    await (
-      await nftFacet.setAavegotchiAddress(maticAavegotchiDiamondAddress)
-    ).wait();
   });
 
   it("Start new card series", async function () {

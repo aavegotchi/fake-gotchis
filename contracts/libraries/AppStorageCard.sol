@@ -3,26 +3,6 @@ pragma solidity ^0.8.0;
 
 import {LibDiamond} from "./LibDiamond.sol";
 
-uint8 constant METADATA_STATUS_PENDING = 0;
-uint8 constant METADATA_STATUS_APPROVED = 1;
-uint8 constant METADATA_STATUS_DECLINED = 2;
-
-struct Metadata {
-    string fileHash;
-    bytes32 name;
-    address publisher;
-    string publisherName;
-    string externalLink;
-    string description;
-    address artist;
-    string artistName;
-    uint256[2] royalty; // royalty[0]: publisher, royalty[1]: artist
-    uint256 rarity;
-    uint256 count;
-    uint256 createdAt;
-    uint8 status;
-}
-
 struct CardAppStorage {
     address nftDiamond;
     // Fake Gotchi Card ERC1155
