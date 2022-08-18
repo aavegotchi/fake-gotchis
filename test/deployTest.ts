@@ -1,7 +1,4 @@
-import {
-  impersonate,
-  maticAavegotchiDiamondAddress,
-} from "../scripts/helperFunctions";
+import { impersonate } from "../scripts/helperFunctions";
 import { expect } from "chai";
 import { ethers, network } from "hardhat";
 import { deployDiamonds } from "../scripts/deployDiamonds";
@@ -17,6 +14,8 @@ describe("Deploy tests", async function () {
   const testAddress = "0xf3678737dC45092dBb3fc1f49D89e3950Abb866d";
   const cardCount = 2535;
   const testCardBalance = 1000;
+  let cardDiamond: any;
+  let nftDiamond: any;
   let cardFacet: FakeGotchiCardFacet;
   let nftFacet: FakeGotchiNFTFacet;
   let metadataFacet: MetadataFacet;
@@ -28,7 +27,9 @@ describe("Deploy tests", async function () {
   before(async function () {
     this.timeout(20000000);
 
-    const { cardDiamond, nftDiamond } = await deployDiamonds();
+    const diamonds = await deployDiamonds();
+    cardDiamond = diamonds.cardDiamond;
+    nftDiamond = diamonds.nftDiamond;
 
     accounts = await ethers.getSigners();
     const owner = await accounts[0].getAddress();
@@ -70,7 +71,14 @@ describe("Deploy tests", async function () {
     cardSeriesId = event!.args!.id;
     expect(cardCount).to.equal(event!.args!.amount);
 
-    await (await cardFacet.sale(testAddress, testCardBalance)).wait();
+    await (
+      await cardFacet.safeTransferFromDiamond(
+        testAddress,
+        cardSeriesId,
+        testCardBalance,
+        []
+      )
+    ).wait();
     const cardBalance = await cardFacet.balanceOf(testAddress, cardSeriesId);
     expect(testCardBalance).to.equal(cardBalance);
   });
@@ -78,18 +86,14 @@ describe("Deploy tests", async function () {
   it("Add, approve and mint metadata", async function () {
     const count = 200;
     const mData = {
-      fileHash: "qwertyqwertyqwertyqwertyqwertyqw", //32 bytes
-      name: ethers.utils.formatBytes32String("qwertyqwertyqwertyqwerty1"), //25 bytes
+      fileHash: "q".repeat(32), // 32 bytes
+      name: ethers.utils.formatBytes32String("w".repeat(25)), // 25 bytes
       publisher: testAddress,
-      publisherName:
-        "qwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwerty", //72 bytes
-      externalLink:
-        "qwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwerty", // 240bytes
-      description:
-        "qwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwerty", // 120bytes
+      publisherName: "e".repeat(72), // 72 bytes
+      externalLink: "r".repeat(240), // 240 bytes
+      description: "t".repeat(120), // 120 bytes
       artist: ethers.constants.AddressZero,
-      artistName:
-        "qwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwertyqwerty", //72 bytes,
+      artistName: "y".repeat(72), // 72 bytes,
       royalty: [100, 0] as [
         PromiseOrValue<BigNumberish>,
         PromiseOrValue<BigNumberish>

@@ -1,7 +1,5 @@
-import { Signer } from "@ethersproject/abstract-signer";
 import { Contract } from "@ethersproject/contracts";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DiamondLoupeFacet, OwnershipFacet } from "../typechain-types";
+import { OwnershipFacet } from "../typechain-types";
 
 export const gasPrice = 80000000000;
 
@@ -60,46 +58,7 @@ export function getSelector(func: string, ethers: any) {
 
 export const maticAavegotchiDiamondAddress =
   "0x86935F11C86623deC8a25696E1C19a8659CbF95d";
-export const maticDiamondAddress = "";
 
 export async function diamondOwner(address: string, ethers: any) {
   return await (await ethers.getContractAt("OwnershipFacet", address)).owner();
-}
-
-export async function getFunctionsForFacet(facetAddress: string, ethers: any) {
-  const Loupe = (await ethers.getContractAt(
-    "DiamondLoupeFacet",
-    maticDiamondAddress
-  )) as DiamondLoupeFacet;
-  const functions = await Loupe.facetFunctionSelectors(facetAddress);
-  return functions;
-}
-
-export async function getDiamondSigner(
-  ethers: any,
-  network: any,
-  override?: string,
-  useLedger?: boolean
-) {
-  //Instantiate the Signer
-  let signer: Signer;
-  const owner = await (
-    (await ethers.getContractAt(
-      "OwnershipFacet",
-      maticDiamondAddress
-    )) as OwnershipFacet
-  ).owner();
-  const testing = ["hardhat", "localhost"].includes(network.name);
-
-  if (testing) {
-    await network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [override ? override : owner],
-    });
-    return await ethers.getSigner(override ? override : owner);
-  } else if (network.name === "matic") {
-    return (await ethers.getSigners())[0];
-  } else {
-    throw Error("Incorrect network selected");
-  }
 }

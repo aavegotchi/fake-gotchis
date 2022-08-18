@@ -217,9 +217,4 @@ contract FakeGotchiNFTFacet is Modifiers {
             safeTransferFrom(_from, _to, _tokenIds[index], _data);
         }
     }
-
-    function addSupportForERC165() external onlyOwner {
-        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        ds.supportedInterfaces[type(IERC721).interfaceId] = true;
-    }
 }
