@@ -26,7 +26,7 @@ export async function deployNftDiamond(cardAddress: string) {
   console.log("DiamondCutFacet deployed:", diamondCutFacet.address);
 
   // deploy Diamond
-  const Diamond = await ethers.getContractFactory("Diamond");
+  const Diamond = await ethers.getContractFactory("FakeGotchisNFTDiamond");
   const diamond = await Diamond.deploy(
     deployerAddress,
     diamondCutFacet.address,

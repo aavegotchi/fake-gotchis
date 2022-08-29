@@ -12,7 +12,7 @@ import {LibDiamond} from "../libraries/LibDiamond.sol";
 import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
 import {LibAppStorage, AppStorage} from "../libraries/AppStorage.sol";
 
-contract Diamond {
+contract FakeGotchisNFTDiamond {
     constructor(
         address _contractOwner,
         address _diamondCutFacet,
