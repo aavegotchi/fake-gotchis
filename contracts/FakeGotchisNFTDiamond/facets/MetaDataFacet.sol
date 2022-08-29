@@ -8,7 +8,6 @@ import "../../libraries/LibMeta.sol";
 import "../../libraries/LibERC721.sol";
 import "../../interfaces/IFakeGotchisCardDiamond.sol";
 import {IERC721} from "../../interfaces/IERC721.sol";
-import {ERC721Marketplace} from "../../interfaces/ERC721Marketplace.sol";
 
 contract MetadataFacet is Modifiers {
     event MetadataActionLog(

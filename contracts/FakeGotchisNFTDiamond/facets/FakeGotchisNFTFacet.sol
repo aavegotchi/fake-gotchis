@@ -7,7 +7,7 @@ import "../../libraries/LibStrings.sol";
 import "../../libraries/LibMeta.sol";
 import "../../libraries/LibERC721.sol";
 import {IERC721} from "../../interfaces/IERC721.sol";
-import {ERC721Marketplace} from "../../interfaces/ERC721Marketplace.sol";
+import {IERC721Marketplace} from "../../interfaces/IERC721Marketplace.sol";
 
 contract FakeGotchisNFTFacet is Modifiers {
     event AavegotchiAddressUpdated(address _aavegotchiDiamond);
@@ -116,7 +116,7 @@ contract FakeGotchisNFTFacet is Modifiers {
 
         //Update baazaar listing
         if (s.aavegotchiDiamond != address(0)) {
-            ERC721Marketplace(s.aavegotchiDiamond).updateERC721Listing(address(this), _tokenId, _from);
+            IERC721Marketplace(s.aavegotchiDiamond).updateERC721Listing(address(this), _tokenId, _from);
         }
     }
 
@@ -138,7 +138,7 @@ contract FakeGotchisNFTFacet is Modifiers {
 
         //Update baazaar listing
         if (s.aavegotchiDiamond != address(0)) {
-            ERC721Marketplace(s.aavegotchiDiamond).updateERC721Listing(address(this), _tokenId, _from);
+            IERC721Marketplace(s.aavegotchiDiamond).updateERC721Listing(address(this), _tokenId, _from);
         }
     }
 
@@ -158,7 +158,7 @@ contract FakeGotchisNFTFacet is Modifiers {
         LibERC721.transferFrom(sender, _from, _to, _tokenId);
 
         if (s.aavegotchiDiamond != address(0)) {
-            ERC721Marketplace(s.aavegotchiDiamond).updateERC721Listing(address(this), _tokenId, _from);
+            IERC721Marketplace(s.aavegotchiDiamond).updateERC721Listing(address(this), _tokenId, _from);
         }
     }
 
