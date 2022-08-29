@@ -189,7 +189,7 @@ contract FakeGotchiNFTFacet is Modifiers {
     }
 
     function name() external pure returns (string memory) {
-        return "Fake Gotchi NFT";
+        return "FAKE Gotchis";
     }
 
     /**
