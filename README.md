@@ -1,6 +1,6 @@
-# Fake Gotchi Diamonds
+# Fake Gotchis Diamonds
 
-This is an implementation for Fake Gotchi NFT
+This is an implementation for Fake Gotchis NFT
 **Note:** The loupe functions in DiamondLoupeFacet.sol MUST be added to a diamond and are required by the EIP-2535 Diamonds standard.
 
 ## Installation

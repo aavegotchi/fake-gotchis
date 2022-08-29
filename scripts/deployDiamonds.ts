@@ -5,16 +5,18 @@ import { deployNftDiamond } from "./nft/deploy";
 import { ethers } from "hardhat";
 
 export async function deployDiamonds() {
-  const cardDiamond = await deployCardDiamond();
-  const nftDiamond = await deployNftDiamond(cardDiamond);
+  const fakeGotchisCardDiamond = await deployCardDiamond();
+  const fakeGotchisNftDiamond = await deployNftDiamond(fakeGotchisCardDiamond);
 
   const fakeGotchiCardFacet = await ethers.getContractAt(
-    "FakeGotchiCardFacet",
-    cardDiamond
+    "FakeGotchisCardFacet",
+    fakeGotchisCardDiamond
   );
-  await (await fakeGotchiCardFacet.setNftAddress(nftDiamond)).wait();
+  await (
+    await fakeGotchiCardFacet.setFakeGotchisNftAddress(fakeGotchisNftDiamond)
+  ).wait();
 
-  return { cardDiamond, nftDiamond };
+  return { fakeGotchisCardDiamond, fakeGotchisNftDiamond };
 }
 
 // We recommend this pattern to be able to use async/await everywhere

@@ -6,7 +6,7 @@ import "../../libraries/LibDiamond.sol";
 import "../../libraries/LibStrings.sol";
 import "../../libraries/LibMeta.sol";
 import "../../libraries/LibERC721.sol";
-import "../../interfaces/ICardDiamond.sol";
+import "../../interfaces/IFakeGotchisCardDiamond.sol";
 import {IERC721} from "../../interfaces/IERC721.sol";
 import {ERC721Marketplace} from "../../interfaces/ERC721Marketplace.sol";
 
@@ -55,7 +55,7 @@ contract MetadataFacet is Modifiers {
         verifyMetadata(mData, count);
 
         // Burn card
-        ICardDiamond(s.cardDiamond).burn(_sender, count);
+        IFakeGotchisCardDiamond(s.fakeGotchisCardDiamond).burn(_sender, count);
 
         // save
         uint256 _metadataId = s.metadataIdCounter;

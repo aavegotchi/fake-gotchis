@@ -25,7 +25,7 @@ struct Metadata {
 
 struct AppStorage {
     address aavegotchiDiamond;
-    address cardDiamond;
+    address fakeGotchisCardDiamond;
     // Metadata
     mapping(address => bool) blocked;
     uint256 metadataIdCounter;
@@ -34,7 +34,7 @@ struct AppStorage {
     mapping(uint256 => address) metadataOwner;
     mapping(address => mapping(uint256 => uint256)) ownerMetadataIdIndexes;
     mapping(address => uint256[]) ownerMetadataIds;
-    // Fake Gotchi ERC721
+    // Fake Gotchis ERC721
     uint256 tokenIdCounter;
     uint256[] tokenIds;
     mapping(uint256 => uint256) fakeGotchis; // fake gotchi id => metadata id

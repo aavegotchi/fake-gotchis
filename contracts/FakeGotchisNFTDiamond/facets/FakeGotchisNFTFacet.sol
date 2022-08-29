@@ -9,18 +9,18 @@ import "../../libraries/LibERC721.sol";
 import {IERC721} from "../../interfaces/IERC721.sol";
 import {ERC721Marketplace} from "../../interfaces/ERC721Marketplace.sol";
 
-contract FakeGotchiNFTFacet is Modifiers {
+contract FakeGotchisNFTFacet is Modifiers {
     event AavegotchiAddressUpdated(address _aavegotchiDiamond);
-    event CardAddressUpdated(address _cardDiamond);
+    event FakeGotchisCardAddressUpdated(address _fakeGotchisCardDiamond);
 
     function setAavegotchiAddress(address _aavegotchiDiamond) external onlyOwner {
         s.aavegotchiDiamond = _aavegotchiDiamond;
         emit AavegotchiAddressUpdated(_aavegotchiDiamond);
     }
 
-    function setCardAddress(address _cardDiamond) external onlyOwner {
-        s.cardDiamond = _cardDiamond;
-        emit CardAddressUpdated(_cardDiamond);
+    function setFakeGotchisCardAddress(address _fakeGotchisCardDiamond) external onlyOwner {
+        s.fakeGotchisCardDiamond = _fakeGotchisCardDiamond;
+        emit FakeGotchisCardAddressUpdated(_fakeGotchisCardDiamond);
     }
 
     function getRoyaltyInfo(uint256 _tokenId) external view returns (address[2] memory, uint256[2] memory) {

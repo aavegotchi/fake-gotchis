@@ -6,13 +6,13 @@ import "../../libraries/LibStrings.sol";
 import "../../libraries/LibMeta.sol";
 import "../../libraries/LibERC1155.sol";
 
-contract FakeGotchiCardFacet is Modifiers {
+contract FakeGotchisCardFacet is Modifiers {
     event NewSeriesStarted(uint256 indexed id, uint256 indexed amount);
-    event NftAddressUpdated(address _nftDiamond);
+    event FakeGotchisNftAddressUpdated(address _fakeGotchisNftDiamond);
 
-    function setNftAddress(address _nftDiamond) external onlyOwner {
-        s.nftDiamond = _nftDiamond;
-        emit NftAddressUpdated(_nftDiamond);
+    function setFakeGotchisNftAddress(address _fakeGotchisNftDiamond) external onlyOwner {
+        s.fakeGotchisNftDiamond = _fakeGotchisNftDiamond;
+        emit FakeGotchisNftAddressUpdated(_fakeGotchisNftDiamond);
     }
 
     /**
