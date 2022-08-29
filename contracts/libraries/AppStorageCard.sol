@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {LibDiamond} from "./LibDiamond.sol";
 
 struct CardAppStorage {
+    address aavegotchiDiamond;
     address fakeGotchisNftDiamond;
     // Fake Gotchis Card ERC1155
     uint256 nextCardId;

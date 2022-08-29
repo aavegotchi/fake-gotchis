@@ -596,6 +596,26 @@ describe("Fake Gotchis tests", async function () {
         );
       });
     });
+    describe("setAavegotchiAddress", async function () {
+      it("Should revert if not diamond owner", async function () {
+        await expect(
+          cardFacetWithUser.setAavegotchiAddress(maticAavegotchiDiamondAddress)
+        ).to.be.revertedWith("LibDiamond: Must be contract owner");
+      });
+      it("Should set aavegotchi diamond address if diamond owner", async function () {
+        const receipt = await (
+          await cardFacetWithOwner.setAavegotchiAddress(
+            maticAavegotchiDiamondAddress
+          )
+        ).wait();
+        const event = receipt!.events!.find(
+          (event) => event.event === "AavegotchiAddressUpdated"
+        );
+        expect(event!.args!._aavegotchiDiamond).to.equal(
+          maticAavegotchiDiamondAddress
+        );
+      });
+    });
     describe("setFakeGotchisNftAddress", async function () {
       it("Should revert if not diamond owner", async function () {
         await expect(

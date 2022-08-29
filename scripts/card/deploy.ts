@@ -2,7 +2,7 @@
 import { Signer } from "@ethersproject/abstract-signer";
 import { ethers } from "hardhat";
 import { DiamondCutFacet, OwnershipFacet } from "../../typechain-types";
-import { gasPrice } from "../helperFunctions";
+import { gasPrice, maticAavegotchiDiamondAddress } from "../helperFunctions";
 
 const { getSelectors, FacetCutAction } = require("../libraries/diamond");
 
@@ -27,6 +27,7 @@ export async function deployCardDiamond() {
   const diamond = await Diamond.deploy(
     deployerAddress,
     diamondCutFacet.address,
+    maticAavegotchiDiamondAddress,
     { gasPrice: gasPrice }
   );
   await diamond.deployed();
