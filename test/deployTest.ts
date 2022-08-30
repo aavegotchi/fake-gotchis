@@ -22,6 +22,7 @@ describe("Deploy tests", async function () {
   let metadataFacetWithOwner: MetadataFacet;
   let metadataFacetWithUser: MetadataFacet;
   let accounts: Signer[];
+  let owner: any;
   let cardSeriesId: any;
 
   before(async function () {
@@ -32,7 +33,7 @@ describe("Deploy tests", async function () {
     fakeGotchisNftDiamond = diamonds.fakeGotchisNftDiamond;
 
     accounts = await ethers.getSigners();
-    const owner = await accounts[0].getAddress();
+    owner = await accounts[0].getAddress();
 
     cardFacet = (await ethers.getContractAt(
       "FakeGotchisCardFacet",
@@ -72,7 +73,8 @@ describe("Deploy tests", async function () {
     expect(cardCount).to.equal(event!.args!.amount);
 
     await (
-      await cardFacet.safeTransferFromDiamond(
+      await cardFacet.safeTransferFrom(
+        owner,
         testAddress,
         cardSeriesId,
         testCardBalance,

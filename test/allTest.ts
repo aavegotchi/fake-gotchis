@@ -229,7 +229,7 @@ describe("Fake Gotchis tests", async function () {
       });
       it("Should return balance if have cards", async function () {
         const balance = await cardFacetWithUser.balanceOf(
-          fakeGotchisCardDiamond,
+          ownerAddress,
           cardSeriesId
         );
         expect(balance).to.equal(cardCount);
@@ -246,184 +246,13 @@ describe("Fake Gotchis tests", async function () {
       });
       it("Should return correct balance", async function () {
         const balances = await cardFacetWithUser.balanceOfBatch(
-          [ownerAddress, userAddress, fakeGotchisCardDiamond],
-          [cardSeriesId.add(1), cardSeriesId, cardSeriesId]
+          [ownerAddress, ownerAddress, userAddress, fakeGotchisCardDiamond],
+          [cardSeriesId.add(1), cardSeriesId, cardSeriesId, cardSeriesId]
         );
         expect(balances[0]).to.equal(0);
-        expect(balances[1]).to.equal(0);
-        expect(balances[2]).to.equal(cardCount);
-      });
-    });
-    describe("safeTransferFromDiamond", async function () {
-      it("Should revert if invalid diamond owner", async function () {
-        await expect(
-          cardFacetWithUser.safeTransferFromDiamond(
-            ownerAddress,
-            cardSeriesId,
-            1,
-            []
-          )
-        ).to.be.revertedWith("LibDiamond: Must be contract owner");
-      });
-      describe("Param validation (_safeTransferFrom)", async function () {
-        it("Should revert if _to is zero address", async function () {
-          await expect(
-            cardFacetWithOwner.safeTransferFromDiamond(
-              ethers.constants.AddressZero,
-              cardSeriesId,
-              1,
-              []
-            )
-          ).to.be.revertedWith("FGCard: Can't transfer to 0 address");
-        });
-        it("Should revert if not enough balance or invalid id", async function () {
-          await expect(
-            cardFacetWithOwner.safeTransferFromDiamond(
-              userAddress,
-              cardSeriesId,
-              cardCount + 1,
-              []
-            )
-          ).to.be.revertedWith("FGCard: Doesn't have that many to transfer");
-          await expect(
-            cardFacetWithOwner.safeTransferFromDiamond(
-              userAddress,
-              cardSeriesId.add(1),
-              1,
-              []
-            )
-          ).to.be.revertedWith("FGCard: Doesn't have that many to transfer");
-        });
-      });
-      it("Should transfer from diamond if valid diamond owner and params", async function () {
-        const balanceDiamondBefore = await cardFacetWithUser.balanceOf(
-          fakeGotchisCardDiamond,
-          cardSeriesId
-        );
-        const balanceUserBefore = await cardFacetWithUser.balanceOf(
-          userAddress,
-          cardSeriesId
-        );
-        const topic = utils.id(
-          "TransferSingle(address,address,address,uint256,uint256)"
-        );
-        const receipt = await (
-          await cardFacetWithOwner.safeTransferFromDiamond(
-            userAddress,
-            cardSeriesId,
-            cardTransferAmount,
-            []
-          )
-        ).wait();
-        const event = receipt!.events!.find(
-          (event) => event.topics && event.topics[0] === topic
-        );
-        expect(event!.address).to.equal(fakeGotchisCardDiamond);
-        const balanceDiamondAfter = await cardFacetWithUser.balanceOf(
-          fakeGotchisCardDiamond,
-          cardSeriesId
-        );
-        const balanceUserAfter = await cardFacetWithUser.balanceOf(
-          userAddress,
-          cardSeriesId
-        );
-        expect(balanceDiamondAfter.add(cardTransferAmount)).to.equal(
-          balanceDiamondBefore
-        );
-        expect(balanceUserBefore.add(cardTransferAmount)).to.equal(
-          balanceUserAfter
-        );
-      });
-    });
-    describe("safeBatchTransferFromDiamond", async function () {
-      it("Should revert if invalid diamond owner", async function () {
-        await expect(
-          cardFacetWithUser.safeBatchTransferFromDiamond(
-            ownerAddress,
-            [cardSeriesId],
-            [1],
-            []
-          )
-        ).to.be.revertedWith("LibDiamond: Must be contract owner");
-      });
-      describe("Param validation (_safeBatchTransferFrom)", async function () {
-        it("Should revert if array length not matched", async function () {
-          await expect(
-            cardFacetWithOwner.safeBatchTransferFromDiamond(
-              userAddress,
-              [cardSeriesId],
-              [1, 1],
-              []
-            )
-          ).to.be.revertedWith("FGCard: ids not same length as amounts");
-        });
-        it("Should revert if _to is zero address", async function () {
-          await expect(
-            cardFacetWithOwner.safeBatchTransferFromDiamond(
-              ethers.constants.AddressZero,
-              [cardSeriesId],
-              [1],
-              []
-            )
-          ).to.be.revertedWith("FGCard: Can't transfer to 0 address");
-        });
-        it("Should revert if not enough balance or invalid id", async function () {
-          await expect(
-            cardFacetWithOwner.safeBatchTransferFromDiamond(
-              userAddress,
-              [cardSeriesId],
-              [cardCount + 1],
-              []
-            )
-          ).to.be.revertedWith("FGCard: Doesn't have that many to transfer");
-          await expect(
-            cardFacetWithOwner.safeBatchTransferFromDiamond(
-              userAddress,
-              [cardSeriesId.add(1)],
-              [1],
-              []
-            )
-          ).to.be.revertedWith("FGCard: Doesn't have that many to transfer");
-        });
-      });
-      it("Should transfer from diamond if valid diamond owner and params", async function () {
-        const balanceDiamondBefore = await cardFacetWithUser.balanceOf(
-          fakeGotchisCardDiamond,
-          cardSeriesId
-        );
-        const balanceUserBefore = await cardFacetWithUser.balanceOf(
-          userAddress,
-          cardSeriesId
-        );
-        const topic = utils.id(
-          "TransferBatch(address,address,address,uint256[],uint256[])"
-        );
-        const receipt = await (
-          await cardFacetWithOwner.safeBatchTransferFromDiamond(
-            userAddress,
-            [cardSeriesId],
-            [cardTransferAmount],
-            []
-          )
-        ).wait();
-        const event = receipt!.events!.find(
-          (event) => event.topics && event.topics[0] === topic
-        );
-        expect(event!.address).to.equal(fakeGotchisCardDiamond);
-        const balanceDiamondAfter = await cardFacetWithUser.balanceOf(
-          fakeGotchisCardDiamond,
-          cardSeriesId
-        );
-        const balanceUserAfter = await cardFacetWithUser.balanceOf(
-          userAddress,
-          cardSeriesId
-        );
-        expect(balanceDiamondAfter.add(cardTransferAmount)).to.equal(
-          balanceDiamondBefore
-        );
-        expect(balanceUserBefore.add(cardTransferAmount)).to.equal(
-          balanceUserAfter
-        );
+        expect(balances[1]).to.equal(cardCount);
+        expect(balances[2]).to.equal(0);
+        expect(balances[3]).to.equal(0);
       });
     });
     describe("safeTransferFrom", async function () {
@@ -484,11 +313,11 @@ describe("Fake Gotchis tests", async function () {
           "TransferSingle(address,address,address,uint256,uint256)"
         );
         const receipt = await (
-          await cardFacetWithUser.safeTransferFrom(
-            userAddress,
+          await cardFacetWithOwner.safeTransferFrom(
             ownerAddress,
+            userAddress,
             cardSeriesId,
-            cardTransferAmount2,
+            cardTransferAmount,
             []
           )
         ).wait();
@@ -504,11 +333,11 @@ describe("Fake Gotchis tests", async function () {
           userAddress,
           cardSeriesId
         );
-        expect(balanceOwnerBefore.add(cardTransferAmount2)).to.equal(
-          balanceOwnerAfter
+        expect(balanceOwnerAfter.add(cardTransferAmount)).to.equal(
+          balanceOwnerBefore
         );
-        expect(balanceUserAfter.add(cardTransferAmount2)).to.equal(
-          balanceUserBefore
+        expect(balanceUserBefore.add(cardTransferAmount)).to.equal(
+          balanceUserAfter
         );
       });
     });
@@ -888,7 +717,8 @@ describe("Fake Gotchis tests", async function () {
         it("Should revert if bad faith user try to add Metadata", async function () {
           // Get card
           await (
-            await cardFacetWithOwner.safeTransferFromDiamond(
+            await cardFacetWithOwner.safeTransferFrom(
+              ownerAddress,
               user2Address,
               cardSeriesId,
               cardTransferAmount,
@@ -960,7 +790,8 @@ describe("Fake Gotchis tests", async function () {
         };
         // Get card
         await (
-          await cardFacetWithOwner.safeTransferFromDiamond(
+          await cardFacetWithOwner.safeTransferFrom(
+            ownerAddress,
             user3Address,
             cardSeriesId,
             cardTransferAmount,
