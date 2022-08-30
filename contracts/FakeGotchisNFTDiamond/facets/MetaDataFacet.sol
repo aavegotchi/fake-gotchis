@@ -111,7 +111,13 @@ contract MetadataFacet is Modifiers {
         address _sender = LibMeta.msgSender();
         require(_sender == s.metadataOwner[_id], "Metadata: Not metadata owner");
         Metadata memory mData = s.metadata[_id];
-        require(mData.status == METADATA_STATUS_APPROVED, "Metadata: Not approved");
+        require(mData.status != METADATA_STATUS_DECLINED, "Metadata: Not approved");
+        if (mData.status == METADATA_STATUS_PENDING) {
+            require(mData.createdAt + 5 days <= block.timestamp, "Metadata: Still pending");
+            s.metadata[_id].status = METADATA_STATUS_APPROVED;
+            // emit event with metadata input
+            logMetadata(_id);
+        }
         require(mData.count != 0, "Metadata: Already mint");
         LibERC721.safeBatchMint(mData.publisher, _id, mData.count);
         s.metadata[_id].count = 0;

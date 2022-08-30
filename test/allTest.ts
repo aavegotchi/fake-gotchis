@@ -25,6 +25,7 @@ describe("Fake Gotchis tests", async function () {
   let metadataFacetWithOwner: MetadataFacet;
   let metadataFacetWithUser: MetadataFacet;
   let metadataFacetWithUser2: MetadataFacet;
+  let metadataFacetWithUser3: MetadataFacet;
   let nftFacetWithOwner: FakeGotchisNFTFacet;
   let nftFacetWithUser: FakeGotchisNFTFacet;
   let nftFacetWithUser2: FakeGotchisNFTFacet;
@@ -35,6 +36,8 @@ describe("Fake Gotchis tests", async function () {
   let userAddress: any;
   let user2: Signer;
   let user2Address: any;
+  let user3: Signer;
+  let user3Address: any;
 
   // card test data
   const cardCount = 2535;
@@ -44,6 +47,8 @@ describe("Fake Gotchis tests", async function () {
 
   // test metadata
   const mDataCount = 10;
+  const mDataCount3 = 5;
+  const totalSupply = mDataCount + mDataCount3;
   const fileHash = "q".repeat(32); // 32 bytes
   const name = ethers.utils.formatBytes32String("w".repeat(25)); // 25 bytes
   const publisherName = "e".repeat(72); // 72 bytes
@@ -63,9 +68,11 @@ describe("Fake Gotchis tests", async function () {
     owner = signers[0];
     user = signers[1];
     user2 = signers[2];
+    user3 = signers[3];
     ownerAddress = await owner.getAddress();
     userAddress = await user.getAddress();
     user2Address = await user2.getAddress();
+    user3Address = await user3.getAddress();
 
     cardFacet = (await ethers.getContractAt(
       "FakeGotchisCardFacet",
@@ -108,6 +115,12 @@ describe("Fake Gotchis tests", async function () {
     );
     metadataFacetWithUser2 = await impersonate(
       user2Address,
+      metadataFacet,
+      ethers,
+      network
+    );
+    metadataFacetWithUser3 = await impersonate(
+      user3Address,
       metadataFacet,
       ethers,
       network
@@ -902,6 +915,7 @@ describe("Fake Gotchis tests", async function () {
       });
     });
     describe("mint", async function () {
+      let pendingMetadataId: BigNumber;
       it("Should revert if invalid metadata owner", async function () {
         await expect(
           metadataFacetWithUser2.mint(metadataId)
@@ -938,6 +952,63 @@ describe("Fake Gotchis tests", async function () {
         await expect(metadataFacetWithUser.mint(metadataId)).to.be.revertedWith(
           "Already mint"
         );
+      });
+      it("Should fail if metadata is pending and created in 5 days", async function () {
+        const testMetaData = {
+          ...metaData,
+          publisher: user3Address,
+        };
+        // Get card
+        await (
+          await cardFacetWithOwner.safeTransferFromDiamond(
+            user3Address,
+            cardSeriesId,
+            cardTransferAmount,
+            []
+          )
+        ).wait();
+        const receipt = await (
+          await metadataFacetWithUser3.addMetadata(
+            testMetaData,
+            cardSeriesId,
+            mDataCount3
+          )
+        ).wait();
+        const event = receipt!.events!.find(
+          (event) => event.event === "MetadataActionLog"
+        );
+        pendingMetadataId = event!.args!.id;
+        expect(event!.args!.sender).to.equal(user3Address);
+        expect(event!.args!.publisher).to.equal(testMetaData.publisher);
+        expect(event!.args!.status).to.equal(0);
+        await expect(
+          metadataFacetWithUser3.mint(pendingMetadataId)
+        ).to.be.revertedWith("Metadata: Still pending");
+      });
+      it("Should succeed if valid metadata id and still pending after 5 days", async function () {
+        await ethers.provider.send("evm_increaseTime", [5 * 86400]);
+        await ethers.provider.send("evm_mine", []);
+        const topic1 = utils.id("Mint(address,uint256)");
+        const topic2 = utils.id("Transfer(address,address,uint256)");
+        const receipt = await (
+          await metadataFacetWithUser3.mint(pendingMetadataId)
+        ).wait();
+        const event = receipt!.events!.find(
+          (event) => event.event === "MetadataActionLog"
+        );
+        const events1 = receipt!.events!.filter(
+          (event) => event.topics && event.topics[0] === topic1
+        );
+        const events2 = receipt!.events!.filter(
+          (event) => event.topics && event.topics[0] === topic2
+        );
+        expect(event!.args!.status).to.equal(1);
+        expect(events1.length).to.equal(mDataCount3);
+        expect(events2.length).to.equal(mDataCount3);
+        const savedMetaData = await metadataFacetWithUser3.getMetadata(
+          pendingMetadataId
+        );
+        expect(savedMetaData.count).to.equal(0);
       });
     });
   });
@@ -984,14 +1055,16 @@ describe("Fake Gotchis tests", async function () {
     });
     describe("totalSupply", async function () {
       it("Should return total supply", async function () {
-        const totalSupply = await nftFacetWithUser.totalSupply();
-        expect(totalSupply).to.equal(mDataCount);
+        const tSupply = await nftFacetWithUser.totalSupply();
+        expect(tSupply).to.equal(totalSupply);
       });
     });
     describe("tokenIdsOfOwner", async function () {
       it("Should return token ids if have any nft", async function () {
         const tokenIds = await nftFacetWithUser.tokenIdsOfOwner(userAddress);
         expect(tokenIds.length).to.equal(mDataCount);
+        const tokenIds3 = await nftFacetWithUser.tokenIdsOfOwner(user3Address);
+        expect(tokenIds3.length).to.equal(mDataCount3);
       });
       it("Should return empty array if have any nft", async function () {
         const tokenIds = await nftFacetWithUser.tokenIdsOfOwner(user2Address);
@@ -1002,6 +1075,8 @@ describe("Fake Gotchis tests", async function () {
       it("Should return length of tokens if have any nft", async function () {
         const balance = await nftFacetWithUser.balanceOf(userAddress);
         expect(balance).to.equal(mDataCount);
+        const balance3 = await nftFacetWithUser.balanceOf(user3Address);
+        expect(balance3).to.equal(mDataCount3);
       });
       it("Should return 0 if have any nft", async function () {
         const balance = await nftFacetWithUser.balanceOf(user2Address);
