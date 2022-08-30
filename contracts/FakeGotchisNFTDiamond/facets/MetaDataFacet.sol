@@ -45,7 +45,7 @@ contract MetadataFacet is Modifiers {
         uint256 rarity;
     }
 
-    function addMetadata(MetadataInput memory mData, uint256 count) external {
+    function addMetadata(MetadataInput memory mData, uint256 series, uint256 count) external {
         address _sender = LibMeta.msgSender();
         // check blocked
         require(!s.blocked[_sender], "Metadata: Blocked address");
@@ -54,7 +54,7 @@ contract MetadataFacet is Modifiers {
         verifyMetadata(mData, count);
 
         // Burn card
-        IFakeGotchisCardDiamond(s.fakeGotchisCardDiamond).burn(_sender, count);
+        IFakeGotchisCardDiamond(s.fakeGotchisCardDiamond).burn(_sender, series, count);
 
         // save
         uint256 _metadataId = s.metadataIdCounter;

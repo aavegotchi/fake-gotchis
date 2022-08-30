@@ -59,13 +59,10 @@ contract FakeGotchisCardFacet is Modifiers {
         emit LibERC1155.ApprovalForAll(sender, _operator, _approved);
     }
 
-    function burn(address _cardOwner, uint256 _amount) external onlyNftDiamond {
+    function burn(address _cardOwner, uint256 _cardSeriesId, uint256 _amount) external onlyNftDiamond {
         // TODO: check new series started, check s.nextCardId > 0
-        // check card balance
-        uint256 currentCardId = s.nextCardId - 1;
-        // require(s.cards[_sender][currentCardId] >= count, "FGCard: Doesn't have enough card");
         // burn card
-        LibERC1155._burn(_cardOwner, currentCardId, _amount);
+        LibERC1155._burn(_cardOwner, _cardSeriesId, _amount);
     }
 
     /**

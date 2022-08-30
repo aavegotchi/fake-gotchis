@@ -101,7 +101,7 @@ describe("Deploy tests", async function () {
       rarity: 500,
     };
     let receipt = await (
-      await metadataFacetWithUser.addMetadata(mData, count)
+      await metadataFacetWithUser.addMetadata(mData, cardSeriesId, count)
     ).wait();
     let event = receipt!.events!.find(
       (event) => event.event === "MetadataActionLog"
