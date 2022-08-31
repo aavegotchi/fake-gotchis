@@ -4,8 +4,9 @@ pragma solidity ^0.8.0;
 import {LibDiamond} from "./LibDiamond.sol";
 
 struct CardAppStorage {
-    address nftDiamond;
-    // Fake Gotchi Card ERC1155
+    address aavegotchiDiamond;
+    address fakeGotchisNftDiamond;
+    // Fake Gotchis Card ERC1155
     uint256 nextCardId;
     string cardBaseUri;
     mapping(uint256 => uint256) maxCards; // card id => max card amount
@@ -30,7 +31,7 @@ contract Modifiers {
     }
 
     modifier onlyNftDiamond() {
-        require(msg.sender == s.nftDiamond, "LibDiamond: Must be NFT diamond");
+        require(msg.sender == s.fakeGotchisNftDiamond, "LibDiamond: Must be NFT diamond");
         _;
     }
 }

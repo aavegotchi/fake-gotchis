@@ -2,12 +2,12 @@
 import { Signer } from "@ethersproject/abstract-signer";
 import { ethers } from "hardhat";
 import { DiamondCutFacet, OwnershipFacet } from "../../typechain-types";
-import { gasPrice } from "../helperFunctions";
+import { gasPrice, maticAavegotchiDiamondAddress } from "../helperFunctions";
 
 const { getSelectors, FacetCutAction } = require("../libraries/diamond");
 
 export async function deployCardDiamond() {
-  console.log("Deploying Card Diamond contracts\n");
+  console.log("Deploying FAKE Gotchis Card Diamond contracts\n");
 
   const accounts: Signer[] = await ethers.getSigners();
   const deployer = accounts[0];
@@ -23,14 +23,15 @@ export async function deployCardDiamond() {
   console.log("DiamondCutFacet deployed:", diamondCutFacet.address);
 
   // deploy Diamond
-  const Diamond = await ethers.getContractFactory("CardDiamond");
+  const Diamond = await ethers.getContractFactory("FakeGotchisCardDiamond");
   const diamond = await Diamond.deploy(
     deployerAddress,
     diamondCutFacet.address,
+    maticAavegotchiDiamondAddress,
     { gasPrice: gasPrice }
   );
   await diamond.deployed();
-  console.log("Card Diamond deployed:", diamond.address);
+  console.log("FAKE Gotchis Card Diamond deployed:", diamond.address);
 
   // deploy DiamondInit
   const DiamondInit = await ethers.getContractFactory("DiamondInit");
@@ -39,11 +40,11 @@ export async function deployCardDiamond() {
   console.log("DiamondInit deployed:", diamondInit.address);
 
   // deploy facets
-  console.log("Deploying facets for Card Diamond\n");
+  console.log("Deploying facets for FAKE Gotchis Card Diamond\n");
   const FacetNames = [
     "DiamondLoupeFacet",
     "OwnershipFacet",
-    "FakeGotchiCardFacet",
+    "FakeGotchisCardFacet",
   ];
   const cut = [];
   for (const FacetName of FacetNames) {
@@ -70,7 +71,7 @@ export async function deployCardDiamond() {
     functionCall,
     { gasPrice: gasPrice }
   );
-  console.log("Card Diamond cut tx: ", tx.hash);
+  console.log("FAKE Gotchis Card Diamond cut tx: ", tx.hash);
   const receipt = await tx.wait();
   if (!receipt.status) {
     throw Error(`Diamond upgrade failed: ${tx.hash}`);
@@ -82,11 +83,11 @@ export async function deployCardDiamond() {
     diamond.address
   );
   const diamondOwner = await ownershipFacet.owner();
-  console.log("Card Diamond owner is:", diamondOwner);
+  console.log("FAKE Gotchis Card Diamond owner is:", diamondOwner);
 
   if (diamondOwner !== deployerAddress) {
     throw new Error(
-      `Card Diamond owner ${diamondOwner} is not deployer address ${deployerAddress}!`
+      `FAKE Gotchis Card Diamond owner ${diamondOwner} is not deployer address ${deployerAddress}!`
     );
   }
 

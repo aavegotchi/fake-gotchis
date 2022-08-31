@@ -7,27 +7,28 @@ import { ethers, network } from "hardhat";
 import { BigNumber, BigNumberish, Signer, utils } from "ethers";
 import { deployDiamonds } from "../scripts/deployDiamonds";
 import {
-  FakeGotchiCardFacet,
-  FakeGotchiNFTFacet,
+  FakeGotchisCardFacet,
+  FakeGotchisNFTFacet,
   MetadataFacet,
 } from "../typechain-types";
 import { PromiseOrValue } from "../typechain-types/common";
 
-describe("Fake Gotchi tests", async function () {
+describe("Fake Gotchis tests", async function () {
   // contracts, contract addressees, signers
-  let cardDiamond: any;
-  let nftDiamond: any;
-  let cardFacet: FakeGotchiCardFacet;
-  let nftFacet: FakeGotchiNFTFacet;
+  let fakeGotchisCardDiamond: any;
+  let fakeGotchisNftDiamond: any;
+  let cardFacet: FakeGotchisCardFacet;
+  let nftFacet: FakeGotchisNFTFacet;
   let metadataFacet: MetadataFacet;
-  let cardFacetWithOwner: FakeGotchiCardFacet;
-  let cardFacetWithUser: FakeGotchiCardFacet;
+  let cardFacetWithOwner: FakeGotchisCardFacet;
+  let cardFacetWithUser: FakeGotchisCardFacet;
   let metadataFacetWithOwner: MetadataFacet;
   let metadataFacetWithUser: MetadataFacet;
   let metadataFacetWithUser2: MetadataFacet;
-  let nftFacetWithOwner: FakeGotchiNFTFacet;
-  let nftFacetWithUser: FakeGotchiNFTFacet;
-  let nftFacetWithUser2: FakeGotchiNFTFacet;
+  let metadataFacetWithUser3: MetadataFacet;
+  let nftFacetWithOwner: FakeGotchisNFTFacet;
+  let nftFacetWithUser: FakeGotchisNFTFacet;
+  let nftFacetWithUser2: FakeGotchisNFTFacet;
   let cardSeriesId: BigNumber;
   let owner: Signer;
   let ownerAddress: any;
@@ -35,6 +36,8 @@ describe("Fake Gotchi tests", async function () {
   let userAddress: any;
   let user2: Signer;
   let user2Address: any;
+  let user3: Signer;
+  let user3Address: any;
 
   // card test data
   const cardCount = 2535;
@@ -44,6 +47,8 @@ describe("Fake Gotchi tests", async function () {
 
   // test metadata
   const mDataCount = 10;
+  const mDataCount3 = 5;
+  const totalSupply = mDataCount + mDataCount3;
   const fileHash = "q".repeat(32); // 32 bytes
   const name = ethers.utils.formatBytes32String("w".repeat(25)); // 25 bytes
   const publisherName = "e".repeat(72); // 72 bytes
@@ -56,30 +61,32 @@ describe("Fake Gotchi tests", async function () {
     this.timeout(20000000);
 
     const diamonds = await deployDiamonds();
-    cardDiamond = diamonds.cardDiamond;
-    nftDiamond = diamonds.nftDiamond;
+    fakeGotchisCardDiamond = diamonds.fakeGotchisCardDiamond;
+    fakeGotchisNftDiamond = diamonds.fakeGotchisNftDiamond;
 
     const signers = await ethers.getSigners();
     owner = signers[0];
     user = signers[1];
     user2 = signers[2];
+    user3 = signers[3];
     ownerAddress = await owner.getAddress();
     userAddress = await user.getAddress();
     user2Address = await user2.getAddress();
+    user3Address = await user3.getAddress();
 
     cardFacet = (await ethers.getContractAt(
-      "FakeGotchiCardFacet",
-      cardDiamond
-    )) as FakeGotchiCardFacet;
+      "FakeGotchisCardFacet",
+      fakeGotchisCardDiamond
+    )) as FakeGotchisCardFacet;
 
     nftFacet = (await ethers.getContractAt(
-      "FakeGotchiNFTFacet",
-      nftDiamond
-    )) as FakeGotchiNFTFacet;
+      "FakeGotchisNFTFacet",
+      fakeGotchisNftDiamond
+    )) as FakeGotchisNFTFacet;
 
     metadataFacet = (await ethers.getContractAt(
       "MetadataFacet",
-      nftDiamond
+      fakeGotchisNftDiamond
     )) as MetadataFacet;
 
     cardFacetWithOwner = await impersonate(
@@ -108,6 +115,12 @@ describe("Fake Gotchi tests", async function () {
     );
     metadataFacetWithUser2 = await impersonate(
       user2Address,
+      metadataFacet,
+      ethers,
+      network
+    );
+    metadataFacetWithUser3 = await impersonate(
+      user3Address,
       metadataFacet,
       ethers,
       network
@@ -148,7 +161,7 @@ describe("Fake Gotchi tests", async function () {
     };
   });
 
-  describe("FakeGotchiCardFacet", async function () {
+  describe("FakeGotchisCardFacet", async function () {
     describe("startNewSeries", async function () {
       it("Should revert if invalid diamond owner", async function () {
         await expect(
@@ -185,7 +198,7 @@ describe("Fake Gotchi tests", async function () {
         const event = receipt!.events!.find(
           (event) => event.topics && event.topics[0] === topic
         );
-        expect(event!.address).to.equal(cardDiamond);
+        expect(event!.address).to.equal(fakeGotchisCardDiamond);
       });
     });
     describe("uri", async function () {
@@ -216,7 +229,7 @@ describe("Fake Gotchi tests", async function () {
       });
       it("Should return balance if have cards", async function () {
         const balance = await cardFacetWithUser.balanceOf(
-          cardDiamond,
+          fakeGotchisCardDiamond,
           cardSeriesId
         );
         expect(balance).to.equal(cardCount);
@@ -233,7 +246,7 @@ describe("Fake Gotchi tests", async function () {
       });
       it("Should return correct balance", async function () {
         const balances = await cardFacetWithUser.balanceOfBatch(
-          [ownerAddress, userAddress, cardDiamond],
+          [ownerAddress, userAddress, fakeGotchisCardDiamond],
           [cardSeriesId.add(1), cardSeriesId, cardSeriesId]
         );
         expect(balances[0]).to.equal(0);
@@ -284,7 +297,7 @@ describe("Fake Gotchi tests", async function () {
       });
       it("Should transfer from diamond if valid diamond owner and params", async function () {
         const balanceDiamondBefore = await cardFacetWithUser.balanceOf(
-          cardDiamond,
+          fakeGotchisCardDiamond,
           cardSeriesId
         );
         const balanceUserBefore = await cardFacetWithUser.balanceOf(
@@ -305,9 +318,9 @@ describe("Fake Gotchi tests", async function () {
         const event = receipt!.events!.find(
           (event) => event.topics && event.topics[0] === topic
         );
-        expect(event!.address).to.equal(cardDiamond);
+        expect(event!.address).to.equal(fakeGotchisCardDiamond);
         const balanceDiamondAfter = await cardFacetWithUser.balanceOf(
-          cardDiamond,
+          fakeGotchisCardDiamond,
           cardSeriesId
         );
         const balanceUserAfter = await cardFacetWithUser.balanceOf(
@@ -375,7 +388,7 @@ describe("Fake Gotchi tests", async function () {
       });
       it("Should transfer from diamond if valid diamond owner and params", async function () {
         const balanceDiamondBefore = await cardFacetWithUser.balanceOf(
-          cardDiamond,
+          fakeGotchisCardDiamond,
           cardSeriesId
         );
         const balanceUserBefore = await cardFacetWithUser.balanceOf(
@@ -396,9 +409,9 @@ describe("Fake Gotchi tests", async function () {
         const event = receipt!.events!.find(
           (event) => event.topics && event.topics[0] === topic
         );
-        expect(event!.address).to.equal(cardDiamond);
+        expect(event!.address).to.equal(fakeGotchisCardDiamond);
         const balanceDiamondAfter = await cardFacetWithUser.balanceOf(
-          cardDiamond,
+          fakeGotchisCardDiamond,
           cardSeriesId
         );
         const balanceUserAfter = await cardFacetWithUser.balanceOf(
@@ -482,7 +495,7 @@ describe("Fake Gotchi tests", async function () {
         const event = receipt!.events!.find(
           (event) => event.topics && event.topics[0] === topic
         );
-        expect(event!.address).to.equal(cardDiamond);
+        expect(event!.address).to.equal(fakeGotchisCardDiamond);
         const balanceOwnerAfter = await cardFacetWithUser.balanceOf(
           ownerAddress,
           cardSeriesId
@@ -579,7 +592,7 @@ describe("Fake Gotchi tests", async function () {
         const event = receipt!.events!.find(
           (event) => event.topics && event.topics[0] === topic
         );
-        expect(event!.address).to.equal(cardDiamond);
+        expect(event!.address).to.equal(fakeGotchisCardDiamond);
         const balanceOwnerAfter = await cardFacetWithUser.balanceOf(
           ownerAddress,
           cardSeriesId
@@ -596,30 +609,54 @@ describe("Fake Gotchi tests", async function () {
         );
       });
     });
-    describe("setNftAddress", async function () {
+    describe("setAavegotchiAddress", async function () {
       it("Should revert if not diamond owner", async function () {
         await expect(
-          cardFacetWithUser.setNftAddress(nftDiamond)
+          cardFacetWithUser.setAavegotchiAddress(maticAavegotchiDiamondAddress)
+        ).to.be.revertedWith("LibDiamond: Must be contract owner");
+      });
+      it("Should set aavegotchi diamond address if diamond owner", async function () {
+        const receipt = await (
+          await cardFacetWithOwner.setAavegotchiAddress(
+            maticAavegotchiDiamondAddress
+          )
+        ).wait();
+        const event = receipt!.events!.find(
+          (event) => event.event === "AavegotchiAddressUpdated"
+        );
+        expect(event!.args!._aavegotchiDiamond).to.equal(
+          maticAavegotchiDiamondAddress
+        );
+      });
+    });
+    describe("setFakeGotchisNftAddress", async function () {
+      it("Should revert if not diamond owner", async function () {
+        await expect(
+          cardFacetWithUser.setFakeGotchisNftAddress(fakeGotchisNftDiamond)
         ).to.be.revertedWith("LibDiamond: Must be contract owner");
       });
       it("Should set fake gotchi nft diamond address if diamond owner", async function () {
         const receipt = await (
-          await cardFacetWithOwner.setNftAddress(nftDiamond)
+          await cardFacetWithOwner.setFakeGotchisNftAddress(
+            fakeGotchisNftDiamond
+          )
         ).wait();
         const event = receipt!.events!.find(
-          (event) => event.event === "NftAddressUpdated"
+          (event) => event.event === "FakeGotchisNftAddressUpdated"
         );
-        expect(event!.args!._nftDiamond).to.equal(nftDiamond);
+        expect(event!.args!._fakeGotchisNftDiamond).to.equal(
+          fakeGotchisNftDiamond
+        );
       });
     });
     describe("burn", async function () {
       it("Should revert if not nft diamond", async function () {
         await expect(
-          cardFacetWithOwner.burn(cardDiamond, 1)
+          cardFacetWithOwner.burn(fakeGotchisCardDiamond, cardSeriesId, 1)
         ).to.be.revertedWith("LibDiamond: Must be NFT diamond");
-        await expect(cardFacetWithUser.burn(userAddress, 1)).to.be.revertedWith(
-          "LibDiamond: Must be NFT diamond"
-        );
+        await expect(
+          cardFacetWithUser.burn(userAddress, cardSeriesId, 1)
+        ).to.be.revertedWith("LibDiamond: Must be NFT diamond");
       });
       // Note: Success case will be in addMetadata() test
     });
@@ -636,7 +673,11 @@ describe("Fake Gotchi tests", async function () {
           publisher: ethers.constants.AddressZero,
         };
         await expect(
-          metadataFacetWithUser.addMetadata(testMetaData, mDataCount)
+          metadataFacetWithUser.addMetadata(
+            testMetaData,
+            cardSeriesId,
+            mDataCount
+          )
         ).to.be.revertedWith("Metadata: Publisher cannot be zero address");
       });
       it("Should revert if file hash not exist", async function () {
@@ -645,7 +686,11 @@ describe("Fake Gotchi tests", async function () {
           fileHash: "",
         };
         await expect(
-          metadataFacetWithUser.addMetadata(testMetaData, mDataCount)
+          metadataFacetWithUser.addMetadata(
+            testMetaData,
+            cardSeriesId,
+            mDataCount
+          )
         ).to.be.revertedWith("Metadata: File hash should exist");
       });
       it("Should revert if description length exceeds max (120 bytes)", async function () {
@@ -654,7 +699,11 @@ describe("Fake Gotchi tests", async function () {
           description: "q".repeat(121),
         };
         await expect(
-          metadataFacetWithUser.addMetadata(testMetaData, mDataCount)
+          metadataFacetWithUser.addMetadata(
+            testMetaData,
+            cardSeriesId,
+            mDataCount
+          )
         ).to.be.revertedWith("Metadata: Max description length is 120 bytes");
       });
       it("Should revert if sum of royalty splits not 100", async function () {
@@ -663,7 +712,11 @@ describe("Fake Gotchi tests", async function () {
           royalty: [50, 49],
         };
         await expect(
-          metadataFacetWithUser.addMetadata(testMetaData, mDataCount)
+          metadataFacetWithUser.addMetadata(
+            testMetaData,
+            cardSeriesId,
+            mDataCount
+          )
         ).to.be.revertedWith("Metadata: Sum of royalty splits not 100");
       });
       it("Should revert if artist royalty split is not 0 for zero address", async function () {
@@ -673,7 +726,11 @@ describe("Fake Gotchi tests", async function () {
           artist: ethers.constants.AddressZero,
         };
         await expect(
-          metadataFacetWithUser.addMetadata(testMetaData, mDataCount)
+          metadataFacetWithUser.addMetadata(
+            testMetaData,
+            cardSeriesId,
+            mDataCount
+          )
         ).to.be.revertedWith(
           "Metadata: Artist royalty split must be 0 with zero address"
         );
@@ -684,12 +741,16 @@ describe("Fake Gotchi tests", async function () {
           rarity: 0,
         };
         await expect(
-          metadataFacetWithUser.addMetadata(testMetaData, mDataCount)
+          metadataFacetWithUser.addMetadata(
+            testMetaData,
+            cardSeriesId,
+            mDataCount
+          )
         ).to.be.revertedWith("Metadata: Invalid rarity value");
       });
       it("Should revert if invalid mint amount", async function () {
         await expect(
-          metadataFacetWithUser.addMetadata(metaData, 0)
+          metadataFacetWithUser.addMetadata(metaData, cardSeriesId, 0)
         ).to.be.revertedWith("Metadata: Invalid mint amount");
       });
       it("Should revert if not enough card for mint", async function () {
@@ -698,7 +759,14 @@ describe("Fake Gotchi tests", async function () {
           cardSeriesId
         );
         await expect(
-          metadataFacetWithUser.addMetadata(metaData, cardBalance.add(1))
+          metadataFacetWithUser.addMetadata(
+            metaData,
+            cardSeriesId,
+            cardBalance.add(1)
+          )
+        ).to.be.reverted;
+        await expect(
+          metadataFacetWithUser.addMetadata(metaData, cardSeriesId.add(1), 1)
         ).to.be.reverted;
       });
       it("Should succeed if all params are valid and have enough cards", async function () {
@@ -707,7 +775,11 @@ describe("Fake Gotchi tests", async function () {
           cardSeriesId
         );
         const receipt = await (
-          await metadataFacetWithUser.addMetadata(metaData, mDataCount)
+          await metadataFacetWithUser.addMetadata(
+            metaData,
+            cardSeriesId,
+            mDataCount
+          )
         ).wait();
         const event = receipt!.events!.find(
           (event) => event.event === "MetadataActionLog"
@@ -788,7 +860,11 @@ describe("Fake Gotchi tests", async function () {
       });
       it("Should succeed if valid id and not approved", async function () {
         let receipt = await (
-          await metadataFacetWithUser.addMetadata(metaData, mDataCount)
+          await metadataFacetWithUser.addMetadata(
+            metaData,
+            cardSeriesId,
+            mDataCount
+          )
         ).wait();
         let event = receipt!.events!.find(
           (event) => event.event === "MetadataActionLog"
@@ -821,7 +897,7 @@ describe("Fake Gotchi tests", async function () {
           ).wait();
           // add metadata
           let receipt = await (
-            await metadataFacetWithUser2.addMetadata(metaData, 1)
+            await metadataFacetWithUser2.addMetadata(metaData, cardSeriesId, 1)
           ).wait();
           let event = receipt!.events!.find(
             (event) => event.event === "MetadataActionLog"
@@ -833,12 +909,13 @@ describe("Fake Gotchi tests", async function () {
           ).wait();
           // bad faith account try to add metadata again
           await expect(
-            metadataFacetWithUser2.addMetadata(metaData, 1)
+            metadataFacetWithUser2.addMetadata(metaData, cardSeriesId, 1)
           ).to.be.revertedWith("Metadata: Blocked address");
         });
       });
     });
     describe("mint", async function () {
+      let pendingMetadataId: BigNumber;
       it("Should revert if invalid metadata owner", async function () {
         await expect(
           metadataFacetWithUser2.mint(metadataId)
@@ -876,9 +953,66 @@ describe("Fake Gotchi tests", async function () {
           "Already mint"
         );
       });
+      it("Should fail if metadata is pending and created in 5 days", async function () {
+        const testMetaData = {
+          ...metaData,
+          publisher: user3Address,
+        };
+        // Get card
+        await (
+          await cardFacetWithOwner.safeTransferFromDiamond(
+            user3Address,
+            cardSeriesId,
+            cardTransferAmount,
+            []
+          )
+        ).wait();
+        const receipt = await (
+          await metadataFacetWithUser3.addMetadata(
+            testMetaData,
+            cardSeriesId,
+            mDataCount3
+          )
+        ).wait();
+        const event = receipt!.events!.find(
+          (event) => event.event === "MetadataActionLog"
+        );
+        pendingMetadataId = event!.args!.id;
+        expect(event!.args!.sender).to.equal(user3Address);
+        expect(event!.args!.publisher).to.equal(testMetaData.publisher);
+        expect(event!.args!.status).to.equal(0);
+        await expect(
+          metadataFacetWithUser3.mint(pendingMetadataId)
+        ).to.be.revertedWith("Metadata: Still pending");
+      });
+      it("Should succeed if valid metadata id and still pending after 5 days", async function () {
+        await ethers.provider.send("evm_increaseTime", [5 * 86400]);
+        await ethers.provider.send("evm_mine", []);
+        const topic1 = utils.id("Mint(address,uint256)");
+        const topic2 = utils.id("Transfer(address,address,uint256)");
+        const receipt = await (
+          await metadataFacetWithUser3.mint(pendingMetadataId)
+        ).wait();
+        const event = receipt!.events!.find(
+          (event) => event.event === "MetadataActionLog"
+        );
+        const events1 = receipt!.events!.filter(
+          (event) => event.topics && event.topics[0] === topic1
+        );
+        const events2 = receipt!.events!.filter(
+          (event) => event.topics && event.topics[0] === topic2
+        );
+        expect(event!.args!.status).to.equal(1);
+        expect(events1.length).to.equal(mDataCount3);
+        expect(events2.length).to.equal(mDataCount3);
+        const savedMetaData = await metadataFacetWithUser3.getMetadata(
+          pendingMetadataId
+        );
+        expect(savedMetaData.count).to.equal(0);
+      });
     });
   });
-  describe("FakeGotchiNFTFacet", async function () {
+  describe("FakeGotchisNFTFacet", async function () {
     describe("setAavegotchiAddress", async function () {
       it("Should revert if not diamond owner", async function () {
         await expect(
@@ -899,32 +1033,38 @@ describe("Fake Gotchi tests", async function () {
         );
       });
     });
-    describe("setCardAddress", async function () {
+    describe("setFakeGotchisCardAddress", async function () {
       it("Should revert if not diamond owner", async function () {
         await expect(
-          nftFacetWithUser.setCardAddress(cardDiamond)
+          nftFacetWithUser.setFakeGotchisCardAddress(fakeGotchisCardDiamond)
         ).to.be.revertedWith("LibDiamond: Must be contract owner");
       });
       it("Should set card diamond address if diamond owner", async function () {
         const receipt = await (
-          await nftFacetWithOwner.setCardAddress(cardDiamond)
+          await nftFacetWithOwner.setFakeGotchisCardAddress(
+            fakeGotchisCardDiamond
+          )
         ).wait();
         const event = receipt!.events!.find(
-          (event) => event.event === "CardAddressUpdated"
+          (event) => event.event === "FakeGotchisCardAddressUpdated"
         );
-        expect(event!.args!._cardDiamond).to.equal(cardDiamond);
+        expect(event!.args!._fakeGotchisCardDiamond).to.equal(
+          fakeGotchisCardDiamond
+        );
       });
     });
     describe("totalSupply", async function () {
       it("Should return total supply", async function () {
-        const totalSupply = await nftFacetWithUser.totalSupply();
-        expect(totalSupply).to.equal(mDataCount);
+        const tSupply = await nftFacetWithUser.totalSupply();
+        expect(tSupply).to.equal(totalSupply);
       });
     });
     describe("tokenIdsOfOwner", async function () {
       it("Should return token ids if have any nft", async function () {
         const tokenIds = await nftFacetWithUser.tokenIdsOfOwner(userAddress);
         expect(tokenIds.length).to.equal(mDataCount);
+        const tokenIds3 = await nftFacetWithUser.tokenIdsOfOwner(user3Address);
+        expect(tokenIds3.length).to.equal(mDataCount3);
       });
       it("Should return empty array if have any nft", async function () {
         const tokenIds = await nftFacetWithUser.tokenIdsOfOwner(user2Address);
@@ -935,6 +1075,8 @@ describe("Fake Gotchi tests", async function () {
       it("Should return length of tokens if have any nft", async function () {
         const balance = await nftFacetWithUser.balanceOf(userAddress);
         expect(balance).to.equal(mDataCount);
+        const balance3 = await nftFacetWithUser.balanceOf(user3Address);
+        expect(balance3).to.equal(mDataCount3);
       });
       it("Should return 0 if have any nft", async function () {
         const balance = await nftFacetWithUser.balanceOf(user2Address);

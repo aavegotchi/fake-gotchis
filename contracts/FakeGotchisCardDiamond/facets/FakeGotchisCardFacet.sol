@@ -5,14 +5,21 @@ import "../../libraries/AppStorageCard.sol";
 import "../../libraries/LibStrings.sol";
 import "../../libraries/LibMeta.sol";
 import "../../libraries/LibERC1155.sol";
+import {IERC1155Marketplace} from "../../interfaces/IERC1155Marketplace.sol";
 
-contract FakeGotchiCardFacet is Modifiers {
+contract FakeGotchisCardFacet is Modifiers {
     event NewSeriesStarted(uint256 indexed id, uint256 indexed amount);
-    event NftAddressUpdated(address _nftDiamond);
+    event AavegotchiAddressUpdated(address _aavegotchiDiamond);
+    event FakeGotchisNftAddressUpdated(address _fakeGotchisNftDiamond);
 
-    function setNftAddress(address _nftDiamond) external onlyOwner {
-        s.nftDiamond = _nftDiamond;
-        emit NftAddressUpdated(_nftDiamond);
+    function setAavegotchiAddress(address _aavegotchiDiamond) external onlyOwner {
+        s.aavegotchiDiamond = _aavegotchiDiamond;
+        emit AavegotchiAddressUpdated(_aavegotchiDiamond);
+    }
+
+    function setFakeGotchisNftAddress(address _fakeGotchisNftDiamond) external onlyOwner {
+        s.fakeGotchisNftDiamond = _fakeGotchisNftDiamond;
+        emit FakeGotchisNftAddressUpdated(_fakeGotchisNftDiamond);
     }
 
     /**
@@ -52,13 +59,10 @@ contract FakeGotchiCardFacet is Modifiers {
         emit LibERC1155.ApprovalForAll(sender, _operator, _approved);
     }
 
-    function burn(address _cardOwner, uint256 _amount) external onlyNftDiamond {
+    function burn(address _cardOwner, uint256 _cardSeriesId, uint256 _amount) external onlyNftDiamond {
         // TODO: check new series started, check s.nextCardId > 0
-        // check card balance
-        uint256 currentCardId = s.nextCardId - 1;
-        // require(s.cards[_sender][currentCardId] >= count, "FGCard: Doesn't have enough card");
         // burn card
-        LibERC1155._burn(_cardOwner, currentCardId, _amount);
+        LibERC1155._burn(_cardOwner, _cardSeriesId, _amount);
     }
 
     /**
@@ -168,6 +172,10 @@ contract FakeGotchiCardFacet is Modifiers {
         require(_amount <= bal, "FGCard: Doesn't have that many to transfer");
         s.cards[_from][_id] = bal - _amount;
         s.cards[_to][_id] += _amount;
+        // Update baazaar listing
+        if (s.aavegotchiDiamond != address(0)) {
+            IERC1155Marketplace(s.aavegotchiDiamond).updateERC1155Listing(address(this), _id, _from);
+        }
         emit LibERC1155.TransferSingle(sender, _from, _to, _id, _amount);
         LibERC1155.onERC1155Received(sender, _from, _to, _id, _amount, _data);
     }
@@ -200,11 +208,14 @@ contract FakeGotchiCardFacet is Modifiers {
         address sender = LibMeta.msgSender();
         for (uint256 i; i < _ids.length; i++) {
             uint256 id = _ids[i];
-            uint256 amount = _amounts[i];
             uint256 bal = s.cards[_from][id];
-            require(amount <= bal, "FGCard: Doesn't have that many to transfer");
-            s.cards[_from][id] = bal - amount;
-            s.cards[_to][id] += amount;
+            require(_amounts[i] <= bal, "FGCard: Doesn't have that many to transfer");
+            s.cards[_from][id] = bal - _amounts[i];
+            s.cards[_to][id] += _amounts[i];
+            // Update baazaar listing
+            if (s.aavegotchiDiamond != address(0)) {
+                IERC1155Marketplace(s.aavegotchiDiamond).updateERC1155Listing(address(this), id, _from);
+            }
         }
         emit LibERC1155.TransferBatch(sender, _from, _to, _ids, _amounts);
         LibERC1155.onERC1155BatchReceived(sender, _from, _to, _ids, _amounts, _data);

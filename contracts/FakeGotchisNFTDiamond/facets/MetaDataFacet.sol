@@ -6,9 +6,8 @@ import "../../libraries/LibDiamond.sol";
 import "../../libraries/LibStrings.sol";
 import "../../libraries/LibMeta.sol";
 import "../../libraries/LibERC721.sol";
-import "../../interfaces/ICardDiamond.sol";
+import "../../interfaces/IFakeGotchisCardDiamond.sol";
 import {IERC721} from "../../interfaces/IERC721.sol";
-import {ERC721Marketplace} from "../../interfaces/ERC721Marketplace.sol";
 
 contract MetadataFacet is Modifiers {
     event MetadataActionLog(
@@ -46,7 +45,7 @@ contract MetadataFacet is Modifiers {
         uint256 rarity;
     }
 
-    function addMetadata(MetadataInput memory mData, uint256 count) external {
+    function addMetadata(MetadataInput memory mData, uint256 series, uint256 count) external {
         address _sender = LibMeta.msgSender();
         // check blocked
         require(!s.blocked[_sender], "Metadata: Blocked address");
@@ -55,7 +54,7 @@ contract MetadataFacet is Modifiers {
         verifyMetadata(mData, count);
 
         // Burn card
-        ICardDiamond(s.cardDiamond).burn(_sender, count);
+        IFakeGotchisCardDiamond(s.fakeGotchisCardDiamond).burn(_sender, series, count);
 
         // save
         uint256 _metadataId = s.metadataIdCounter;
@@ -112,7 +111,13 @@ contract MetadataFacet is Modifiers {
         address _sender = LibMeta.msgSender();
         require(_sender == s.metadataOwner[_id], "Metadata: Not metadata owner");
         Metadata memory mData = s.metadata[_id];
-        require(mData.status == METADATA_STATUS_APPROVED, "Metadata: Not approved");
+        require(mData.status != METADATA_STATUS_DECLINED, "Metadata: Not approved");
+        if (mData.status == METADATA_STATUS_PENDING) {
+            require(mData.createdAt + 5 days <= block.timestamp, "Metadata: Still pending");
+            s.metadata[_id].status = METADATA_STATUS_APPROVED;
+            // emit event with metadata input
+            logMetadata(_id);
+        }
         require(mData.count != 0, "Metadata: Already mint");
         LibERC721.safeBatchMint(mData.publisher, _id, mData.count);
         s.metadata[_id].count = 0;

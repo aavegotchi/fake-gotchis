@@ -7,20 +7,20 @@ import "../../libraries/LibStrings.sol";
 import "../../libraries/LibMeta.sol";
 import "../../libraries/LibERC721.sol";
 import {IERC721} from "../../interfaces/IERC721.sol";
-import {ERC721Marketplace} from "../../interfaces/ERC721Marketplace.sol";
+import {IERC721Marketplace} from "../../interfaces/IERC721Marketplace.sol";
 
-contract FakeGotchiNFTFacet is Modifiers {
+contract FakeGotchisNFTFacet is Modifiers {
     event AavegotchiAddressUpdated(address _aavegotchiDiamond);
-    event CardAddressUpdated(address _cardDiamond);
+    event FakeGotchisCardAddressUpdated(address _fakeGotchisCardDiamond);
 
     function setAavegotchiAddress(address _aavegotchiDiamond) external onlyOwner {
         s.aavegotchiDiamond = _aavegotchiDiamond;
         emit AavegotchiAddressUpdated(_aavegotchiDiamond);
     }
 
-    function setCardAddress(address _cardDiamond) external onlyOwner {
-        s.cardDiamond = _cardDiamond;
-        emit CardAddressUpdated(_cardDiamond);
+    function setFakeGotchisCardAddress(address _fakeGotchisCardDiamond) external onlyOwner {
+        s.fakeGotchisCardDiamond = _fakeGotchisCardDiamond;
+        emit FakeGotchisCardAddressUpdated(_fakeGotchisCardDiamond);
     }
 
     function getRoyaltyInfo(uint256 _tokenId) external view returns (address[2] memory, uint256[2] memory) {
@@ -116,7 +116,7 @@ contract FakeGotchiNFTFacet is Modifiers {
 
         //Update baazaar listing
         if (s.aavegotchiDiamond != address(0)) {
-            ERC721Marketplace(s.aavegotchiDiamond).updateERC721Listing(address(this), _tokenId, _from);
+            IERC721Marketplace(s.aavegotchiDiamond).updateERC721Listing(address(this), _tokenId, _from);
         }
     }
 
@@ -138,7 +138,7 @@ contract FakeGotchiNFTFacet is Modifiers {
 
         //Update baazaar listing
         if (s.aavegotchiDiamond != address(0)) {
-            ERC721Marketplace(s.aavegotchiDiamond).updateERC721Listing(address(this), _tokenId, _from);
+            IERC721Marketplace(s.aavegotchiDiamond).updateERC721Listing(address(this), _tokenId, _from);
         }
     }
 
@@ -158,7 +158,7 @@ contract FakeGotchiNFTFacet is Modifiers {
         LibERC721.transferFrom(sender, _from, _to, _tokenId);
 
         if (s.aavegotchiDiamond != address(0)) {
-            ERC721Marketplace(s.aavegotchiDiamond).updateERC721Listing(address(this), _tokenId, _from);
+            IERC721Marketplace(s.aavegotchiDiamond).updateERC721Listing(address(this), _tokenId, _from);
         }
     }
 
@@ -189,7 +189,7 @@ contract FakeGotchiNFTFacet is Modifiers {
     }
 
     function name() external pure returns (string memory) {
-        return "Fake Gotchi NFT";
+        return "FAKE Gotchis";
     }
 
     /**
@@ -204,7 +204,7 @@ contract FakeGotchiNFTFacet is Modifiers {
      * @dev Throws if `_tokenId` is not a valid NFT. URIs are defined in RFC 3986. The URI may point to a JSON file that conforms to the "ERC721 FakeGotchi JSON Schema".
      */
     function tokenURI(uint256 _tokenId) external pure returns (string memory) {
-        return LibStrings.strWithUint("https://app.aavegotchi.com/fakegotchi/", _tokenId); //Here is your URL!
+        return LibStrings.strWithUint("https://app.aavegotchi.com/metadata/fakegotchis/", _tokenId); //Here is your URL!
     }
 
     function safeBatchTransfer(

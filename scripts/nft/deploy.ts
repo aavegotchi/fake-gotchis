@@ -8,9 +8,9 @@ const { getSelectors, FacetCutAction } = require("../libraries/diamond");
 
 export async function deployNftDiamond(cardAddress: string) {
   if (!cardAddress) {
-    throw Error(`Card diamond address empty`);
+    throw Error(`FAKE Gotchis Card Diamond address empty`);
   }
-  console.log("Deploying NFT Diamond contracts\n");
+  console.log("Deploying FAKE Gotchis NFT Diamond contracts\n");
 
   const accounts: Signer[] = await ethers.getSigners();
   const deployer = accounts[0];
@@ -26,7 +26,7 @@ export async function deployNftDiamond(cardAddress: string) {
   console.log("DiamondCutFacet deployed:", diamondCutFacet.address);
 
   // deploy Diamond
-  const Diamond = await ethers.getContractFactory("Diamond");
+  const Diamond = await ethers.getContractFactory("FakeGotchisNFTDiamond");
   const diamond = await Diamond.deploy(
     deployerAddress,
     diamondCutFacet.address,
@@ -35,7 +35,7 @@ export async function deployNftDiamond(cardAddress: string) {
     { gasPrice: gasPrice }
   );
   await diamond.deployed();
-  console.log("NFT Diamond deployed:", diamond.address);
+  console.log("FAKE Gotchis NFT Diamond deployed:", diamond.address);
 
   // deploy DiamondInit
   const DiamondInit = await ethers.getContractFactory("DiamondInit");
@@ -44,12 +44,12 @@ export async function deployNftDiamond(cardAddress: string) {
   console.log("DiamondInit deployed:", diamondInit.address);
 
   // deploy facets
-  console.log("Deploying facets for NFT Diamond\n");
+  console.log("Deploying facets for FAKE Gotchis NFT Diamond\n");
   const FacetNames = [
     "DiamondLoupeFacet",
     "OwnershipFacet",
     "MetadataFacet",
-    "FakeGotchiNFTFacet",
+    "FakeGotchisNFTFacet",
   ];
   const cut = [];
   for (const FacetName of FacetNames) {
@@ -76,7 +76,7 @@ export async function deployNftDiamond(cardAddress: string) {
     functionCall,
     { gasPrice: gasPrice }
   );
-  console.log("NFT Diamond cut tx: ", tx.hash);
+  console.log("FAKE Gotchis NFT Diamond cut tx: ", tx.hash);
   const receipt = await tx.wait();
   if (!receipt.status) {
     throw Error(`Diamond upgrade failed: ${tx.hash}`);
@@ -88,11 +88,11 @@ export async function deployNftDiamond(cardAddress: string) {
     diamond.address
   );
   const diamondOwner = await ownershipFacet.owner();
-  console.log("NFT Diamond owner is:", diamondOwner);
+  console.log("FAKE Gotchis NFT Diamond owner is:", diamondOwner);
 
   if (diamondOwner !== deployerAddress) {
     throw new Error(
-      `NFT Diamond owner ${diamondOwner} is not deployer address ${deployerAddress}!`
+      `FAKE Gotchis NFT Diamond owner ${diamondOwner} is not deployer address ${deployerAddress}!`
     );
   }
 
