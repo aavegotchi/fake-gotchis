@@ -30,7 +30,7 @@ contract FakeGotchisCardFacet is Modifiers {
         require(_amount > 0, "FGCard: Max amount must be greater than 0");
         uint256 newCardId = s.nextCardId;
         s.maxCards[newCardId] = _amount;
-        LibERC1155._mint(address(this), newCardId, _amount, new bytes(0));
+        LibERC1155._mint(LibMeta.msgSender(), newCardId, _amount, new bytes(0));
         s.nextCardId = newCardId + 1;
 
         emit NewSeriesStarted(newCardId, _amount);
@@ -63,42 +63,6 @@ contract FakeGotchisCardFacet is Modifiers {
         // TODO: check new series started, check s.nextCardId > 0
         // burn card
         LibERC1155._burn(_cardOwner, _cardSeriesId, _amount);
-    }
-
-    /**
-     * @notice Transfers `_amount` of an `_id` from the diamond to the `_to` address specified (with safety call).
-     * @dev Caller must be approved to manage the tokens being transferred out of the diamond (see "Approval" section of the standard).
-     * Must contain scenario of internal _safeTransferFrom() function, _from should be diamond
-     * @param _to      Target address
-     * @param _id      ID of the token type
-     * @param _amount  Transfer amount
-     * @param _data    Additional data with no specified format, MUST be sent unaltered in call to `onERC1155Received` on `_to`
-     */
-    function safeTransferFromDiamond(
-        address _to,
-        uint256 _id,
-        uint256 _amount,
-        bytes calldata _data
-    ) external onlyOwner {
-        _safeTransferFrom(address(this), _to, _id, _amount, _data);
-    }
-
-    /**
-     * @notice Transfers `_amounts` of `_ids` from the diamond to the `_to` address specified (with safety call).
-     * @dev Caller must be approved to manage the tokens being transferred out of the diamond (see "Approval" section of the standard).
-     * Must contain scenario of internal _safeBatchTransferFrom() function, _from should be diamond
-     * @param _to      Target address
-     * @param _ids     IDs of each token type (order and length must match _amounts array)
-     * @param _amounts Transfer amounts per token type (order and length must match _ids array)
-     * @param _data    Additional data with no specified format, MUST be sent unaltered in call to the `ERC1155TokenReceiver` hook(s) on `_to`
-     */
-    function safeBatchTransferFromDiamond(
-        address _to,
-        uint256[] calldata _ids,
-        uint256[] calldata _amounts,
-        bytes calldata _data
-    ) external onlyOwner {
-        _safeBatchTransferFrom(address(this), _to, _ids, _amounts, _data);
     }
 
     /**
