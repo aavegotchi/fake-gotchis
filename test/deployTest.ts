@@ -86,7 +86,7 @@ describe("Deploy tests", async function () {
   });
 
   it("Add, approve and mint metadata", async function () {
-    const count = 200;
+    const count = 150;
     const mData = {
       fileHash: "q".repeat(32), // 32 bytes
       name: ethers.utils.formatBytes32String("w".repeat(25)), // 25 bytes
@@ -96,7 +96,7 @@ describe("Deploy tests", async function () {
       description: "t".repeat(120), // 120 bytes
       artist: ethers.constants.AddressZero,
       artistName: "y".repeat(72), // 72 bytes,
-      royalty: [100, 0] as [
+      royalty: [10000, 0] as [
         PromiseOrValue<BigNumberish>,
         PromiseOrValue<BigNumberish>
       ],
