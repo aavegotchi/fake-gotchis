@@ -30,6 +30,7 @@ contract FakeGotchisNFTDiamond {
 
         // add supportedInterface
         LibDiamond.addSupportForERC165(0x80ac58cd); // ERC721
+        LibDiamond.addSupportForERC165(0x2a55205a); // ERC2981
 
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.aavegotchiDiamond = _aavegotchiDiamond;

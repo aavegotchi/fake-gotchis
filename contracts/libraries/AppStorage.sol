@@ -16,7 +16,7 @@ struct Metadata {
     string description;
     address artist;
     string artistName;
-    uint256[2] royalty; // royalty[0]: publisher, royalty[1]: artist
+    uint256[2] royalty; // royalty[0]: publisher, royalty[1]: artist, sum should be 10000 (100%)
     uint256 rarity;
     uint256 count;
     uint256 createdAt;
@@ -28,7 +28,7 @@ struct AppStorage {
     address fakeGotchisCardDiamond;
     // Metadata
     mapping(address => bool) blocked;
-    uint256 metadataIdCounter;
+    uint256 metadataIdCounter; // start from 1, not 0
     uint256[] metadataIds;
     mapping(uint256 => Metadata) metadata;
     mapping(uint256 => address) metadataOwner;

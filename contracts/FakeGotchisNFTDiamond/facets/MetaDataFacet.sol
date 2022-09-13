@@ -28,7 +28,7 @@ contract MetadataFacet is Modifiers {
     );
 
     function getMetadata(uint256 _id) external view returns (Metadata memory) {
-        require(_id < s.metadataIdCounter, "Metadata: _id is greater than total count.");
+        require(_id <= s.metadataIdCounter, "Metadata: _id is greater than total count.");
         return s.metadata[_id];
     }
 
@@ -41,7 +41,7 @@ contract MetadataFacet is Modifiers {
         string description;
         address artist;
         string artistName;
-        uint256[2] royalty; // royalty[0]: publisher, royalty[1]: artist
+        uint256[2] royalty; // royalty[0]: publisher, royalty[1]: artist, sum should be 10000 (100%)
         uint256 rarity;
     }
 
@@ -57,6 +57,7 @@ contract MetadataFacet is Modifiers {
         IFakeGotchisCardDiamond(s.fakeGotchisCardDiamond).burn(_sender, series, count);
 
         // save
+        s.metadataIdCounter++;
         uint256 _metadataId = s.metadataIdCounter;
         s.metadata[_metadataId] = Metadata({
             fileHash: mData.fileHash,
@@ -78,14 +79,13 @@ contract MetadataFacet is Modifiers {
         s.ownerMetadataIds[_sender].push(_metadataId);
         s.metadataIds.push(_metadataId);
         s.metadataOwner[_metadataId] = _sender;
-        s.metadataIdCounter++;
 
         // emit event with metadata input
         logMetadata(_metadataId);
     }
 
     function approveMetadata(uint256 _id) external onlyOwner {
-        require(_id < s.metadataIdCounter, "Metadata: _id is greater than total count.");
+        require(_id <= s.metadataIdCounter, "Metadata: _id is greater than total count.");
         require(s.metadata[_id].status != METADATA_STATUS_APPROVED, "Metadata: Already approved");
 
         s.metadata[_id].status = METADATA_STATUS_APPROVED;
@@ -95,7 +95,7 @@ contract MetadataFacet is Modifiers {
     }
 
     function declineMetadata(uint256 _id, bool isBadFaith) external onlyOwner {
-        require(_id < s.metadataIdCounter, "Metadata: _id is greater than total count.");
+        require(_id <= s.metadataIdCounter, "Metadata: _id is greater than total count.");
         require(s.metadata[_id].status != METADATA_STATUS_APPROVED, "Metadata: Already approved");
 
         s.metadata[_id].status = METADATA_STATUS_DECLINED;
@@ -128,7 +128,7 @@ contract MetadataFacet is Modifiers {
         require(bytes(mData.fileHash).length > 0, "Metadata: File hash should exist");
         require(bytes(mData.description).length <= 120, "Metadata: Max description length is 120 bytes");
 
-        require(mData.royalty[0] + mData.royalty[1] == 100, "Metadata: Sum of royalty splits not 100");
+        require(mData.royalty[0] + mData.royalty[1] == 10000, "Metadata: Sum of royalty splits not 10000");
         if (mData.artist == address(0)) {
             require(mData.royalty[1] == 0, "Metadata: Artist royalty split must be 0 with zero address");
         }

@@ -23,11 +23,16 @@ contract FakeGotchisNFTFacet is Modifiers {
         emit FakeGotchisCardAddressUpdated(_fakeGotchisCardDiamond);
     }
 
-    function getRoyaltyInfo(uint256 _tokenId) external view returns (address[2] memory, uint256[2] memory) {
-        require(_tokenId < s.tokenIdCounter, "ERC721: _tokenId is greater than total supply.");
-        // TODO: Check aavegotchi diamond only or allow all
+    /**
+     * @notice Called with the sale price to determine how much royalty is owed and to whom.
+     * @param _tokenId - the NFT asset queried for royalty information
+     * @param _salePrice - the sale price of the NFT asset specified by _tokenId
+     * @return receiver - address of who should be sent the royalty payment
+     * @return royaltyAmount - the royalty payment amount for _salePrice
+    */
+    function royaltyInfo(uint256 _tokenId, uint256 _salePrice) external view returns (address receiver, uint256 royaltyAmount) {
         Metadata memory mData = s.metadata[s.fakeGotchis[_tokenId]];
-        return ([mData.publisher, mData.artist], mData.royalty);
+        return (mData.artist, (_salePrice * mData.royalty[1]) / 10000);
     }
 
     function tokenIdsOfOwner(address _owner) external view returns (uint256[] memory tokenIds_) {
