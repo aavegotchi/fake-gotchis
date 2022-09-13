@@ -6,6 +6,7 @@ import {LibDiamond} from "./LibDiamond.sol";
 uint8 constant METADATA_STATUS_PENDING = 0;
 uint8 constant METADATA_STATUS_APPROVED = 1;
 uint8 constant METADATA_STATUS_DECLINED = 2;
+uint8 constant METADATA_STATUS_PAUSED = 3;
 
 struct Metadata {
     string fileHash;
@@ -21,6 +22,8 @@ struct Metadata {
     uint256 count;
     uint256 createdAt;
     uint8 status;
+    uint256 flagCount;
+    uint256 likeCount;
 }
 
 struct AppStorage {
