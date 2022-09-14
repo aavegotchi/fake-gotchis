@@ -7,7 +7,7 @@ import "../../libraries/LibStrings.sol";
 import "../../libraries/LibMeta.sol";
 import "../../libraries/LibERC721.sol";
 import "../../interfaces/IFakeGotchisCardDiamond.sol";
-import {IERC721} from "../../interfaces/IERC721.sol";
+import "../../interfaces/IERC721.sol";
 
 contract MetadataFacet is Modifiers {
     event MetadataActionLog(

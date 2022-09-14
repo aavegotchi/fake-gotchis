@@ -5,7 +5,7 @@ import "../../libraries/AppStorageCard.sol";
 import "../../libraries/LibStrings.sol";
 import "../../libraries/LibMeta.sol";
 import "../../libraries/LibERC1155.sol";
-import {IERC1155Marketplace} from "../../interfaces/IERC1155Marketplace.sol";
+import "../../interfaces/IERC1155Marketplace.sol";
 
 contract FakeGotchisCardFacet is Modifiers {
     event NewSeriesStarted(uint256 indexed id, uint256 indexed amount);

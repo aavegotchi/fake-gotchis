@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {IERC1155TokenReceiver} from "../interfaces/IERC1155TokenReceiver.sol";
+import "../interfaces/IERC1155TokenReceiver.sol";
 import {LibAppStorageCard, CardAppStorage} from "./AppStorageCard.sol";
 import "./LibMeta.sol";
 
