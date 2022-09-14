@@ -89,13 +89,13 @@ describe("Deploy tests", async function () {
     const count = 150;
     const mData = {
       fileHash: "q".repeat(32), // 32 bytes
-      name: ethers.utils.formatBytes32String("w".repeat(25)), // 25 bytes
+      name: "w".repeat(50), // 50 bytes
       publisher: testAddress,
-      publisherName: "e".repeat(72), // 72 bytes
+      publisherName: "e".repeat(30), // 30 bytes
       externalLink: "r".repeat(240), // 240 bytes
       description: "t".repeat(120), // 120 bytes
       artist: ethers.constants.AddressZero,
-      artistName: "y".repeat(72), // 72 bytes,
+      artistName: "y".repeat(30), // 30 bytes,
       royalty: [10000, 0] as [
         PromiseOrValue<BigNumberish>,
         PromiseOrValue<BigNumberish>

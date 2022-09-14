@@ -51,11 +51,11 @@ describe("Fake Gotchis tests", async function () {
   const mDataCount3 = 5;
   const totalSupply = mDataCount + mDataCount3;
   const fileHash = "q".repeat(32); // 32 bytes
-  const name = ethers.utils.formatBytes32String("w".repeat(25)); // 25 bytes
-  const publisherName = "e".repeat(72); // 72 bytes
+  const name = "w".repeat(50); // 50 bytes
+  const publisherName = "e".repeat(30); // 30 bytes
   const externalLink = "r".repeat(240); // 240 bytes
   const description = "t".repeat(120); // 120 bytes
-  const artistName = "y".repeat(72); // 72 bytes
+  const artistName = "y".repeat(30); // 30 bytes
   let metaData: any;
 
   before(async function () {

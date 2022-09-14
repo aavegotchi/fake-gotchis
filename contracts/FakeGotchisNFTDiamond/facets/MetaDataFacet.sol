@@ -14,7 +14,7 @@ contract MetadataFacet is Modifiers {
         uint256 indexed id,
         address indexed sender,
         string fileHash,
-        bytes32 name,
+        string name,
         address publisher,
         string publisherName,
         string externalLink,
@@ -38,7 +38,7 @@ contract MetadataFacet is Modifiers {
 
     struct MetadataInput {
         string fileHash;
-        bytes32 name;
+        string name;
         address publisher;
         string publisherName;
         string externalLink;

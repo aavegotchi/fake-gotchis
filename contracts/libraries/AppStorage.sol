@@ -10,7 +10,7 @@ uint8 constant METADATA_STATUS_PAUSED = 3;
 
 struct Metadata {
     string fileHash;
-    bytes32 name;
+    string name;
     address publisher;
     string publisherName;
     string externalLink;
