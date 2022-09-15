@@ -1026,7 +1026,7 @@ describe("Fake Gotchis tests", async function () {
           "Metadata: Invalid metadata id"
         );
       });
-      it("Should succeed if fake gotchi card holder flag with valid id", async function () {
+      it("Should succeed if fake gotchi card holder like with valid id", async function () {
         let savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
         const prevLikeCount = savedMetaData.likeCount;
         let receipt = await (
@@ -1039,7 +1039,7 @@ describe("Fake Gotchis tests", async function () {
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
         expect(savedMetaData.likeCount).to.equal(prevLikeCount.add(1));
       });
-      it("Should succeed if aavegotchi owner flag with valid id", async function () {
+      it("Should succeed if aavegotchi owner like with valid id", async function () {
         let savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
         const prevLikeCount = savedMetaData.likeCount;
         let receipt = await (
@@ -1052,7 +1052,7 @@ describe("Fake Gotchis tests", async function () {
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
         expect(savedMetaData.likeCount).to.equal(prevLikeCount.add(1));
       });
-      it("Should succeed if 100+ GHST holder flag with valid id", async function () {
+      it("Should succeed if 100+ GHST holder like with valid id", async function () {
         let savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
         const prevLikeCount = savedMetaData.likeCount;
         let receipt = await (
@@ -1065,7 +1065,7 @@ describe("Fake Gotchis tests", async function () {
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
         expect(savedMetaData.likeCount).to.equal(prevLikeCount.add(1));
       });
-      it("Should revert if non flaggable user", async function () {
+      it("Should revert if non likeable user", async function () {
         await expect(
           metadataFacetWithNotLikeableUser.like(metadataId)
         ).to.be.revertedWith(
