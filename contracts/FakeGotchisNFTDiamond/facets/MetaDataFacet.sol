@@ -28,13 +28,12 @@ contract MetadataFacet is Modifiers {
         uint256 createdAt,
         uint8 status
     );
-
     event MetadataFlagged(uint256 indexed _id, address _flaggedBy);
     event MetadataLiked(uint256 indexed _id, address _likedBy);
     event ReviewPassed(uint256 indexed _id, address _reviewer);
 
     function getMetadata(uint256 _id) external view returns (Metadata memory) {
-        require(_id <= s.metadataIdCounter, "Metadata: _id is greater than total count.");
+        validateMetadata(_id);
         return s.metadata[_id];
     }
 
@@ -51,11 +50,7 @@ contract MetadataFacet is Modifiers {
         uint256 rarity;
     }
 
-    function addMetadata(
-        MetadataInput memory mData,
-        uint256 series,
-        uint256 count
-    ) external {
+    function addMetadata(MetadataInput memory mData, uint256 series, uint256 count) external {
         address _sender = LibMeta.msgSender();
         // check blocked
         require(!s.blocked[_sender], "Metadata: Blocked address");
@@ -97,7 +92,7 @@ contract MetadataFacet is Modifiers {
     }
 
     function declineMetadata(uint256 _id, bool isBadFaith) external onlyOwner {
-        require(_id <= s.metadataIdCounter, "Metadata: _id is greater than total count.");
+        validateMetadata(_id);
         require(s.metadata[_id].status != METADATA_STATUS_APPROVED, "Metadata: Already approved");
 
         s.metadata[_id].status = METADATA_STATUS_DECLINED;
@@ -113,7 +108,7 @@ contract MetadataFacet is Modifiers {
         address _sender = LibMeta.msgSender();
         require(_sender == s.metadataOwner[_id], "Metadata: Not metadata owner");
         Metadata memory mData = s.metadata[_id];
-        require(mData.status != METADATA_STATUS_DECLINED, "Metadata: Not approved");
+        require(mData.status != METADATA_STATUS_DECLINED, "Metadata: Declined");
         require(mData.status != METADATA_STATUS_PAUSED, "Metadata: Paused for review");
         if (mData.status == METADATA_STATUS_PENDING) {
             require(mData.createdAt + 5 days <= block.timestamp, "Metadata: Still pending");
@@ -159,6 +154,10 @@ contract MetadataFacet is Modifiers {
         );
     }
 
+    function validateMetadata(uint256 _id) internal view {
+        require((_id > 0) && (_id <= s.metadataIdCounter), "Metadata: Invalid metadata id");
+    }
+
     function checkForActions(address _sender) internal view {
         uint256 cardSeries; // TODO: Think for the next card series
         require(
@@ -171,28 +170,31 @@ contract MetadataFacet is Modifiers {
     }
 
     function flag(uint256 _id) external {
+        validateMetadata(_id);
+
         address _sender = LibMeta.msgSender();
 
         checkForActions(_sender);
 
-        //can only flag if in queue
+        // can only flag if in queue
         require(s.metadata[_id].status == METADATA_STATUS_PENDING, "MetadataFacet: Can only flag in queue");
         require(!s.metadataFlagged[_id][_sender], "MetadataFacet: Already flagged");
 
         s.metadata[_id].flagCount++;
         s.metadataFlagged[_id][_sender] = true;
 
-        //pause after 10 flags
+        // pause after 10 flags
         if (s.metadata[_id].flagCount == 10) {
-            s.metadata[_id].status == METADATA_STATUS_PAUSED;
+            s.metadata[_id].status = METADATA_STATUS_PAUSED;
         }
 
         emit MetadataFlagged(_id, _sender);
     }
 
     function passReview(uint256 _id) external onlyOwner {
-        require(_id <= s.metadataIdCounter, "Metadata: _id is greater than total count.");
-        require(s.metadata[_id].status == METADATA_STATUS_PAUSED, "Metadata: Already approved");
+        validateMetadata(_id);
+
+        require(s.metadata[_id].status == METADATA_STATUS_PAUSED, "Metadata: Not paused");
 
         s.metadata[_id].status = METADATA_STATUS_PENDING;
 
@@ -203,6 +205,8 @@ contract MetadataFacet is Modifiers {
     }
 
     function like(uint256 _id) external {
+        validateMetadata(_id);
+
         address _sender = LibMeta.msgSender();
 
         checkForActions(_sender);

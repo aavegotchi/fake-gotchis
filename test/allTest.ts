@@ -1,4 +1,5 @@
 import {
+  ghstAddress,
   impersonate,
   maticAavegotchiDiamondAddress,
 } from "../scripts/helperFunctions";
@@ -32,11 +33,11 @@ describe("Fake Gotchis tests", async function () {
   let cardSeriesId: BigNumber;
   let owner: Signer;
   let ownerAddress: any;
-  let user: Signer;
+  let user: Signer; // FG Card Owner
   let userAddress: any;
-  let user2: Signer;
+  let user2: Signer; // FG Card Owner
   let user2Address: any;
-  let user3: Signer;
+  let user3: Signer; // FG Card Owner
   let user3Address: any;
   let artistAddress: any;
 
@@ -48,8 +49,7 @@ describe("Fake Gotchis tests", async function () {
 
   // test metadata
   const mDataCount = 10;
-  const mDataCount3 = 5;
-  const totalSupply = mDataCount + mDataCount3;
+  const totalSupply = mDataCount;
   const fileHash = "q".repeat(32); // 32 bytes
   const name = "w".repeat(50); // 50 bytes
   const publisherName = "e".repeat(30); // 30 bytes
@@ -57,6 +57,14 @@ describe("Fake Gotchis tests", async function () {
   const description = "t".repeat(120); // 120 bytes
   const artistName = "y".repeat(30); // 30 bytes
   let metaData: any;
+
+  // test accounts for flag for like metadata
+  const gotchiOwnerAddress = "0xbC1443c470c6130ed1052748e179fd313E5f20F4"; // gotchi owner, but hold less than 100 GHST
+  const gotchiOwnerAddress2 = "0xa5Fa57608C5698120A7C3c9d50EC346bb3980223"; // gotchi owner, but hold less than 100 GHST
+  const ghstHolderAddress = "0xf3678737dC45092dBb3fc1f49D89e3950Abb866d"; // hold 100+ GHST, but not gotchi owner
+  const ghstHolderAddress2 = "0x18d8646530dABe8F93B89282af161fAe03896638"; // hold 100+ GHST, but not gotchi owner
+  const moreCardHolders: PromiseOrValue<string>[] = []; // length: 4
+  const moreFlaggableUsers = [gotchiOwnerAddress2, ghstHolderAddress2]; // length: 6
 
   before(async function () {
     this.timeout(20000000);
@@ -70,12 +78,18 @@ describe("Fake Gotchis tests", async function () {
     user = signers[1];
     user2 = signers[2];
     user3 = signers[3];
-    const artist = signers[4];
+    const artist = signers[9];
     ownerAddress = await owner.getAddress();
     userAddress = await user.getAddress();
     user2Address = await user2.getAddress();
     user3Address = await user3.getAddress();
     artistAddress = await artist.getAddress();
+    for (let i = 5; i < 9; i++) {
+      const flaggableAccount = signers[i];
+      const flaggableAddress = await flaggableAccount.getAddress();
+      moreCardHolders.push(flaggableAddress);
+      moreFlaggableUsers.push(flaggableAddress);
+    }
 
     cardFacet = (await ethers.getContractAt(
       "FakeGotchisCardFacet",
@@ -490,7 +504,7 @@ describe("Fake Gotchis tests", async function () {
           cardFacetWithUser.burn(userAddress, cardSeriesId, 1)
         ).to.be.revertedWith("LibDiamond: Must be NFT diamond");
       });
-      // Note: Success case will be in addMetadata() test
+      // Note: Success case included in addMetadata() test
     });
   });
 
@@ -498,7 +512,7 @@ describe("Fake Gotchis tests", async function () {
     let metadataId: BigNumber;
     let declinedMetadataId: BigNumber;
     describe("addMetadata", async function () {
-      // Note: Checking blocked sender case will be declineMetadata() test
+      // Note: Checking blocked sender case included declineMetadata() test
       it("Should revert if publisher is zero address", async function () {
         const testMetaData = {
           ...metaData,
@@ -631,8 +645,11 @@ describe("Fake Gotchis tests", async function () {
     describe("getMetadata", async function () {
       it("Should revert if invalid id", async function () {
         await expect(
-          metadataFacetWithUser.getMetadata(metadataId.add(1))
-        ).to.be.revertedWith("Metadata: _id is greater than total count.");
+          metadataFacetWithUser.getMetadata(metadataId.add(100))
+        ).to.be.revertedWith("Metadata: Invalid metadata id");
+        await expect(metadataFacetWithUser.getMetadata(0)).to.be.revertedWith(
+          "Metadata: Invalid metadata id"
+        );
       });
       it("Should return if valid id", async function () {
         const savedMetaData = await metadataFacetWithUser.getMetadata(
@@ -645,35 +662,6 @@ describe("Fake Gotchis tests", async function () {
         expect(savedMetaData.description).to.equal(metaData.description);
       });
     });
-    describe("approveMetadata", async function () {
-      it("Should revert if invalid diamond owner", async function () {
-        await expect(
-          metadataFacetWithUser.approveMetadata(metadataId)
-        ).to.be.revertedWith("LibDiamond: Must be contract owner");
-      });
-      it("Should revert if invalid id", async function () {
-        await expect(
-          metadataFacetWithOwner.approveMetadata(metadataId.add(1))
-        ).to.be.revertedWith("Metadata: _id is greater than total count.");
-      });
-      it("Should succeed if valid id and not approved", async function () {
-        const receipt = await (
-          await metadataFacetWithOwner.approveMetadata(metadataId)
-        ).wait();
-        const event = receipt!.events!.find(
-          (event) => event.event === "MetadataActionLog"
-        );
-        expect(event!.args!.sender).to.equal(userAddress);
-        expect(event!.args!.fileHash).to.equal(metaData.fileHash);
-        expect(event!.args!.publisher).to.equal(metaData.publisher);
-        expect(event!.args!.status).to.equal(1);
-      });
-      it("Should revert if already approved", async function () {
-        await expect(
-          metadataFacetWithOwner.approveMetadata(metadataId)
-        ).to.be.revertedWith("Metadata: Already approved");
-      });
-    });
     describe("declineMetadata", async function () {
       it("Should revert if invalid diamond owner", async function () {
         await expect(
@@ -682,15 +670,13 @@ describe("Fake Gotchis tests", async function () {
       });
       it("Should revert if invalid id", async function () {
         await expect(
-          metadataFacetWithOwner.declineMetadata(metadataId.add(1), false)
-        ).to.be.revertedWith("Metadata: _id is greater than total count.");
-      });
-      it("Should revert if already approved", async function () {
+          metadataFacetWithOwner.declineMetadata(metadataId.add(100), false)
+        ).to.be.revertedWith("Metadata: Invalid metadata id");
         await expect(
-          metadataFacetWithOwner.declineMetadata(metadataId, false)
-        ).to.be.revertedWith("Metadata: Already approved");
+          metadataFacetWithOwner.declineMetadata(0, false)
+        ).to.be.revertedWith("Metadata: Invalid metadata id");
       });
-      it("Should succeed if valid id and not approved", async function () {
+      it("Should succeed if valid id and not declined", async function () {
         let receipt = await (
           await metadataFacetWithUser.addMetadata(
             metaData,
@@ -714,7 +700,7 @@ describe("Fake Gotchis tests", async function () {
         expect(event!.args!.sender).to.equal(userAddress);
         expect(event!.args!.fileHash).to.equal(metaData.fileHash);
         expect(event!.args!.publisher).to.equal(metaData.publisher);
-        expect(event!.args!.status).to.equal(2);
+        expect(event!.args!.status).to.equal(3);
       });
       describe("Blocking bad faith account", async function () {
         it("Should revert if bad faith user try to add Metadata", async function () {
@@ -746,34 +732,245 @@ describe("Fake Gotchis tests", async function () {
           ).to.be.revertedWith("Metadata: Blocked address");
         });
       });
+      // Note: Case for decline approved data included in mint() test
+    });
+    describe("flag", async function () {
+      let metadataFacetWithGHSTHolder: MetadataFacet;
+      let metadataFacetWithGotchiOwner: MetadataFacet;
+      let metadataFacetWithNotFlaggableUser: MetadataFacet;
+      before(async function () {
+        metadataFacetWithGotchiOwner = await impersonate(
+          gotchiOwnerAddress,
+          metadataFacet,
+          ethers,
+          network
+        );
+        metadataFacetWithGHSTHolder = await impersonate(
+          ghstHolderAddress,
+          metadataFacet,
+          ethers,
+          network
+        );
+        // transfer fake gotchi card to users
+        await (
+          await cardFacetWithOwner.safeTransferFrom(
+            ownerAddress,
+            user3Address,
+            cardSeriesId,
+            cardTransferAmount,
+            []
+          )
+        ).wait();
+        for (let i = 0; i < moreCardHolders.length; i++) {
+          await (
+            await cardFacetWithOwner.safeTransferFrom(
+              ownerAddress,
+              moreCardHolders[i],
+              cardSeriesId,
+              5,
+              []
+            )
+          ).wait();
+        }
+        metadataFacetWithNotFlaggableUser = await impersonate(
+          artistAddress,
+          metadataFacet,
+          ethers,
+          network
+        );
+      });
+      it("Should revert if invalid metadata id", async function () {
+        await expect(metadataFacetWithGotchiOwner.flag(0)).to.be.revertedWith(
+          "Metadata: Invalid metadata id"
+        );
+        await expect(metadataFacetWithGHSTHolder.flag(0)).to.be.revertedWith(
+          "Metadata: Invalid metadata id"
+        );
+        await expect(metadataFacetWithUser3.flag(0)).to.be.revertedWith(
+          "Metadata: Invalid metadata id"
+        );
+      });
+      it("Should succeed if fake gotchi card holder flag pending metadata with valid id", async function () {
+        let savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
+        const prevFlagCount = savedMetaData.flagCount;
+        let receipt = await (
+          await metadataFacetWithUser3.flag(metadataId)
+        ).wait();
+        let event = receipt!.events!.find(
+          (event) => event.event === "MetadataFlagged"
+        );
+        expect(event!.args!._id).to.equal(metadataId);
+        savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
+        expect(savedMetaData.status).to.equal(0);
+        expect(savedMetaData.flagCount).to.equal(prevFlagCount.add(1));
+      });
+      it("Should succeed if aavegotchi owner flag pending metadata with valid id", async function () {
+        let savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
+        const prevFlagCount = savedMetaData.flagCount;
+        let receipt = await (
+          await metadataFacetWithGotchiOwner.flag(metadataId)
+        ).wait();
+        let event = receipt!.events!.find(
+          (event) => event.event === "MetadataFlagged"
+        );
+        expect(event!.args!._id).to.equal(metadataId);
+        savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
+        expect(savedMetaData.status).to.equal(0);
+        expect(savedMetaData.flagCount).to.equal(prevFlagCount.add(1));
+      });
+      it("Should succeed if 100+ GHST holder flag pending metadata with valid id", async function () {
+        let savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
+        const prevFlagCount = savedMetaData.flagCount;
+        let receipt = await (
+          await metadataFacetWithGHSTHolder.flag(metadataId)
+        ).wait();
+        let event = receipt!.events!.find(
+          (event) => event.event === "MetadataFlagged"
+        );
+        expect(event!.args!._id).to.equal(metadataId);
+        savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
+        expect(savedMetaData.status).to.equal(0);
+        expect(savedMetaData.flagCount).to.equal(prevFlagCount.add(1));
+      });
+      it("Should revert if non flaggable user", async function () {
+        await expect(
+          metadataFacetWithNotFlaggableUser.flag(metadataId)
+        ).to.be.revertedWith(
+          "MetadataFacet: Should own a Fake Gotchi NFT or an aavegotchi or 100 GHST"
+        );
+      });
+      it("Should revert if user already flagged", async function () {
+        await expect(
+          metadataFacetWithGotchiOwner.flag(metadataId)
+        ).to.be.revertedWith("MetadataFacet: Already flagged");
+        await expect(
+          metadataFacetWithGHSTHolder.flag(metadataId)
+        ).to.be.revertedWith("MetadataFacet: Already flagged");
+        await expect(
+          metadataFacetWithUser3.flag(metadataId)
+        ).to.be.revertedWith("MetadataFacet: Already flagged");
+      });
+      it("Should revert if flag declined metadata", async function () {
+        await expect(
+          metadataFacetWithGotchiOwner.flag(declinedMetadataId)
+        ).to.be.revertedWith("MetadataFacet: Can only flag in queue");
+        await expect(
+          metadataFacetWithGHSTHolder.flag(declinedMetadataId)
+        ).to.be.revertedWith("MetadataFacet: Can only flag in queue");
+        await expect(
+          metadataFacetWithUser3.flag(declinedMetadataId)
+        ).to.be.revertedWith("MetadataFacet: Can only flag in queue");
+      });
+      it("Should succeed and update metadata paused if flag count reach 10", async function () {
+        // flag more until 9
+        for (let i = 0; i < moreFlaggableUsers.length; i++) {
+          const metadataFacetWithFlaggableUser = await impersonate(
+            moreFlaggableUsers[i],
+            metadataFacet,
+            ethers,
+            network
+          );
+          await (await metadataFacetWithFlaggableUser.flag(metadataId)).wait();
+        }
+
+        // 10th flag
+        let savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
+        const prevFlagCount = savedMetaData.flagCount;
+        let receipt = await (
+          await metadataFacetWithUser2.flag(metadataId)
+        ).wait();
+        let event = receipt!.events!.find(
+          (event) => event.event === "MetadataFlagged"
+        );
+        expect(event!.args!._id).to.equal(metadataId);
+        savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
+        expect(savedMetaData.status).to.equal(1);
+        expect(savedMetaData.flagCount).to.equal(prevFlagCount.add(1));
+      });
+      it("Should revert if flag paused metadata", async function () {
+        await expect(
+          metadataFacetWithGotchiOwner.flag(metadataId)
+        ).to.be.revertedWith("MetadataFacet: Can only flag in queue");
+        await expect(
+          metadataFacetWithGHSTHolder.flag(metadataId)
+        ).to.be.revertedWith("MetadataFacet: Can only flag in queue");
+        await expect(
+          metadataFacetWithUser3.flag(metadataId)
+        ).to.be.revertedWith("MetadataFacet: Can only flag in queue");
+      });
+    });
+    describe("passReview", async function () {
+      it("Should revert if invalid diamond owner", async function () {
+        await expect(
+          metadataFacetWithUser.passReview(metadataId)
+        ).to.be.revertedWith("LibDiamond: Must be contract owner");
+      });
+      it("Should revert if invalid id", async function () {
+        await expect(
+          metadataFacetWithOwner.passReview(metadataId.add(100))
+        ).to.be.revertedWith("Metadata: Invalid metadata id");
+        await expect(metadataFacetWithOwner.passReview(0)).to.be.revertedWith(
+          "Metadata: Invalid metadata id"
+        );
+      });
+      it("Should revert if declined metadata id", async function () {
+        await expect(
+          metadataFacetWithOwner.passReview(declinedMetadataId)
+        ).to.be.revertedWith("Metadata: Not paused");
+      });
+      it("Should succeed and update metadata pending if paused", async function () {
+        const receipt = await (
+          await metadataFacetWithOwner.passReview(metadataId)
+        ).wait();
+        let event = receipt!.events!.find(
+          (event) => event.event === "MetadataActionLog"
+        );
+        expect(event!.args!.status).to.equal(0);
+        event = receipt!.events!.find(
+          (event) => event.event === "ReviewPassed"
+        );
+        expect(event!.args!._id).to.equal(metadataId);
+      });
+      it("Should revert if pending (initial state or review passed)", async function () {
+        await expect(
+          metadataFacetWithOwner.passReview(metadataId)
+        ).to.be.revertedWith("Metadata: Not paused");
+      });
     });
     describe("mint", async function () {
-      let pendingMetadataId: BigNumber;
       it("Should revert if invalid metadata owner", async function () {
         await expect(
           metadataFacetWithUser2.mint(metadataId)
         ).to.be.revertedWith("Metadata: Not metadata owner");
       });
-      it("Should revert if metadata is not approved", async function () {
-        await expect(
-          metadataFacetWithUser.mint(metadataId.add(1))
-        ).to.be.revertedWith("Metadata: Not approved");
+      it("Should revert if metadata is declined", async function () {
         await expect(
           metadataFacetWithUser.mint(declinedMetadataId)
-        ).to.be.revertedWith("Metadata: Not approved");
+        ).to.be.revertedWith("Metadata: Declined");
       });
-      it("Should succeed if valid metadata id and approved", async function () {
+      it("Should fail if metadata is pending and created in 5 days", async function () {
+        await expect(metadataFacetWithUser.mint(metadataId)).to.be.revertedWith(
+          "Metadata: Still pending"
+        );
+      });
+      it("Should succeed if valid metadata id and still pending after 5 days", async function () {
+        await ethers.provider.send("evm_increaseTime", [5 * 86400]);
+        await ethers.provider.send("evm_mine", []);
         const topic1 = utils.id("Mint(address,uint256)");
         const topic2 = utils.id("Transfer(address,address,uint256)");
         const receipt = await (
           await metadataFacetWithUser.mint(metadataId)
         ).wait();
+        const event = receipt!.events!.find(
+          (event) => event.event === "MetadataActionLog"
+        );
         const events1 = receipt!.events!.filter(
           (event) => event.topics && event.topics[0] === topic1
         );
         const events2 = receipt!.events!.filter(
           (event) => event.topics && event.topics[0] === topic2
         );
+        expect(event!.args!.status).to.equal(2);
         expect(events1.length).to.equal(mDataCount);
         expect(events2.length).to.equal(mDataCount);
         const savedMetaData = await metadataFacetWithUser.getMetadata(
@@ -786,67 +983,126 @@ describe("Fake Gotchis tests", async function () {
           "Already mint"
         );
       });
-      it("Should fail if metadata is pending and created in 5 days", async function () {
-        const testMetaData = {
-          ...metaData,
-          publisher: user3Address,
-        };
-        // Get card
-        await (
-          await cardFacetWithOwner.safeTransferFrom(
-            ownerAddress,
-            user3Address,
-            cardSeriesId,
-            cardTransferAmount,
-            []
-          )
-        ).wait();
-        const receipt = await (
-          await metadataFacetWithUser3.addMetadata(
-            testMetaData,
-            cardSeriesId,
-            mDataCount3
-          )
-        ).wait();
-        const event = receipt!.events!.find(
-          (event) => event.event === "MetadataActionLog"
-        );
-        pendingMetadataId = event!.args!.id;
-        expect(event!.args!.sender).to.equal(user3Address);
-        expect(event!.args!.publisher).to.equal(testMetaData.publisher);
-        expect(event!.args!.status).to.equal(0);
+      it("Should revert if decline already approved metadata", async function () {
         await expect(
-          metadataFacetWithUser3.mint(pendingMetadataId)
-        ).to.be.revertedWith("Metadata: Still pending");
+          metadataFacetWithOwner.declineMetadata(metadataId, false)
+        ).to.be.revertedWith("Metadata: Already approved");
       });
-      it("Should succeed if valid metadata id and still pending after 5 days", async function () {
-        await ethers.provider.send("evm_increaseTime", [5 * 86400]);
-        await ethers.provider.send("evm_mine", []);
-        const topic1 = utils.id("Mint(address,uint256)");
-        const topic2 = utils.id("Transfer(address,address,uint256)");
-        const receipt = await (
-          await metadataFacetWithUser3.mint(pendingMetadataId)
+      // TODO: Case for mint paused data
+    });
+    describe("like", async function () {
+      let metadataFacetWithGHSTHolder: MetadataFacet;
+      let metadataFacetWithGotchiOwner: MetadataFacet;
+      let metadataFacetWithNotLikeableUser: MetadataFacet;
+      before(async function () {
+        metadataFacetWithGotchiOwner = await impersonate(
+          gotchiOwnerAddress,
+          metadataFacet,
+          ethers,
+          network
+        );
+        metadataFacetWithGHSTHolder = await impersonate(
+          ghstHolderAddress,
+          metadataFacet,
+          ethers,
+          network
+        );
+        metadataFacetWithNotLikeableUser = await impersonate(
+          artistAddress,
+          metadataFacet,
+          ethers,
+          network
+        );
+      });
+
+      it("Should revert if invalid metadata id", async function () {
+        await expect(metadataFacetWithGotchiOwner.like(0)).to.be.revertedWith(
+          "Metadata: Invalid metadata id"
+        );
+        await expect(metadataFacetWithGHSTHolder.like(0)).to.be.revertedWith(
+          "Metadata: Invalid metadata id"
+        );
+        await expect(metadataFacetWithUser3.like(0)).to.be.revertedWith(
+          "Metadata: Invalid metadata id"
+        );
+      });
+      it("Should succeed if fake gotchi card holder flag with valid id", async function () {
+        let savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
+        const prevLikeCount = savedMetaData.likeCount;
+        let receipt = await (
+          await metadataFacetWithUser3.like(metadataId)
         ).wait();
-        const event = receipt!.events!.find(
-          (event) => event.event === "MetadataActionLog"
+        let event = receipt!.events!.find(
+          (event) => event.event === "MetadataLiked"
         );
-        const events1 = receipt!.events!.filter(
-          (event) => event.topics && event.topics[0] === topic1
+        expect(event!.args!._id).to.equal(metadataId);
+        savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
+        expect(savedMetaData.likeCount).to.equal(prevLikeCount.add(1));
+      });
+      it("Should succeed if aavegotchi owner flag with valid id", async function () {
+        let savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
+        const prevLikeCount = savedMetaData.likeCount;
+        let receipt = await (
+          await metadataFacetWithGotchiOwner.like(metadataId)
+        ).wait();
+        let event = receipt!.events!.find(
+          (event) => event.event === "MetadataLiked"
         );
-        const events2 = receipt!.events!.filter(
-          (event) => event.topics && event.topics[0] === topic2
+        expect(event!.args!._id).to.equal(metadataId);
+        savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
+        expect(savedMetaData.likeCount).to.equal(prevLikeCount.add(1));
+      });
+      it("Should succeed if 100+ GHST holder flag with valid id", async function () {
+        let savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
+        const prevLikeCount = savedMetaData.likeCount;
+        let receipt = await (
+          await metadataFacetWithGHSTHolder.like(metadataId)
+        ).wait();
+        let event = receipt!.events!.find(
+          (event) => event.event === "MetadataLiked"
         );
-        expect(event!.args!.status).to.equal(1);
-        expect(events1.length).to.equal(mDataCount3);
-        expect(events2.length).to.equal(mDataCount3);
-        const savedMetaData = await metadataFacetWithUser3.getMetadata(
-          pendingMetadataId
+        expect(event!.args!._id).to.equal(metadataId);
+        savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
+        expect(savedMetaData.likeCount).to.equal(prevLikeCount.add(1));
+      });
+      it("Should revert if non flaggable user", async function () {
+        await expect(
+          metadataFacetWithNotLikeableUser.like(metadataId)
+        ).to.be.revertedWith(
+          "MetadataFacet: Should own a Fake Gotchi NFT or an aavegotchi or 100 GHST"
         );
-        expect(savedMetaData.count).to.equal(0);
+      });
+      it("Should revert if user already liked", async function () {
+        await expect(
+          metadataFacetWithGotchiOwner.like(metadataId)
+        ).to.be.revertedWith("MetadataFacet: Already liked");
+        await expect(
+          metadataFacetWithGHSTHolder.like(metadataId)
+        ).to.be.revertedWith("MetadataFacet: Already liked");
+        await expect(
+          metadataFacetWithUser3.like(metadataId)
+        ).to.be.revertedWith("MetadataFacet: Already liked");
       });
     });
   });
+
   describe("FakeGotchisNFTFacet", async function () {
+    describe("setGhstAddress", async function () {
+      it("Should revert if not diamond owner", async function () {
+        await expect(
+          nftFacetWithUser.setGhstAddress(ghstAddress)
+        ).to.be.revertedWith("LibDiamond: Must be contract owner");
+      });
+      it("Should set aavegotchi diamond address if diamond owner", async function () {
+        const receipt = await (
+          await nftFacetWithOwner.setGhstAddress(ghstAddress)
+        ).wait();
+        const event = receipt!.events!.find(
+          (event) => event.event === "GhstAddressUpdated"
+        );
+        expect(event!.args!._ghstContract).to.equal(ghstAddress);
+      });
+    });
     describe("setAavegotchiAddress", async function () {
       it("Should revert if not diamond owner", async function () {
         await expect(
@@ -897,8 +1153,6 @@ describe("Fake Gotchis tests", async function () {
       it("Should return token ids if have any nft", async function () {
         const tokenIds = await nftFacetWithUser.tokenIdsOfOwner(userAddress);
         expect(tokenIds.length).to.equal(mDataCount);
-        const tokenIds3 = await nftFacetWithUser.tokenIdsOfOwner(user3Address);
-        expect(tokenIds3.length).to.equal(mDataCount3);
       });
       it("Should return empty array if have any nft", async function () {
         const tokenIds = await nftFacetWithUser.tokenIdsOfOwner(user2Address);
@@ -909,8 +1163,6 @@ describe("Fake Gotchis tests", async function () {
       it("Should return length of tokens if have any nft", async function () {
         const balance = await nftFacetWithUser.balanceOf(userAddress);
         expect(balance).to.equal(mDataCount);
-        const balance3 = await nftFacetWithUser.balanceOf(user3Address);
-        expect(balance3).to.equal(mDataCount3);
       });
       it("Should return 0 if have any nft", async function () {
         const balance = await nftFacetWithUser.balanceOf(user2Address);

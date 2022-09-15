@@ -111,14 +111,15 @@ describe("Deploy tests", async function () {
     const metadataId = event!.args!.id;
     expect(event!.args!.status).to.equal(0);
 
-    receipt = await (
-      await metadataFacetWithOwner.approveMetadata(metadataId)
-    ).wait();
-    event = receipt!.events!.find(
-      (event) => event.event === "MetadataActionLog"
+    // should revert in 5 days
+    await expect(metadataFacetWithUser.mint(metadataId)).to.be.revertedWith(
+      "Metadata: Still pending"
     );
-    expect(event!.args!.status).to.equal(1);
 
+    await ethers.provider.send("evm_increaseTime", [5 * 86400]);
+    await ethers.provider.send("evm_mine", []);
+
+    // should succeed after 5 days
     await (await metadataFacetWithUser.mint(metadataId)).wait();
 
     const balance = await nftFacet.balanceOf(testAddress);

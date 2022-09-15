@@ -2,7 +2,11 @@
 import { Signer } from "@ethersproject/abstract-signer";
 import { ethers } from "hardhat";
 import { DiamondCutFacet, OwnershipFacet } from "../../typechain-types";
-import { gasPrice, maticAavegotchiDiamondAddress } from "../helperFunctions";
+import {
+  gasPrice,
+  ghstAddress,
+  maticAavegotchiDiamondAddress,
+} from "../helperFunctions";
 
 const { getSelectors, FacetCutAction } = require("../libraries/diamond");
 
@@ -30,7 +34,7 @@ export async function deployNftDiamond(cardAddress: string) {
   const diamond = await Diamond.deploy(
     deployerAddress,
     diamondCutFacet.address,
-    "0x385eeac5cb85a38a9a07a70c73e0a3271cfb54a7",
+    ghstAddress,
     maticAavegotchiDiamondAddress,
     cardAddress,
     { gasPrice: gasPrice }

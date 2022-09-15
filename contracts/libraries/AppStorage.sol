@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 import {LibDiamond} from "./LibDiamond.sol";
 
 uint8 constant METADATA_STATUS_PENDING = 0;
-uint8 constant METADATA_STATUS_APPROVED = 1;
-uint8 constant METADATA_STATUS_DECLINED = 2;
-uint8 constant METADATA_STATUS_PAUSED = 3;
+uint8 constant METADATA_STATUS_PAUSED = 1;
+uint8 constant METADATA_STATUS_APPROVED = 2;
+uint8 constant METADATA_STATUS_DECLINED = 3;
 
 struct Metadata {
     string fileHash;
