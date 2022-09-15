@@ -16,6 +16,7 @@ contract FakeGotchisNFTDiamond {
     constructor(
         address _contractOwner,
         address _diamondCutFacet,
+        address _ghstContract,
         address _aavegotchiDiamond,
         address _fakeGotchisCardDiamond
     ) payable {
@@ -33,6 +34,7 @@ contract FakeGotchisNFTDiamond {
         LibDiamond.addSupportForERC165(0x2a55205a); // ERC2981
 
         AppStorage storage s = LibAppStorage.diamondStorage();
+        s.ghstContract = _ghstContract;
         s.aavegotchiDiamond = _aavegotchiDiamond;
         s.fakeGotchisCardDiamond = _fakeGotchisCardDiamond;
     }

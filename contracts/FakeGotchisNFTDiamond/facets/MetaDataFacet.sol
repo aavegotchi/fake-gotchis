@@ -7,7 +7,9 @@ import "../../libraries/LibStrings.sol";
 import "../../libraries/LibMeta.sol";
 import "../../libraries/LibERC721.sol";
 import "../../interfaces/IFakeGotchisCardDiamond.sol";
+import "../../interfaces/IERC20.sol";
 import "../../interfaces/IERC721.sol";
+import "../../interfaces/IERC1155.sol";
 
 contract MetadataFacet is Modifiers {
     event MetadataActionLog(
@@ -27,8 +29,8 @@ contract MetadataFacet is Modifiers {
         uint8 status
     );
 
-    event CardFlagged(uint256 indexed _id, address _flaggedBy);
-    event CardLiked(uint256 indexed _id, address _likedBy);
+    event MetadataFlagged(uint256 indexed _id, address _flaggedBy);
+    event MetadataLiked(uint256 indexed _id, address _likedBy);
     event ReviewPassed(uint256 indexed _id, address _reviewer);
 
     function getMetadata(uint256 _id) external view returns (Metadata memory) {
@@ -157,20 +159,35 @@ contract MetadataFacet is Modifiers {
         );
     }
 
+    function checkForActions(address _sender) internal view {
+        uint256 cardSeries; // TODO: Think for the next card series
+        require(
+            (IERC1155(s.fakeGotchisCardDiamond).balanceOf(_sender, cardSeries) > 0) || // Fake gotchi card owner
+            (s.ownerTokenIds[_sender].length > 0) || // Fake gotchi owner
+            (IERC721(s.aavegotchiDiamond).balanceOf(_sender) > 0) || // Aavegotchi owner
+            (IERC20(s.ghstContract).balanceOf(_sender) >= 1e20), // 100+ GHST holder
+            "MetadataFacet: Should own a Fake Gotchi NFT or an aavegotchi or 100 GHST"
+        );
+    }
+
     function flag(uint256 _id) external {
-        //@todo: Add in checks for asset ownership
+        address _sender = LibMeta.msgSender();
+
+        checkForActions(_sender);
 
         //can only flag if in queue
         require(s.metadata[_id].status == METADATA_STATUS_PENDING, "MetadataFacet: Can only flag in queue");
+        require(!s.metadataFlagged[_id][_sender], "MetadataFacet: Already flagged");
 
         s.metadata[_id].flagCount++;
+        s.metadataFlagged[_id][_sender] = true;
 
         //pause after 10 flags
         if (s.metadata[_id].flagCount == 10) {
             s.metadata[_id].status == METADATA_STATUS_PAUSED;
         }
 
-        emit CardFlagged(_id, msg.sender);
+        emit MetadataFlagged(_id, _sender);
     }
 
     function passReview(uint256 _id) external onlyOwner {
@@ -186,8 +203,14 @@ contract MetadataFacet is Modifiers {
     }
 
     function like(uint256 _id) external {
-        //@todo: Add in checks for asset ownership
+        address _sender = LibMeta.msgSender();
+
+        checkForActions(_sender);
+
+        require(!s.metadataLiked[_id][_sender], "MetadataFacet: Already liked");
         s.metadata[_id].likeCount++;
-        emit CardLiked(_id, msg.sender);
+        s.metadataLiked[_id][_sender] = true;
+
+        emit MetadataLiked(_id, _sender);
     }
 }

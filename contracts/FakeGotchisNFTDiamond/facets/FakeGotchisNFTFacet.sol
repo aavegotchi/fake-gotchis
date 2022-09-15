@@ -10,8 +10,14 @@ import "../../interfaces/IERC721.sol";
 import "../../interfaces/IERC721Marketplace.sol";
 
 contract FakeGotchisNFTFacet is Modifiers {
+    event GhstAddressUpdated(address _ghstContract);
     event AavegotchiAddressUpdated(address _aavegotchiDiamond);
     event FakeGotchisCardAddressUpdated(address _fakeGotchisCardDiamond);
+
+    function setGhstAddress(address _ghstContract) external onlyOwner {
+        s.ghstContract = _ghstContract;
+        emit GhstAddressUpdated(_ghstContract);
+    }
 
     function setAavegotchiAddress(address _aavegotchiDiamond) external onlyOwner {
         s.aavegotchiDiamond = _aavegotchiDiamond;
