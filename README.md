@@ -67,6 +67,9 @@ The `test/diamondTest.js` file gives tests for the `diamondCut` function and the
 
 #### FAKE Gotchis Card Diamond
 
+- DiamondCutFacet deployed: 0x0d39651322061ee6c7bd87f5eB485fd9eb180607
+- FAKE Gotchis Card Diamond deployed: 0x118c19F39a4Ad9032B7b7b228A2Cd927d3FddA13
+  DiamondInit deployed: 0x39CBd9cA3D74E6ACC2617b46A9f4a14c5227F735
 - DiamondLoupeFacet deployed: 0x23Bab61c16a6DB79BC0d2C8Bf729bb46276D70B3
 - OwnershipFacet deployed: 0x48943B5a4C5B394B332503C82eED371968D47187
 - FakeGotchisCardFacet deployed: 0xcDf36f6Cb259d116Cde7DBe9c7b65F3Db3ed7Bb1
