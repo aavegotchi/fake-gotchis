@@ -5,7 +5,9 @@ import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-etherscan";
 import "hardhat-contract-sizer";
 import "solidity-coverage";
-//import './tasks/generateDiamondABI.js';
+import "./tasks/generateDiamondABI_erc721.js";
+import "./tasks/generateDiamondABI_erc1155.js";
+
 import * as dotenv from "dotenv";
 import "@typechain/hardhat";
 import { BigNumber } from "ethers";
