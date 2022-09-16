@@ -26,10 +26,10 @@ export default {
   networks: {
     hardhat: {
       forking: {
-        url: process.env.MATIC_URL,
+        url: process.env.MUMBAI_URL,
         timeout: 12000000,
-        // blockNumber: 27108687,
       },
+      chainId: 80001,
       blockGasLimit: 20000000,
       timeout: 120000,
       gas: "auto",
@@ -39,6 +39,16 @@ export default {
     },
     matic: {
       url: process.env.MATIC_URL,
+      accounts: [process.env.DEPLOYER],
+      // blockGasLimit: 20000000,
+      // gasPrice: 1000000000,
+      maxFeePerGas: BigNumber.from("80").mul(1e9),
+      maxPriorityFeePerGas: BigNumber.from("50").mul(1e9),
+      gasLimit: 2000000,
+      timeout: 90000,
+    },
+    mumbai: {
+      url: process.env.MUMBAI_URL,
       accounts: [process.env.DEPLOYER],
       // blockGasLimit: 20000000,
       // gasPrice: 1000000000,
