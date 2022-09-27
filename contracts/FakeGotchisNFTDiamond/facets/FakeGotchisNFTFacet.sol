@@ -33,18 +33,6 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @notice Called with the sale price to determine how much royalty is owed and to whom.
      * @param _tokenId - the NFT asset queried for royalty information
      * @param _salePrice - the sale price of the NFT asset specified by _tokenId
-     * @return receiver - address of who should be sent the royalty payment
-     * @return royaltyAmount - the royalty payment amount for _salePrice
-     */
-    function royaltyInfo(uint256 _tokenId, uint256 _salePrice) external view returns (address receiver, uint256 royaltyAmount) {
-        Metadata memory mData = s.metadata[s.fakeGotchis[_tokenId]];
-        return (mData.artist, (_salePrice * mData.royalty[1]) / 10000);
-    }
-
-    /**
-     * @notice Called with the sale price to determine how much royalty is owed and to whom.
-     * @param _tokenId - the NFT asset queried for royalty information
-     * @param _salePrice - the sale price of the NFT asset specified by _tokenId
      * @return receivers - address of who should be sent the royalty payment
      * @return royaltyAmounts - the royalty payment amount for _salePrice
      */

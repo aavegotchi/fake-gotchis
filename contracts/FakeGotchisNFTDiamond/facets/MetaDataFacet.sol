@@ -46,11 +46,15 @@ contract MetadataFacet is Modifiers {
         string description;
         address artist;
         string artistName;
-        uint256[2] royalty; // royalty[0]: publisher, royalty[1]: artist, sum should be 10000 (100%)
+        uint256[2] royalty; // royalty[0]: publisher, royalty[1]: artist, sum should be 400 (4%)
         uint256 rarity;
     }
 
-    function addMetadata(MetadataInput memory mData, uint256 series, uint256 count) external {
+    function addMetadata(
+        MetadataInput memory mData,
+        uint256 series,
+        uint256 count
+    ) external {
         address _sender = LibMeta.msgSender();
         // check blocked
         require(!s.blocked[_sender], "Metadata: Blocked address");
@@ -126,7 +130,7 @@ contract MetadataFacet is Modifiers {
         require(bytes(mData.fileHash).length > 0, "Metadata: File hash should exist");
         require(bytes(mData.description).length <= 120, "Metadata: Max description length is 120 bytes");
 
-        require(mData.royalty[0] + mData.royalty[1] == 10000, "Metadata: Sum of royalty splits not 10000");
+        require(mData.royalty[0] + mData.royalty[1] == 400, "Metadata: Sum of royalty splits not 400");
         if (mData.artist == address(0)) {
             require(mData.royalty[1] == 0, "Metadata: Artist royalty split must be 0 with zero address");
         }
@@ -162,9 +166,9 @@ contract MetadataFacet is Modifiers {
         uint256 cardSeries; // TODO: Think for the next card series
         require(
             (IERC1155(s.fakeGotchisCardDiamond).balanceOf(_sender, cardSeries) > 0) || // Fake gotchi card owner
-            (s.ownerTokenIds[_sender].length > 0) || // Fake gotchi owner
-            (IERC721(s.aavegotchiDiamond).balanceOf(_sender) > 0) || // Aavegotchi owner
-            (IERC20(s.ghstContract).balanceOf(_sender) >= 1e20), // 100+ GHST holder
+                (s.ownerTokenIds[_sender].length > 0) || // Fake gotchi owner
+                (IERC721(s.aavegotchiDiamond).balanceOf(_sender) > 0) || // Aavegotchi owner
+                (IERC20(s.ghstContract).balanceOf(_sender) >= 1e20), // 100+ GHST holder
             "MetadataFacet: Should own a Fake Gotchi NFT or an aavegotchi or 100 GHST"
         );
     }
