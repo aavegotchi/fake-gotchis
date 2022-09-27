@@ -42,7 +42,8 @@ contract FakeGotchisNFTFacet is Modifiers {
         returns (address[] memory receivers, uint256[] memory royaltyAmounts)
     {
         Metadata memory mData = s.metadata[s.fakeGotchis[_tokenId]];
-
+        receivers = new address[](2);
+        royaltyAmounts = new uint256[](2);
         receivers[0] = mData.publisher;
         receivers[1] = mData.artist;
 

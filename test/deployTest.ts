@@ -96,7 +96,7 @@ describe("Deploy tests", async function () {
       description: "t".repeat(120), // 120 bytes
       artist: ethers.constants.AddressZero,
       artistName: "y".repeat(30), // 30 bytes,
-      royalty: [10000, 0] as [
+      royalty: [400, 0] as [
         PromiseOrValue<BigNumberish>,
         PromiseOrValue<BigNumberish>
       ],

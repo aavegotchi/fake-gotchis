@@ -59,7 +59,7 @@ describe("Fake Gotchis tests", async function () {
   let metaData: any;
 
   // test accounts for flag for like metadata
-  const gotchiOwnerAddress = "0xbC1443c470c6130ed1052748e179fd313E5f20F4"; // gotchi owner, but hold less than 100 GHST
+  const gotchiOwnerAddress = "0x79F563398ff8a5A5fF18650e56b9baC8BE84bFA5"; // gotchi owner, but hold less than 100 GHST
   const gotchiOwnerAddress2 = "0xa5Fa57608C5698120A7C3c9d50EC346bb3980223"; // gotchi owner, but hold less than 100 GHST
   const ghstHolderAddress = "0xf3678737dC45092dBb3fc1f49D89e3950Abb866d"; // hold 100+ GHST, but not gotchi owner
   const ghstHolderAddress2 = "0x18d8646530dABe8F93B89282af161fAe03896638"; // hold 100+ GHST, but not gotchi owner
@@ -170,7 +170,7 @@ describe("Fake Gotchis tests", async function () {
       artistName,
       publisher: userAddress,
       artist: artistAddress,
-      royalty: [9000, 1000] as [
+      royalty: [300, 100] as [
         PromiseOrValue<BigNumberish>,
         PromiseOrValue<BigNumberish>
       ],
@@ -552,7 +552,7 @@ describe("Fake Gotchis tests", async function () {
           )
         ).to.be.revertedWith("Metadata: Max description length is 120 bytes");
       });
-      it("Should revert if sum of royalty splits not 10000", async function () {
+      it("Should revert if sum of royalty splits not 400", async function () {
         const testMetaData = {
           ...metaData,
           royalty: [50, 49],
@@ -563,12 +563,12 @@ describe("Fake Gotchis tests", async function () {
             cardSeriesId,
             mDataCount
           )
-        ).to.be.revertedWith("Metadata: Sum of royalty splits not 10000");
+        ).to.be.revertedWith("Metadata: Sum of royalty splits not 400");
       });
       it("Should revert if artist royalty split is not 0 for zero address", async function () {
         const testMetaData = {
           ...metaData,
-          royalty: [5000, 5000],
+          royalty: [200, 200],
           artist: ethers.constants.AddressZero,
         };
         await expect(
@@ -1182,25 +1182,31 @@ describe("Fake Gotchis tests", async function () {
         expect(tokenOwner).to.equal(ethers.constants.AddressZero);
       });
     });
-    describe("royaltyInfo (EIP2981)", async function () {
+    describe("multiRoyaltyInfo", async function () {
       it("Should return address(0) and 0 if invalid id", async function () {
         const totalSupply = await nftFacetWithUser.totalSupply();
-        const royaltyInfo = await nftFacetWithUser.royaltyInfo(
+        const royaltyInfo = await nftFacetWithUser.multiRoyaltyInfo(
           totalSupply.add(10),
           100
         );
-        expect(royaltyInfo.receiver).to.equal(ethers.constants.AddressZero);
-        expect(royaltyInfo.royaltyAmount).to.equal(0);
+        expect(royaltyInfo.receivers[0]).to.equal(ethers.constants.AddressZero);
+        expect(royaltyInfo.receivers[1]).to.equal(ethers.constants.AddressZero);
+        expect(royaltyInfo.royaltyAmounts[0]).to.equal(0);
+        expect(royaltyInfo.royaltyAmounts[1]).to.equal(0);
       });
       it("Should return if valid id", async function () {
         const salePrice = 100;
         const tokenIds = await nftFacetWithUser.tokenIdsOfOwner(userAddress);
-        const royaltyInfo = await nftFacetWithUser.royaltyInfo(
+        const royaltyInfo = await nftFacetWithUser.multiRoyaltyInfo(
           tokenIds[0],
           salePrice
         );
-        expect(royaltyInfo.receiver).to.equal(metaData.artist);
-        expect(royaltyInfo.royaltyAmount).to.equal(
+        expect(royaltyInfo.receivers[0]).to.equal(metaData.publisher);
+        expect(royaltyInfo.receivers[1]).to.equal(metaData.artist);
+        expect(royaltyInfo.royaltyAmounts[0]).to.equal(
+          (metaData.royalty[0] * salePrice) / 10000
+        );
+        expect(royaltyInfo.royaltyAmounts[1]).to.equal(
           (metaData.royalty[1] * salePrice) / 10000
         );
       });
