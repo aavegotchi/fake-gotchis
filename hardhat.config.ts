@@ -28,10 +28,10 @@ export default {
   networks: {
     hardhat: {
       forking: {
-        url: process.env.MUMBAI_URL,
+        url: process.env.MATIC_URL,
         timeout: 12000000,
       },
-      chainId: 80001,
+      chainId: 137,
       blockGasLimit: 20000000,
       timeout: 120000,
       gas: "auto",

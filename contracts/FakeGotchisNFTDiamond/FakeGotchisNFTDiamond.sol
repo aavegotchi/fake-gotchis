@@ -31,9 +31,7 @@ contract FakeGotchisNFTDiamond {
 
         // add supportedInterface
         LibDiamond.addSupportForERC165(0x80ac58cd); // ERC721
-
-        // use Multi Royalties hash
-        LibDiamond.addSupportForERC165(0x24d34933);
+        LibDiamond.addSupportForERC165(0x24d34933); //MultiRoyalty
 
         AppStorage storage s = LibAppStorage.diamondStorage();
         s.ghstContract = _ghstContract;
