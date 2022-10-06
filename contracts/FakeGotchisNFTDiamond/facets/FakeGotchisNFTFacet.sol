@@ -8,6 +8,8 @@ import "../../libraries/LibMeta.sol";
 import "../../libraries/LibERC721.sol";
 import "../../interfaces/IERC721.sol";
 import "../../interfaces/IERC721Marketplace.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+
 
 contract FakeGotchisNFTFacet is Modifiers {
     event GhstAddressUpdated(address _ghstContract);
@@ -227,8 +229,26 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @notice A distinct Uniform Resource Identifier (URI) for a given asset.
      * @dev Throws if `_tokenId` is not a valid NFT. URIs are defined in RFC 3986. The URI may point to a JSON file that conforms to the "ERC721 FakeGotchi JSON Schema".
      */
-    function tokenURI(uint256 _tokenId) external pure returns (string memory) {
-        return LibStrings.strWithUint("https://app.aavegotchi.com/metadata/fakegotchis/", _tokenId); //Here is your URL!
+    function tokenURI(uint256 _tokenId) external view returns (string memory) {
+        Metadata memory mData = s.metadata[s.fakeGotchis[_tokenId]];
+        require(mData.publisher != address(0), "ERC721: Invalid token id");
+
+        bytes memory json = abi.encodePacked('{"trait_type":"Publisher","value":"', Strings.toHexString(uint256(uint160(mData.publisher)), 20), '"},');
+        json = abi.encodePacked(json, '{"trait_type":"Publisher Name","value":"', mData.publisherName, '"},');
+        json = abi.encodePacked(json, '{"trait_type":"External Link","value":"', mData.externalLink, '"},');
+        json = abi.encodePacked(json, '{"trait_type":"Artist","value":"', Strings.toHexString(uint256(uint160(mData.artist)), 20), '"},');
+        json = abi.encodePacked(json, '{"trait_type":"Artist Name","value":"', mData.artistName, '"},');
+        json = abi.encodePacked(json, '{"trait_type":"Rarity","value":"', Strings.toString(mData.rarity), '"},');
+        json = abi.encodePacked(json, '{"trait_type":"Count","value":"', Strings.toString(mData.count), '"},');
+        json = abi.encodePacked(json, '{"trait_type":"Created At","value":"', Strings.toString(mData.createdAt), '"},');
+        json = abi.encodePacked(json, '{"trait_type":"Flag Count","value":"', Strings.toString(mData.flagCount), '"},');
+        json = abi.encodePacked(json, '{"trait_type":"Like Count","value":"', Strings.toString(mData.likeCount), '"}');
+        json = abi.encodePacked('"attributes": [', json, ']');
+        json = abi.encodePacked('"image":"', mData.fileHash, '",',json);
+        json = abi.encodePacked('"description":"', mData.description, '",',json);
+        json = abi.encodePacked('{"name":"', mData.name, '",',json,'}');
+
+        return string(json);
     }
 
     function safeBatchTransfer(

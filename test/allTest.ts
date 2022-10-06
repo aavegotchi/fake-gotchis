@@ -1182,6 +1182,21 @@ describe("Fake Gotchis tests", async function () {
         expect(tokenOwner).to.equal(ethers.constants.AddressZero);
       });
     });
+    describe("tokenURI", async function () {
+      it("Should return json with metadata if valid token id", async function () {
+        const tokenIds = await nftFacetWithUser.tokenIdsOfOwner(userAddress);
+        const tokenURI = await nftFacetWithUser.tokenURI(tokenIds[0]);
+        const tokenURIObj = JSON.parse(tokenURI);
+        expect(tokenURIObj.name).to.equal(metaData.name);
+        expect(tokenURIObj.description).to.equal(metaData.description);
+      });
+      it("Should return json with empty metadata if invalid token id", async function () {
+        const totalSupply = await nftFacetWithUser.totalSupply();
+        await expect(
+          nftFacetWithUser.tokenURI(totalSupply.add(10))
+        ).to.be.revertedWith("ERC721: Invalid token id");
+      });
+    });
     describe("multiRoyaltyInfo", async function () {
       it("Should return address(0) and 0 if invalid id", async function () {
         const totalSupply = await nftFacetWithUser.totalSupply();
