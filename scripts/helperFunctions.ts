@@ -59,6 +59,13 @@ export function getSelector(func: string, ethers: any) {
 export const maticAavegotchiDiamondAddress =
   "0x86935F11C86623deC8a25696E1C19a8659CbF95d";
 
+export const mumbaiFakeGotchisNFTDiamondAddress =
+  "0xBB7A12066dBE611C0F8e8BD1e80f1d6ffD1F4D21";
+export const mumbaiFakeGotchisCardDiamondAddress =
+  "0x118c19F39a4Ad9032B7b7b228A2Cd927d3FddA13";
+export const mumbaiFakeGotchisUpgraderAddress =
+  "0x94cb5C277FCC64C274Bd30847f0821077B231022";
+
 export const ghstAddress = "0x385Eeac5cB85A38A9a07A70c73e0a3271CfB54A7";
 
 export async function diamondOwner(address: string, ethers: any) {

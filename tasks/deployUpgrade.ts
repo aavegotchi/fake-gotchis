@@ -129,6 +129,12 @@ task(
           method: "hardhat_impersonateAccount",
           params: [owner],
         });
+
+        await hre.network.provider.request({
+          method: "hardhat_setBalance",
+          params: [owner, "0x100000000000000000000000"],
+        });
+
         signer = await hre.ethers.getSigner(owner);
       } else if (hre.network.name === "matic") {
         if (useLedger) {
@@ -255,7 +261,7 @@ task(
             cut,
             initAddress ? initAddress : hre.ethers.constants.AddressZero,
             initCalldata ? initCalldata : "0x",
-            { gasLimit: 800000 }
+            { gasPrice: gasPrice }
           );
 
           const receipt: ContractReceipt = await tx.wait();

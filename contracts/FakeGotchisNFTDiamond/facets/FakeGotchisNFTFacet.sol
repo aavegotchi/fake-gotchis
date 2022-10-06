@@ -261,4 +261,11 @@ contract FakeGotchisNFTFacet is Modifiers {
             safeTransferFrom(_from, _to, _tokenIds[index], _data);
         }
     }
+
+    // Note: This is used for upgrading in mumbai once
+    function updateInterfaces() external {
+        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        ds.supportedInterfaces[0x24d34933] = true; // MultiRoyalty
+        ds.supportedInterfaces[0x2a55205a] = false; // ERC2981
+    }
 }
