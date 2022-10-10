@@ -18,8 +18,8 @@ struct Metadata {
     address artist;
     string artistName;
     uint256[2] royalty; // royalty[0]: publisher, royalty[1]: artist, sum should be 10000 (100%)
-    uint256 rarity;
-    uint256 count;
+    uint256 rarity; // original editions, decrease when fake gotchi burned
+    uint256 count; // start from original editions, decrease when fake gotchi mint
     uint256 createdAt;
     uint8 status;
     uint256 flagCount;
