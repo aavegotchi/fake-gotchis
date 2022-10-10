@@ -90,9 +90,8 @@ describe("Deploy tests", async function () {
     const mData = {
       fileHash: "q".repeat(32), // 32 bytes
       name: "w".repeat(50), // 50 bytes
-      publisher: testAddress,
       publisherName: "e".repeat(30), // 30 bytes
-      externalLink: "r".repeat(240), // 240 bytes
+      externalLink: "r".repeat(50), // 50 bytes
       description: "t".repeat(120), // 120 bytes
       artist: ethers.constants.AddressZero,
       artistName: "y".repeat(30), // 30 bytes,
@@ -100,10 +99,10 @@ describe("Deploy tests", async function () {
         PromiseOrValue<BigNumberish>,
         PromiseOrValue<BigNumberish>
       ],
-      rarity: 500,
+      rarity: count, // editions
     };
     let receipt = await (
-      await metadataFacetWithUser.addMetadata(mData, cardSeriesId, count)
+      await metadataFacetWithUser.addMetadata(mData, cardSeriesId)
     ).wait();
     let event = receipt!.events!.find(
       (event) => event.event === "MetadataActionLog"

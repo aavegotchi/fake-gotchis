@@ -53,7 +53,7 @@ describe("Fake Gotchis tests", async function () {
   const fileHash = "q".repeat(32); // 32 bytes
   const name = "w".repeat(50); // 50 bytes
   const publisherName = "e".repeat(30); // 30 bytes
-  const externalLink = "r".repeat(240); // 240 bytes
+  const externalLink = "r".repeat(50); // 240 bytes
   const description = "t".repeat(120); // 120 bytes
   const artistName = "y".repeat(30); // 30 bytes
   let metaData: any;
@@ -168,13 +168,12 @@ describe("Fake Gotchis tests", async function () {
       externalLink,
       description,
       artistName,
-      publisher: userAddress,
       artist: artistAddress,
       royalty: [300, 100] as [
         PromiseOrValue<BigNumberish>,
         PromiseOrValue<BigNumberish>
       ],
-      rarity: 500,
+      rarity: mDataCount,
     };
   });
 
@@ -513,31 +512,41 @@ describe("Fake Gotchis tests", async function () {
     let declinedMetadataId: BigNumber;
     describe("addMetadata", async function () {
       // Note: Checking blocked sender case included declineMetadata() test
-      it("Should revert if publisher is zero address", async function () {
-        const testMetaData = {
-          ...metaData,
-          publisher: ethers.constants.AddressZero,
-        };
-        await expect(
-          metadataFacetWithUser.addMetadata(
-            testMetaData,
-            cardSeriesId,
-            mDataCount
-          )
-        ).to.be.revertedWith("Metadata: Publisher cannot be zero address");
-      });
       it("Should revert if file hash not exist", async function () {
         const testMetaData = {
           ...metaData,
           fileHash: "",
         };
         await expect(
-          metadataFacetWithUser.addMetadata(
-            testMetaData,
-            cardSeriesId,
-            mDataCount
-          )
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
         ).to.be.revertedWith("Metadata: File hash should exist");
+      });
+      it("Should revert if name not exist", async function () {
+        const testMetaData = {
+          ...metaData,
+          name: "",
+        };
+        await expect(
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
+        ).to.be.revertedWith("Metadata: Name should exist");
+      });
+      it("Should revert if name length exceeds max (50 bytes)", async function () {
+        const testMetaData = {
+          ...metaData,
+          name: "q".repeat(51),
+        };
+        await expect(
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
+        ).to.be.revertedWith("Metadata: Max name length is 50 bytes");
+      });
+      it("Should revert if description not exist", async function () {
+        const testMetaData = {
+          ...metaData,
+          description: "",
+        };
+        await expect(
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
+        ).to.be.revertedWith("Metadata: Description should exist");
       });
       it("Should revert if description length exceeds max (120 bytes)", async function () {
         const testMetaData = {
@@ -545,12 +554,53 @@ describe("Fake Gotchis tests", async function () {
           description: "q".repeat(121),
         };
         await expect(
-          metadataFacetWithUser.addMetadata(
-            testMetaData,
-            cardSeriesId,
-            mDataCount
-          )
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
         ).to.be.revertedWith("Metadata: Max description length is 120 bytes");
+      });
+      it("Should revert if external link length exceeds max (50 bytes)", async function () {
+        const testMetaData = {
+          ...metaData,
+          externalLink: "q".repeat(51),
+        };
+        await expect(
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
+        ).to.be.revertedWith("Metadata: Max external link length is 50 bytes");
+      });
+      it("Should revert if publisher name not exist", async function () {
+        const testMetaData = {
+          ...metaData,
+          publisherName: "",
+        };
+        await expect(
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
+        ).to.be.revertedWith("Metadata: Publisher name should exist");
+      });
+      it("Should revert if publisher name length exceeds max (30 bytes)", async function () {
+        const testMetaData = {
+          ...metaData,
+          publisherName: "q".repeat(31),
+        };
+        await expect(
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
+        ).to.be.revertedWith("Metadata: Max publisher name length is 30 bytes");
+      });
+      it("Should revert if artist name not exist", async function () {
+        const testMetaData = {
+          ...metaData,
+          artistName: "",
+        };
+        await expect(
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
+        ).to.be.revertedWith("Metadata: Artist name should exist");
+      });
+      it("Should revert if publisher name length exceeds max (30 bytes)", async function () {
+        const testMetaData = {
+          ...metaData,
+          artistName: "q".repeat(31),
+        };
+        await expect(
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
+        ).to.be.revertedWith("Metadata: Max artist name length is 30 bytes");
       });
       it("Should revert if sum of royalty splits not 400", async function () {
         const testMetaData = {
@@ -558,11 +608,7 @@ describe("Fake Gotchis tests", async function () {
           royalty: [50, 49],
         };
         await expect(
-          metadataFacetWithUser.addMetadata(
-            testMetaData,
-            cardSeriesId,
-            mDataCount
-          )
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
         ).to.be.revertedWith("Metadata: Sum of royalty splits not 400");
       });
       it("Should revert if artist royalty split is not 0 for zero address", async function () {
@@ -572,11 +618,7 @@ describe("Fake Gotchis tests", async function () {
           artist: ethers.constants.AddressZero,
         };
         await expect(
-          metadataFacetWithUser.addMetadata(
-            testMetaData,
-            cardSeriesId,
-            mDataCount
-          )
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
         ).to.be.revertedWith(
           "Metadata: Artist royalty split must be 0 with zero address"
         );
@@ -587,32 +629,23 @@ describe("Fake Gotchis tests", async function () {
           rarity: 0,
         };
         await expect(
-          metadataFacetWithUser.addMetadata(
-            testMetaData,
-            cardSeriesId,
-            mDataCount
-          )
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
         ).to.be.revertedWith("Metadata: Invalid rarity value");
-      });
-      it("Should revert if invalid mint amount", async function () {
-        await expect(
-          metadataFacetWithUser.addMetadata(metaData, cardSeriesId, 0)
-        ).to.be.revertedWith("Metadata: Invalid mint amount");
       });
       it("Should revert if not enough card for mint", async function () {
         const cardBalance = await cardFacetWithUser.balanceOf(
           userAddress,
           cardSeriesId
         );
+        const testMetaData = {
+          ...metaData,
+          rarity: cardBalance.add(10),
+        };
         await expect(
-          metadataFacetWithUser.addMetadata(
-            metaData,
-            cardSeriesId,
-            cardBalance.add(1)
-          )
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
         ).to.be.reverted;
         await expect(
-          metadataFacetWithUser.addMetadata(metaData, cardSeriesId.add(1), 1)
+          metadataFacetWithUser.addMetadata(metaData, cardSeriesId.add(1))
         ).to.be.reverted;
       });
       it("Should succeed if all params are valid and have enough cards", async function () {
@@ -621,11 +654,7 @@ describe("Fake Gotchis tests", async function () {
           cardSeriesId
         );
         const receipt = await (
-          await metadataFacetWithUser.addMetadata(
-            metaData,
-            cardSeriesId,
-            mDataCount
-          )
+          await metadataFacetWithUser.addMetadata(metaData, cardSeriesId)
         ).wait();
         const event = receipt!.events!.find(
           (event) => event.event === "MetadataActionLog"
@@ -633,13 +662,27 @@ describe("Fake Gotchis tests", async function () {
         metadataId = event!.args!.id;
         expect(event!.args!.sender).to.equal(userAddress);
         expect(event!.args!.fileHash).to.equal(metaData.fileHash);
-        expect(event!.args!.publisher).to.equal(metaData.publisher);
+        expect(event!.args!.publisher).to.equal(userAddress);
         expect(event!.args!.status).to.equal(0);
         const cardBalanceAfter = await cardFacetWithUser.balanceOf(
           userAddress,
           cardSeriesId
         );
         expect(cardBalanceAfter.add(mDataCount)).to.equal(cardBalanceBefore);
+      });
+      it("Should revert if invalid publisher name after it is saved", async function () {
+        const testMetaData = {
+          ...metaData,
+          publisherName: "p".repeat(30),
+        };
+        await expect(
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
+        ).to.be.revertedWith("Metadata: Invalid publisher name");
+      });
+      it("Should revert if not unique publisher name", async function () {
+        await expect(
+          metadataFacetWithUser2.addMetadata(metaData, cardSeriesId)
+        ).to.be.revertedWith("Metadata: Publisher name already used");
       });
     });
     describe("getMetadata", async function () {
@@ -656,7 +699,7 @@ describe("Fake Gotchis tests", async function () {
           metadataId
         );
         expect(savedMetaData.fileHash).to.equal(metaData.fileHash);
-        expect(savedMetaData.publisher).to.equal(metaData.publisher);
+        expect(savedMetaData.publisher).to.equal(userAddress);
         expect(savedMetaData.artist).to.equal(metaData.artist);
         expect(savedMetaData.artistName).to.equal(metaData.artistName);
         expect(savedMetaData.description).to.equal(metaData.description);
@@ -678,11 +721,7 @@ describe("Fake Gotchis tests", async function () {
       });
       it("Should succeed if valid id and not declined", async function () {
         let receipt = await (
-          await metadataFacetWithUser.addMetadata(
-            metaData,
-            cardSeriesId,
-            mDataCount
-          )
+          await metadataFacetWithUser.addMetadata(metaData, cardSeriesId)
         ).wait();
         let event = receipt!.events!.find(
           (event) => event.event === "MetadataActionLog"
@@ -699,7 +738,7 @@ describe("Fake Gotchis tests", async function () {
         );
         expect(event!.args!.sender).to.equal(userAddress);
         expect(event!.args!.fileHash).to.equal(metaData.fileHash);
-        expect(event!.args!.publisher).to.equal(metaData.publisher);
+        expect(event!.args!.publisher).to.equal(userAddress);
         expect(event!.args!.status).to.equal(3);
       });
       describe("Blocking bad faith account", async function () {
@@ -715,8 +754,13 @@ describe("Fake Gotchis tests", async function () {
             )
           ).wait();
           // add metadata
+          const testMetaData = {
+            ...metaData,
+            publisherName: "n".repeat(30),
+            rarity: 1,
+          };
           let receipt = await (
-            await metadataFacetWithUser2.addMetadata(metaData, cardSeriesId, 1)
+            await metadataFacetWithUser2.addMetadata(testMetaData, cardSeriesId)
           ).wait();
           let event = receipt!.events!.find(
             (event) => event.event === "MetadataActionLog"
@@ -728,7 +772,7 @@ describe("Fake Gotchis tests", async function () {
           ).wait();
           // bad faith account try to add metadata again
           await expect(
-            metadataFacetWithUser2.addMetadata(metaData, cardSeriesId, 1)
+            metadataFacetWithUser2.addMetadata(testMetaData, cardSeriesId)
           ).to.be.revertedWith("Metadata: Blocked address");
         });
       });
@@ -1216,7 +1260,7 @@ describe("Fake Gotchis tests", async function () {
           tokenIds[0],
           salePrice
         );
-        expect(royaltyInfo.receivers[0]).to.equal(metaData.publisher);
+        expect(royaltyInfo.receivers[0]).to.equal(userAddress);
         expect(royaltyInfo.receivers[1]).to.equal(metaData.artist);
         expect(royaltyInfo.royaltyAmounts[0]).to.equal(
           (metaData.royalty[0] * salePrice) / 10000
