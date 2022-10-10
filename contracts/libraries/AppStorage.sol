@@ -49,6 +49,8 @@ struct AppStorage {
     mapping(address => uint256[]) ownerTokenIds;
     mapping(address => mapping(address => bool)) operators;
     mapping(uint256 => address) approved;
+    mapping(string => address) nameToPublisher;
+    mapping(address => string) publisherToName;
 }
 
 library LibAppStorage {

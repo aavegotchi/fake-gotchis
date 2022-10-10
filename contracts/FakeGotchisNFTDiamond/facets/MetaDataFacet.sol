@@ -40,7 +40,6 @@ contract MetadataFacet is Modifiers {
     struct MetadataInput {
         string fileHash;
         string name;
-        address publisher;
         string publisherName;
         string externalLink;
         string description;
@@ -50,20 +49,24 @@ contract MetadataFacet is Modifiers {
         uint256 rarity;
     }
 
-    function addMetadata(
-        MetadataInput memory mData,
-        uint256 series,
-        uint256 count
-    ) external {
+    function addMetadata(MetadataInput memory mData, uint256 series) external {
         address _sender = LibMeta.msgSender();
         // check blocked
         require(!s.blocked[_sender], "Metadata: Blocked address");
 
         // Parameter validation
-        verifyMetadata(mData, count);
+        verifyMetadata(mData);
+
+        if (bytes(s.publisherToName[_sender]).length == 0) {
+            require(s.nameToPublisher[mData.publisherName] == address(0), "Metadata: Publisher name already used");
+            s.publisherToName[_sender] = mData.publisherName;
+            s.nameToPublisher[mData.publisherName] = _sender;
+        } else {
+            require(s.nameToPublisher[mData.publisherName] == _sender, "Metadata: Invalid publisher name");
+        }
 
         // Burn card
-        IFakeGotchisCardDiamond(s.fakeGotchisCardDiamond).burn(_sender, series, count);
+        IFakeGotchisCardDiamond(s.fakeGotchisCardDiamond).burn(_sender, series, mData.rarity);
 
         // save
         s.metadataIdCounter++;
@@ -71,7 +74,7 @@ contract MetadataFacet is Modifiers {
         s.metadata[_metadataId] = Metadata({
             fileHash: mData.fileHash,
             name: mData.name,
-            publisher: mData.publisher,
+            publisher: _sender,
             publisherName: mData.publisherName,
             externalLink: mData.externalLink,
             description: mData.description,
@@ -79,7 +82,7 @@ contract MetadataFacet is Modifiers {
             artistName: mData.artistName,
             royalty: mData.royalty,
             rarity: mData.rarity,
-            count: count,
+            count: mData.rarity,
             createdAt: block.timestamp,
             status: METADATA_STATUS_PENDING,
             flagCount: 0,
@@ -125,17 +128,23 @@ contract MetadataFacet is Modifiers {
         s.metadata[_id].count = 0;
     }
 
-    function verifyMetadata(MetadataInput memory mData, uint256 count) internal pure {
-        require(mData.publisher != address(0), "Metadata: Publisher cannot be zero address");
+    function verifyMetadata(MetadataInput memory mData) internal pure {
         require(bytes(mData.fileHash).length > 0, "Metadata: File hash should exist");
+        require(bytes(mData.name).length > 0, "Metadata: Name should exist");
+        require(bytes(mData.name).length <= 50, "Metadata: Max name length is 50 bytes");
+        require(bytes(mData.description).length > 0, "Metadata: Description should exist");
         require(bytes(mData.description).length <= 120, "Metadata: Max description length is 120 bytes");
+        require(bytes(mData.externalLink).length <= 50, "Metadata: Max external link length is 50 bytes");
+        require(bytes(mData.publisherName).length > 0, "Metadata: Publisher name should exist");
+        require(bytes(mData.publisherName).length <= 30, "Metadata: Max publisher name length is 30 bytes");
+        require(bytes(mData.artistName).length > 0, "Metadata: Artist name should exist");
+        require(bytes(mData.artistName).length <= 30, "Metadata: Max artist name length is 30 bytes");
 
         require(mData.royalty[0] + mData.royalty[1] == 400, "Metadata: Sum of royalty splits not 400");
         if (mData.artist == address(0)) {
             require(mData.royalty[1] == 0, "Metadata: Artist royalty split must be 0 with zero address");
         }
         require(mData.rarity > 0, "Metadata: Invalid rarity value");
-        require(count > 0, "Metadata: Invalid mint amount");
     }
 
     function logMetadata(uint256 _id) internal {
