@@ -9,24 +9,27 @@ uint8 constant METADATA_STATUS_APPROVED = 2;
 uint8 constant METADATA_STATUS_DECLINED = 3;
 
 struct Metadata {
-    string fileHash;
-    string name;
+    // storage slot 1
     address publisher;
-    string publisherName;
-    string externalLink;
-    string description;
+    uint16[2] royalty; // royalty[0]: publisher, royalty[1]: artist, sum should be 10000 (100%)
+    uint16 rarity; // original editions, decrease when fake gotchi burned
+    uint32 flagCount;
+    uint32 likeCount;
+    // storage slot 2
     address artist;
-    string artistName;
-    uint256[2] royalty; // royalty[0]: publisher, royalty[1]: artist, sum should be 10000 (100%)
-    uint256 rarity; // original editions, decrease when fake gotchi burned
-    uint256 createdAt;
+    uint40 createdAt;
     uint8 status;
-    uint256 flagCount;
-    uint256 likeCount;
-    string thumbnailHash;
-    string fileType;
-    string thumbnailType;
     bool minted;
+    // storage slot 3+
+    string name;
+    string description;
+    string externalLink;
+    string artistName;
+    string publisherName;
+    string fileHash;
+    string fileType;
+    string thumbnailHash;
+    string thumbnailType;
 }
 
 struct AppStorage {

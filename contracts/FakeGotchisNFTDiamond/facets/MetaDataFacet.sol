@@ -15,17 +15,21 @@ contract MetadataFacet is Modifiers {
     event MetadataActionLog(
         uint256 indexed id,
         address indexed sender,
-        string fileHash,
         string name,
+        string description,
+        string externalLink,
+        uint16 rarity,
         address publisher,
         string publisherName,
-        string externalLink,
-        string description,
         address artist,
         string artistName,
-        uint256[2] royalty,
-        uint256 rarity,
-        uint256 createdAt,
+        uint16[2] royalty,
+//        string fileHash,
+//        string fileType,
+//        string thumbnailHash,
+//        string thumbnailType,
+        uint40 createdAt,
+        bool minted,
         uint8 status
     );
     event MetadataFlagged(uint256 indexed _id, address _flaggedBy);
@@ -45,8 +49,8 @@ contract MetadataFacet is Modifiers {
         string description;
         address artist;
         string artistName;
-        uint256[2] royalty; // royalty[0]: publisher, royalty[1]: artist, sum should be 400 (4%)
-        uint256 rarity;
+        uint16[2] royalty; // royalty[0]: publisher, royalty[1]: artist, sum should be 400 (4%)
+        uint16 rarity;
         string thumbnailHash;
         string fileType;
         string thumbnailType;
@@ -75,24 +79,24 @@ contract MetadataFacet is Modifiers {
         s.metadataIdCounter++;
         uint256 _metadataId = s.metadataIdCounter;
         s.metadata[_metadataId] = Metadata({
-            fileHash: mData.fileHash,
             name: mData.name,
+            description: mData.description,
+            externalLink: mData.externalLink,
+            rarity: mData.rarity,
             publisher: _sender,
             publisherName: mData.publisherName,
-            externalLink: mData.externalLink,
-            description: mData.description,
             artist: mData.artist,
             artistName: mData.artistName,
             royalty: mData.royalty,
-            rarity: mData.rarity,
-            createdAt: block.timestamp,
+            fileHash: mData.fileHash,
+            fileType: mData.fileType,
+            thumbnailHash: mData.thumbnailHash,
+            thumbnailType: mData.thumbnailType,
+            minted: false,
+            createdAt: uint40(block.timestamp),
             status: METADATA_STATUS_PENDING,
             flagCount: 0,
-            likeCount: 0,
-            thumbnailHash: mData.thumbnailHash,
-            fileType: mData.fileType,
-            thumbnailType: mData.thumbnailType,
-            minted: false
+            likeCount: 0
         });
 
         s.ownerMetadataIdIndexes[_sender][_metadataId] = s.ownerMetadataIds[_sender].length;
@@ -166,17 +170,21 @@ contract MetadataFacet is Modifiers {
         emit MetadataActionLog(
             _id,
             s.metadataOwner[_id],
-            mData.fileHash,
             mData.name,
+            mData.description,
+            mData.externalLink,
+            mData.rarity,
             mData.publisher,
             mData.publisherName,
-            mData.externalLink,
-            mData.description,
             mData.artist,
             mData.artistName,
             mData.royalty,
-            mData.rarity,
+//            mData.fileHash,
+//            mData.fileType,
+//            mData.thumbnailHash,
+//            mData.thumbnailType,
             mData.createdAt,
+            mData.minted,
             mData.status
         );
     }
