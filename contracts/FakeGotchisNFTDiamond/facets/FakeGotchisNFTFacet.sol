@@ -238,10 +238,10 @@ contract FakeGotchisNFTFacet is Modifiers {
             '"},'
         );
         json = abi.encodePacked(json, '{"trait_type":"Publisher Name","value":"', mData.publisherName, '"},');
-        json = abi.encodePacked(json, '{"trait_type":"External Link","value":"', mData.externalLink, '"},');
         json = abi.encodePacked(json, '{"trait_type":"Artist","value":"', Strings.toHexString(uint256(uint160(mData.artist)), 20), '"},');
         json = abi.encodePacked(json, '{"trait_type":"Artist Name","value":"', mData.artistName, '"},');
-        json = abi.encodePacked(json, '{"trait_type":"Rarity","value":"', Strings.toString(mData.rarity), '"},');
+        json = abi.encodePacked(json, '{"trait_type":"External Link","value":"', mData.externalLink, '"},');
+        json = abi.encodePacked(json, '{"trait_type":"Editions","value":"', Strings.toString(mData.editions), '"},');
         json = abi.encodePacked(json, '{"trait_type":"Created At","value":"', Strings.toString(mData.createdAt), '"},');
         json = abi.encodePacked(json, '{"trait_type":"Flag Count","value":"', Strings.toString(mData.flagCount), '"},');
         json = abi.encodePacked(json, '{"trait_type":"Like Count","value":"', Strings.toString(mData.likeCount), '"}');

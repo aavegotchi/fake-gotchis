@@ -12,26 +12,7 @@ import "../../interfaces/IERC721.sol";
 import "../../interfaces/IERC1155.sol";
 
 contract MetadataFacet is Modifiers {
-    event MetadataActionLog(
-        uint256 indexed id,
-        address indexed sender,
-        string name,
-        string description,
-        string externalLink,
-        uint16 rarity,
-        address publisher,
-        string publisherName,
-        address artist,
-        string artistName,
-        uint16[2] royalty,
-//        string fileHash,
-//        string fileType,
-//        string thumbnailHash,
-//        string thumbnailType,
-        uint40 createdAt,
-        bool minted,
-        uint8 status
-    );
+    event MetadataActionLog(uint256 indexed id, Metadata metaData);
     event MetadataFlagged(uint256 indexed _id, address _flaggedBy);
     event MetadataLiked(uint256 indexed _id, address _likedBy);
     event ReviewPassed(uint256 indexed _id, address _reviewer);
@@ -50,7 +31,7 @@ contract MetadataFacet is Modifiers {
         address artist;
         string artistName;
         uint16[2] royalty; // royalty[0]: publisher, royalty[1]: artist, sum should be 400 (4%)
-        uint16 rarity;
+        uint16 editions;
         string thumbnailHash;
         string fileType;
         string thumbnailType;
@@ -73,7 +54,7 @@ contract MetadataFacet is Modifiers {
         }
 
         // Burn card
-        IFakeGotchisCardDiamond(s.fakeGotchisCardDiamond).burn(_sender, series, mData.rarity);
+        IFakeGotchisCardDiamond(s.fakeGotchisCardDiamond).burn(_sender, series, 1);
 
         // save
         s.metadataIdCounter++;
@@ -82,7 +63,7 @@ contract MetadataFacet is Modifiers {
             name: mData.name,
             description: mData.description,
             externalLink: mData.externalLink,
-            rarity: mData.rarity,
+            editions: mData.editions,
             publisher: _sender,
             publisherName: mData.publisherName,
             artist: mData.artist,
@@ -104,8 +85,8 @@ contract MetadataFacet is Modifiers {
         s.metadataIds.push(_metadataId);
         s.metadataOwner[_metadataId] = _sender;
 
-        // emit event with metadata input
-        logMetadata(_metadataId);
+        // emit event with metadata
+        emit MetadataActionLog(_metadataId, s.metadata[_metadataId]);
     }
 
     function declineMetadata(uint256 _id, bool isBadFaith) external onlyOwner {
@@ -117,8 +98,8 @@ contract MetadataFacet is Modifiers {
             s.blocked[s.metadataOwner[_id]] = true;
         }
 
-        // emit event with metadata input
-        logMetadata(_id);
+        // emit event with metadata
+        emit MetadataActionLog(_id, s.metadata[_id]);
     }
 
     function mint(uint256 _id) external {
@@ -130,11 +111,11 @@ contract MetadataFacet is Modifiers {
         if (mData.status == METADATA_STATUS_PENDING) {
             require(mData.createdAt + 5 days <= block.timestamp, "Metadata: Still pending");
             s.metadata[_id].status = METADATA_STATUS_APPROVED;
-            // emit event with metadata input
-            logMetadata(_id);
+            // emit event with metadata
+            emit MetadataActionLog(_id, s.metadata[_id]);
         }
         require(!mData.minted, "Metadata: Already mint");
-        LibERC721.safeBatchMint(mData.publisher, _id, mData.rarity);
+        LibERC721.safeBatchMint(_sender, _id, mData.editions);
         s.metadata[_id].minted = true;
     }
 
@@ -162,31 +143,8 @@ contract MetadataFacet is Modifiers {
         if (mData.artist == address(0)) {
             require(mData.royalty[1] == 0, "Metadata: Artist royalty split must be 0 with zero address");
         }
-        require(mData.rarity > 0, "Metadata: Invalid rarity value");
-    }
-
-    function logMetadata(uint256 _id) internal {
-        Metadata memory mData = s.metadata[_id];
-        emit MetadataActionLog(
-            _id,
-            s.metadataOwner[_id],
-            mData.name,
-            mData.description,
-            mData.externalLink,
-            mData.rarity,
-            mData.publisher,
-            mData.publisherName,
-            mData.artist,
-            mData.artistName,
-            mData.royalty,
-//            mData.fileHash,
-//            mData.fileType,
-//            mData.thumbnailHash,
-//            mData.thumbnailType,
-            mData.createdAt,
-            mData.minted,
-            mData.status
-        );
+        require(mData.editions > 0, "Metadata: Invalid editions value");
+        require(mData.editions <= 100, "Metadata: Max editions value is 100");
     }
 
     function validateMetadata(uint256 _id) internal view {
@@ -233,8 +191,8 @@ contract MetadataFacet is Modifiers {
 
         s.metadata[_id].status = METADATA_STATUS_PENDING;
 
-        // emit event with metadata input
-        logMetadata(_id);
+        // emit event with metadata
+        emit MetadataActionLog(_id, s.metadata[_id]);
 
         emit ReviewPassed(_id, msg.sender);
     }

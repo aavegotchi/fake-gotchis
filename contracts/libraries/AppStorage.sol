@@ -12,7 +12,7 @@ struct Metadata {
     // storage slot 1
     address publisher;
     uint16[2] royalty; // royalty[0]: publisher, royalty[1]: artist, sum should be 10000 (100%)
-    uint16 rarity; // original editions, decrease when fake gotchi burned
+    uint16 editions; // decrease when fake gotchi burned
     uint32 flagCount;
     uint32 likeCount;
     // storage slot 2

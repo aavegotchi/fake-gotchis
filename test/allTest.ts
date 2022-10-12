@@ -48,8 +48,8 @@ describe("Fake Gotchis tests", async function () {
   const cardTransferAmount2 = 10;
 
   // test metadata
-  const mDataCount = 10;
-  const totalSupply = mDataCount;
+  const editions = 10;
+  const totalSupply = editions;
   const fileHash = "q".repeat(42); // 42 bytes
   const name = "w".repeat(50); // 50 bytes
   const publisherName = "e".repeat(30); // 30 bytes
@@ -176,7 +176,7 @@ describe("Fake Gotchis tests", async function () {
         PromiseOrValue<BigNumberish>,
         PromiseOrValue<BigNumberish>
       ],
-      rarity: mDataCount,
+      editions,
       thumbnailHash,
       fileType,
       thumbnailType,
@@ -674,27 +674,27 @@ describe("Fake Gotchis tests", async function () {
           "Metadata: Artist royalty split must be 0 with zero address"
         );
       });
-      it("Should revert if invalid rarity value", async function () {
+      it("Should revert if invalid editions value", async function () {
         const testMetaData = {
           ...metaData,
-          rarity: 0,
+          editions: 0,
         };
         await expect(
           metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
-        ).to.be.revertedWith("Metadata: Invalid rarity value");
+        ).to.be.revertedWith("Metadata: Invalid editions value");
+      });
+      it("Should revert if editions exceeds max (100)", async function () {
+        const testMetaData = {
+          ...metaData,
+          editions: 101,
+        };
+        await expect(
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
+        ).to.be.revertedWith("Metadata: Max editions value is 100");
       });
       it("Should revert if not enough card for mint", async function () {
-        const cardBalance = await cardFacetWithUser.balanceOf(
-          userAddress,
-          cardSeriesId
-        );
-        const testMetaData = {
-          ...metaData,
-          rarity: cardBalance.add(10),
-        };
-        await expect(
-          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
-        ).to.be.reverted;
+        await expect(metadataFacetWithUser3.addMetadata(metaData, cardSeriesId))
+          .to.be.reverted;
         await expect(
           metadataFacetWithUser.addMetadata(metaData, cardSeriesId.add(1))
         ).to.be.reverted;
@@ -711,15 +711,14 @@ describe("Fake Gotchis tests", async function () {
           (event) => event.event === "MetadataActionLog"
         );
         metadataId = event!.args!.id;
-        expect(event!.args!.sender).to.equal(userAddress);
-        expect(event!.args!.fileHash).to.equal(metaData.fileHash);
-        expect(event!.args!.publisher).to.equal(userAddress);
-        expect(event!.args!.status).to.equal(0);
+        expect(event!.args!.metaData!.fileHash).to.equal(metaData.fileHash);
+        expect(event!.args!.metaData!.publisher).to.equal(userAddress);
+        expect(event!.args!.metaData!.status).to.equal(0);
         const cardBalanceAfter = await cardFacetWithUser.balanceOf(
           userAddress,
           cardSeriesId
         );
-        expect(cardBalanceAfter.add(mDataCount)).to.equal(cardBalanceBefore);
+        expect(cardBalanceAfter.add(1)).to.equal(cardBalanceBefore);
       });
       it("Should revert if invalid publisher name after it is saved", async function () {
         const testMetaData = {
@@ -787,10 +786,9 @@ describe("Fake Gotchis tests", async function () {
         event = receipt!.events!.find(
           (event) => event.event === "MetadataActionLog"
         );
-        expect(event!.args!.sender).to.equal(userAddress);
-        expect(event!.args!.fileHash).to.equal(metaData.fileHash);
-        expect(event!.args!.publisher).to.equal(userAddress);
-        expect(event!.args!.status).to.equal(3);
+        expect(event!.args!.metaData!.fileHash).to.equal(metaData.fileHash);
+        expect(event!.args!.metaData!.publisher).to.equal(userAddress);
+        expect(event!.args!.metaData!.status).to.equal(3);
       });
       describe("Blocking bad faith account", async function () {
         it("Should revert if bad faith user try to add Metadata", async function () {
@@ -808,7 +806,7 @@ describe("Fake Gotchis tests", async function () {
           const testMetaData = {
             ...metaData,
             publisherName: "n".repeat(30),
-            rarity: 1,
+            editions: 1,
           };
           let receipt = await (
             await metadataFacetWithUser2.addMetadata(testMetaData, cardSeriesId)
@@ -897,7 +895,7 @@ describe("Fake Gotchis tests", async function () {
         expect(event!.args!._id).to.equal(metadataId);
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
         expect(savedMetaData.status).to.equal(0);
-        expect(savedMetaData.flagCount).to.equal(prevFlagCount.add(1));
+        expect(savedMetaData.flagCount).to.equal(prevFlagCount + 1);
       });
       it("Should succeed if aavegotchi owner flag pending metadata with valid id", async function () {
         let savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
@@ -911,7 +909,7 @@ describe("Fake Gotchis tests", async function () {
         expect(event!.args!._id).to.equal(metadataId);
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
         expect(savedMetaData.status).to.equal(0);
-        expect(savedMetaData.flagCount).to.equal(prevFlagCount.add(1));
+        expect(savedMetaData.flagCount).to.equal(prevFlagCount + 1);
       });
       it("Should succeed if 100+ GHST holder flag pending metadata with valid id", async function () {
         let savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
@@ -925,7 +923,7 @@ describe("Fake Gotchis tests", async function () {
         expect(event!.args!._id).to.equal(metadataId);
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
         expect(savedMetaData.status).to.equal(0);
-        expect(savedMetaData.flagCount).to.equal(prevFlagCount.add(1));
+        expect(savedMetaData.flagCount).to.equal(prevFlagCount + 1);
       });
       it("Should revert if non flaggable user", async function () {
         await expect(
@@ -980,7 +978,7 @@ describe("Fake Gotchis tests", async function () {
         expect(event!.args!._id).to.equal(metadataId);
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
         expect(savedMetaData.status).to.equal(1);
-        expect(savedMetaData.flagCount).to.equal(prevFlagCount.add(1));
+        expect(savedMetaData.flagCount).to.equal(prevFlagCount + 1);
       });
       it("Should revert if flag paused metadata", async function () {
         await expect(
@@ -1020,7 +1018,7 @@ describe("Fake Gotchis tests", async function () {
         let event = receipt!.events!.find(
           (event) => event.event === "MetadataActionLog"
         );
-        expect(event!.args!.status).to.equal(0);
+        expect(event!.args!.metaData!.status).to.equal(0);
         event = receipt!.events!.find(
           (event) => event.event === "ReviewPassed"
         );
@@ -1065,9 +1063,9 @@ describe("Fake Gotchis tests", async function () {
         const events2 = receipt!.events!.filter(
           (event) => event.topics && event.topics[0] === topic2
         );
-        expect(event!.args!.status).to.equal(2);
-        expect(events1.length).to.equal(mDataCount);
-        expect(events2.length).to.equal(mDataCount);
+        expect(event!.args!.metaData!.status).to.equal(2);
+        expect(events1.length).to.equal(editions);
+        expect(events2.length).to.equal(editions);
         const savedMetaData = await metadataFacetWithUser.getMetadata(
           metadataId
         );
@@ -1132,7 +1130,7 @@ describe("Fake Gotchis tests", async function () {
         );
         expect(event!.args!._id).to.equal(metadataId);
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
-        expect(savedMetaData.likeCount).to.equal(prevLikeCount.add(1));
+        expect(savedMetaData.likeCount).to.equal(prevLikeCount + 1);
       });
       it("Should succeed if aavegotchi owner like with valid id", async function () {
         let savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
@@ -1145,7 +1143,7 @@ describe("Fake Gotchis tests", async function () {
         );
         expect(event!.args!._id).to.equal(metadataId);
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
-        expect(savedMetaData.likeCount).to.equal(prevLikeCount.add(1));
+        expect(savedMetaData.likeCount).to.equal(prevLikeCount + 1);
       });
       it("Should succeed if 100+ GHST holder like with valid id", async function () {
         let savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
@@ -1158,7 +1156,7 @@ describe("Fake Gotchis tests", async function () {
         );
         expect(event!.args!._id).to.equal(metadataId);
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
-        expect(savedMetaData.likeCount).to.equal(prevLikeCount.add(1));
+        expect(savedMetaData.likeCount).to.equal(prevLikeCount + 1);
       });
       it("Should revert if non likeable user", async function () {
         await expect(
@@ -1247,7 +1245,7 @@ describe("Fake Gotchis tests", async function () {
     describe("tokenIdsOfOwner", async function () {
       it("Should return token ids if have any nft", async function () {
         const tokenIds = await nftFacetWithUser.tokenIdsOfOwner(userAddress);
-        expect(tokenIds.length).to.equal(mDataCount);
+        expect(tokenIds.length).to.equal(editions);
       });
       it("Should return empty array if have any nft", async function () {
         const tokenIds = await nftFacetWithUser.tokenIdsOfOwner(user2Address);
@@ -1257,7 +1255,7 @@ describe("Fake Gotchis tests", async function () {
     describe("balanceOf", async function () {
       it("Should return length of tokens if have any nft", async function () {
         const balance = await nftFacetWithUser.balanceOf(userAddress);
-        expect(balance).to.equal(mDataCount);
+        expect(balance).to.equal(editions);
       });
       it("Should return 0 if have any nft", async function () {
         const balance = await nftFacetWithUser.balanceOf(user2Address);
@@ -1267,7 +1265,7 @@ describe("Fake Gotchis tests", async function () {
     describe("ownerOf", async function () {
       it("Should return token owner if valid token id", async function () {
         const tokenIds = await nftFacetWithUser.tokenIdsOfOwner(userAddress);
-        expect(tokenIds.length).to.equal(mDataCount);
+        expect(tokenIds.length).to.equal(editions);
         const tokenOwner = await nftFacetWithUser.ownerOf(tokenIds[0]);
         expect(tokenOwner).to.equal(userAddress);
       });
