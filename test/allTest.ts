@@ -50,12 +50,15 @@ describe("Fake Gotchis tests", async function () {
   // test metadata
   const mDataCount = 10;
   const totalSupply = mDataCount;
-  const fileHash = "q".repeat(32); // 32 bytes
+  const fileHash = "q".repeat(42); // 42 bytes
   const name = "w".repeat(50); // 50 bytes
   const publisherName = "e".repeat(30); // 30 bytes
   const externalLink = "r".repeat(50); // 240 bytes
-  const description = "t".repeat(120); // 120 bytes
+  const description = "d".repeat(120); // 120 bytes
   const artistName = "y".repeat(30); // 30 bytes
+  const thumbnailHash = "t".repeat(42); // 42 bytes
+  const fileType = "f".repeat(20); // 20 bytes
+  const thumbnailType = "q".repeat(20); // 20 bytes
   let metaData: any;
 
   // test accounts for flag for like metadata
@@ -174,6 +177,9 @@ describe("Fake Gotchis tests", async function () {
         PromiseOrValue<BigNumberish>
       ],
       rarity: mDataCount,
+      thumbnailHash,
+      fileType,
+      thumbnailType,
     };
   });
 
@@ -521,6 +527,24 @@ describe("Fake Gotchis tests", async function () {
           metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
         ).to.be.revertedWith("Metadata: File hash should exist");
       });
+      it("Should revert if file type not exist", async function () {
+        const testMetaData = {
+          ...metaData,
+          fileType: "",
+        };
+        await expect(
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
+        ).to.be.revertedWith("Metadata: File type should exist");
+      });
+      it("Should revert if file type length exceeds max (20 bytes)", async function () {
+        const testMetaData = {
+          ...metaData,
+          fileType: "q".repeat(21),
+        };
+        await expect(
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
+        ).to.be.revertedWith("Metadata: Max file type length is 20 bytes");
+      });
       it("Should revert if name not exist", async function () {
         const testMetaData = {
           ...metaData,
@@ -601,6 +625,33 @@ describe("Fake Gotchis tests", async function () {
         await expect(
           metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
         ).to.be.revertedWith("Metadata: Max artist name length is 30 bytes");
+      });
+      it("Should revert if thumbnail hash exists, but thumbnail type not exist", async function () {
+        const testMetaData = {
+          ...metaData,
+          thumbnailType: "",
+        };
+        await expect(
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
+        ).to.be.revertedWith("Metadata: Thumbnail type should exist");
+      });
+      it("Should revert if thumbnail hash exists, but thumbnail type length exceeds max (20 bytes)", async function () {
+        const testMetaData = {
+          ...metaData,
+          thumbnailType: "q".repeat(21),
+        };
+        await expect(
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
+        ).to.be.revertedWith("Metadata: Max thumbnail type length is 20 bytes");
+      });
+      it("Should revert if thumbnail hash not exist, but thumbnail type exists", async function () {
+        const testMetaData = {
+          ...metaData,
+          thumbnailHash: "",
+        };
+        await expect(
+          metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
+        ).to.be.revertedWith("Metadata: Thumbnail type should not exist");
       });
       it("Should revert if sum of royalty splits not 400", async function () {
         const testMetaData = {
@@ -1020,7 +1071,7 @@ describe("Fake Gotchis tests", async function () {
         const savedMetaData = await metadataFacetWithUser.getMetadata(
           metadataId
         );
-        expect(savedMetaData.count).to.equal(0);
+        expect(savedMetaData.minted).to.equal(true);
       });
       it("Should revert if already mint", async function () {
         await expect(metadataFacetWithUser.mint(metadataId)).to.be.revertedWith(

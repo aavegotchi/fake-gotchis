@@ -86,9 +86,9 @@ describe("Deploy tests", async function () {
   });
 
   it("Add, approve and mint metadata", async function () {
-    const count = 150;
+    const count = 100;
     const mData = {
-      fileHash: "q".repeat(32), // 32 bytes
+      fileHash: "q".repeat(42), // 42 bytes
       name: "w".repeat(50), // 50 bytes
       publisherName: "e".repeat(30), // 30 bytes
       externalLink: "r".repeat(50), // 50 bytes
@@ -100,6 +100,9 @@ describe("Deploy tests", async function () {
         PromiseOrValue<BigNumberish>
       ],
       rarity: count, // editions
+      thumbnailHash: "q".repeat(42), // 42 bytes
+      fileType: "f".repeat(20), // 20 bytes
+      thumbnailType: "t".repeat(20), // 20 bytes
     };
     let receipt = await (
       await metadataFacetWithUser.addMetadata(mData, cardSeriesId)

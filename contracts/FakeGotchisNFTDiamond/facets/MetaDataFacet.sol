@@ -47,6 +47,9 @@ contract MetadataFacet is Modifiers {
         string artistName;
         uint256[2] royalty; // royalty[0]: publisher, royalty[1]: artist, sum should be 400 (4%)
         uint256 rarity;
+        string thumbnailHash;
+        string fileType;
+        string thumbnailType;
     }
 
     function addMetadata(MetadataInput memory mData, uint256 series) external {
@@ -82,11 +85,14 @@ contract MetadataFacet is Modifiers {
             artistName: mData.artistName,
             royalty: mData.royalty,
             rarity: mData.rarity,
-            count: mData.rarity,
             createdAt: block.timestamp,
             status: METADATA_STATUS_PENDING,
             flagCount: 0,
-            likeCount: 0
+            likeCount: 0,
+            thumbnailHash: mData.thumbnailHash,
+            fileType: mData.fileType,
+            thumbnailType: mData.thumbnailType,
+            minted: false
         });
 
         s.ownerMetadataIdIndexes[_sender][_metadataId] = s.ownerMetadataIds[_sender].length;
@@ -123,13 +129,15 @@ contract MetadataFacet is Modifiers {
             // emit event with metadata input
             logMetadata(_id);
         }
-        require(mData.count != 0, "Metadata: Already mint");
-        LibERC721.safeBatchMint(mData.publisher, _id, mData.count);
-        s.metadata[_id].count = 0;
+        require(!mData.minted, "Metadata: Already mint");
+        LibERC721.safeBatchMint(mData.publisher, _id, mData.rarity);
+        s.metadata[_id].minted = true;
     }
 
     function verifyMetadata(MetadataInput memory mData) internal pure {
         require(bytes(mData.fileHash).length > 0, "Metadata: File hash should exist");
+        require(bytes(mData.fileType).length > 0, "Metadata: File type should exist");
+        require(bytes(mData.fileType).length <= 20, "Metadata: Max file type length is 20 bytes");
         require(bytes(mData.name).length > 0, "Metadata: Name should exist");
         require(bytes(mData.name).length <= 50, "Metadata: Max name length is 50 bytes");
         require(bytes(mData.description).length > 0, "Metadata: Description should exist");
@@ -139,6 +147,12 @@ contract MetadataFacet is Modifiers {
         require(bytes(mData.publisherName).length <= 30, "Metadata: Max publisher name length is 30 bytes");
         require(bytes(mData.artistName).length > 0, "Metadata: Artist name should exist");
         require(bytes(mData.artistName).length <= 30, "Metadata: Max artist name length is 30 bytes");
+        if (bytes(mData.thumbnailHash).length > 0) {
+            require(bytes(mData.thumbnailType).length > 0, "Metadata: Thumbnail type should exist");
+            require(bytes(mData.thumbnailType).length <= 20, "Metadata: Max thumbnail type length is 20 bytes");
+        } else {
+            require(bytes(mData.thumbnailType).length <= 0, "Metadata: Thumbnail type should not exist");
+        }
 
         require(mData.royalty[0] + mData.royalty[1] == 400, "Metadata: Sum of royalty splits not 400");
         if (mData.artist == address(0)) {
