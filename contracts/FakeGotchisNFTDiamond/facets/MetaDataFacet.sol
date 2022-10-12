@@ -23,7 +23,6 @@ contract MetadataFacet is Modifiers {
     }
 
     struct MetadataInput {
-        string fileHash;
         string name;
         string publisherName;
         string externalLink;
@@ -32,8 +31,9 @@ contract MetadataFacet is Modifiers {
         string artistName;
         uint16[2] royalty; // royalty[0]: publisher, royalty[1]: artist, sum should be 400 (4%)
         uint16 editions;
-        string thumbnailHash;
+        string fileHash;
         string fileType;
+        string thumbnailHash;
         string thumbnailType;
     }
 

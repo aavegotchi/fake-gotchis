@@ -241,6 +241,9 @@ contract FakeGotchisNFTFacet is Modifiers {
         json = abi.encodePacked(json, '{"trait_type":"Artist","value":"', Strings.toHexString(uint256(uint160(mData.artist)), 20), '"},');
         json = abi.encodePacked(json, '{"trait_type":"Artist Name","value":"', mData.artistName, '"},');
         json = abi.encodePacked(json, '{"trait_type":"External Link","value":"', mData.externalLink, '"},');
+        json = abi.encodePacked(json, '{"trait_type":"File MIME Type","value":"', mData.fileType, '"},');
+        json = abi.encodePacked(json, '{"trait_type":"Thumbnail Link","value":"', mData.thumbnailHash, '"},');
+        json = abi.encodePacked(json, '{"trait_type":"Thumbnail MIME Type","value":"', mData.thumbnailType, '"},');
         json = abi.encodePacked(json, '{"trait_type":"Editions","value":"', Strings.toString(mData.editions), '"},');
         json = abi.encodePacked(json, '{"trait_type":"Created At","value":"', Strings.toString(mData.createdAt), '"},');
         json = abi.encodePacked(json, '{"trait_type":"Flag Count","value":"', Strings.toString(mData.flagCount), '"},');
