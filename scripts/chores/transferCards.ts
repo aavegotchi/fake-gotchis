@@ -9,8 +9,8 @@ async function transferOwner() {
   const accounts = await ethers.getSigners();
 
   //mumbai cards diamond
-  const diamondAddress = "0x118c19F39a4Ad9032B7b7b228A2Cd927d3FddA13";
-  let currentOwner = "0x94cb5C277FCC64C274Bd30847f0821077B231022";
+  const diamondAddress = "0x9E282FE4a0be6A0C4B9f7d9fEF10547da35c52EA";
+  let currentOwner = "0xb7601193f559de56D67FB8e6a2AF219b05BD36c7";
   let signer: any;
 
   const c = await varsForNetwork(ethers);
@@ -34,18 +34,18 @@ async function transferOwner() {
     throw Error("Incorrect network selected");
   }
 
-  const ghstAddress = "0x20d0A1ce31f8e8A77b291f25c5fbED007Adde932";
-  const ghst = await ethers.getContractAt(
-    "IERC20Mintable",
-    c.ghstAddress,
-    signer
-  );
-
-  console.log("mint GHST");
-  await ghst.mint();
-
-  const balance = await ghst.balanceOf(currentOwner);
-  console.log("balance:", balance.toString());
+  // const ghstAddress = "0x20d0A1ce31f8e8A77b291f25c5fbED007Adde932";
+  // const ghst = await ethers.getContractAt(
+  //   "IERC20Mintable",
+  //   c.ghstAddress,
+  //   signer
+  // );
+  //
+  // console.log("mint GHST");
+  // await ghst.mint();
+  //
+  // const balance = await ghst.balanceOf(currentOwner);
+  // console.log("balance:", balance.toString());
 
   const cardsFacet = (await ethers.getContractAt(
     "FakeGotchisCardFacet",

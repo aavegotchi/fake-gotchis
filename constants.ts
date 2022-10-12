@@ -46,8 +46,8 @@ const mumbaiVars: Constants = {
   installationDiamond: "0x663aeA831087487d2944ce44836F419A35Ee005A",
   tileDiamond: "0xDd8947D7F6705136e5A12971231D134E80DFC15d",
   ghstAddress: "0x20d0A1ce31f8e8A77b291f25c5fbED007Adde932",
-  fakeGotchiCards: "0x118c19F39a4Ad9032B7b7b228A2Cd927d3FddA13",
-  fakeGotchiArt: "0xBB7A12066dBE611C0F8e8BD1e80f1d6ffD1F4D21",
+  fakeGotchiCards: "0x9E282FE4a0be6A0C4B9f7d9fEF10547da35c52EA",
+  fakeGotchiArt: "0x330088c3372f4F78cF023DF16E1e1564109191dc",
 };
 
 const networkToVars: NetworkToConstants = {
