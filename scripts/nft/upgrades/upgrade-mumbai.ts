@@ -1,29 +1,40 @@
-//@ts-ignore
-import { Signer } from "@ethersproject/abstract-signer";
-import { deployNftDiamond } from "../deploy";
-import { ethers } from "hardhat";
-import { mumbaiFakeGotchisCardDiamondAddress } from "../../helperFunctions";
+import { run } from "hardhat";
+import {
+  convertFacetAndSelectorsToString,
+  DeployUpgradeTaskArgs,
+  FacetsAndAddSelectors,
+} from "../../../tasks/deployUpgrade";
+import {
+  mumbaiFakeGotchisNFTDiamondAddress,
+  mumbaiFakeGotchisUpgraderAddress,
+} from "../../helperFunctions";
 
-export async function deployDiamonds() {
-  const fakeGotchisCardDiamond = mumbaiFakeGotchisCardDiamondAddress;
-  const fakeGotchisNftDiamond = await deployNftDiamond(fakeGotchisCardDiamond);
+export async function upgrade() {
+  const facets: FacetsAndAddSelectors[] = [
+    {
+      facetName: "MetadataFacet",
+      addSelectors: [],
+      removeSelectors: [],
+    },
+  ];
 
-  const fakeGotchiCardFacet = await ethers.getContractAt(
-    "FakeGotchisCardFacet",
-    fakeGotchisCardDiamond
-  );
-  await (
-    await fakeGotchiCardFacet.setFakeGotchisNftAddress(fakeGotchisNftDiamond)
-  ).wait();
+  const joined = convertFacetAndSelectorsToString(facets);
 
-  return { fakeGotchisCardDiamond, fakeGotchisNftDiamond };
+  const args: DeployUpgradeTaskArgs = {
+    diamondUpgrader: mumbaiFakeGotchisUpgraderAddress,
+    diamondAddress: mumbaiFakeGotchisNFTDiamondAddress,
+    facetsAndAddSelectors: joined,
+    useLedger: false,
+    useMultisig: false,
+  };
+
+  await run("deployUpgrade", args);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 if (require.main === module) {
-  deployDiamonds()
+  upgrade()
     .then(() => process.exit(0))
+    // .then(() => console.log('upgrade completed') /* process.exit(0) */)
     .catch((error) => {
       console.error(error);
       process.exit(1);

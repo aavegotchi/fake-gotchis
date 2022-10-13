@@ -16,6 +16,7 @@ contract MetadataFacet is Modifiers {
     event MetadataFlagged(uint256 indexed _id, address _flaggedBy);
     event MetadataLiked(uint256 indexed _id, address _likedBy);
     event ReviewPassed(uint256 indexed _id, address _reviewer);
+    event MetadataDeclined(uint256 indexed _id, address _declinedBy);
 
     function getMetadata(uint256 _id) external view returns (Metadata memory) {
         validateMetadata(_id);
@@ -100,6 +101,7 @@ contract MetadataFacet is Modifiers {
 
         // emit event with metadata
         emit MetadataActionLog(_id, s.metadata[_id]);
+        emit MetadataDeclined(_id, msg.sender);
     }
 
     function mint(uint256 _id) external {
