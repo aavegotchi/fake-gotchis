@@ -890,7 +890,7 @@ describe("Fake Gotchis tests", async function () {
           await metadataFacetWithUser3.flag(metadataId)
         ).wait();
         let event = receipt!.events!.find(
-          (event) => event.event === "MetadataFlagged"
+          (event) => event.event === "MetadataFlag"
         );
         expect(event!.args!._id).to.equal(metadataId);
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
@@ -904,7 +904,7 @@ describe("Fake Gotchis tests", async function () {
           await metadataFacetWithGotchiOwner.flag(metadataId)
         ).wait();
         let event = receipt!.events!.find(
-          (event) => event.event === "MetadataFlagged"
+          (event) => event.event === "MetadataFlag"
         );
         expect(event!.args!._id).to.equal(metadataId);
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
@@ -918,7 +918,7 @@ describe("Fake Gotchis tests", async function () {
           await metadataFacetWithGHSTHolder.flag(metadataId)
         ).wait();
         let event = receipt!.events!.find(
-          (event) => event.event === "MetadataFlagged"
+          (event) => event.event === "MetadataFlag"
         );
         expect(event!.args!._id).to.equal(metadataId);
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
@@ -973,7 +973,7 @@ describe("Fake Gotchis tests", async function () {
           await metadataFacetWithUser2.flag(metadataId)
         ).wait();
         let event = receipt!.events!.find(
-          (event) => event.event === "MetadataFlagged"
+          (event) => event.event === "MetadataFlag"
         );
         expect(event!.args!._id).to.equal(metadataId);
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
@@ -1019,9 +1019,7 @@ describe("Fake Gotchis tests", async function () {
           (event) => event.event === "MetadataActionLog"
         );
         expect(event!.args!.metaData!.status).to.equal(0);
-        event = receipt!.events!.find(
-          (event) => event.event === "ReviewPassed"
-        );
+        event = receipt!.events!.find((event) => event.event === "ReviewPass");
         expect(event!.args!._id).to.equal(metadataId);
       });
       it("Should revert if pending (initial state or review passed)", async function () {
@@ -1126,7 +1124,7 @@ describe("Fake Gotchis tests", async function () {
           await metadataFacetWithUser3.like(metadataId)
         ).wait();
         let event = receipt!.events!.find(
-          (event) => event.event === "MetadataLiked"
+          (event) => event.event === "MetadataLike"
         );
         expect(event!.args!._id).to.equal(metadataId);
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
@@ -1139,7 +1137,7 @@ describe("Fake Gotchis tests", async function () {
           await metadataFacetWithGotchiOwner.like(metadataId)
         ).wait();
         let event = receipt!.events!.find(
-          (event) => event.event === "MetadataLiked"
+          (event) => event.event === "MetadataLike"
         );
         expect(event!.args!._id).to.equal(metadataId);
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
@@ -1152,7 +1150,7 @@ describe("Fake Gotchis tests", async function () {
           await metadataFacetWithGHSTHolder.like(metadataId)
         ).wait();
         let event = receipt!.events!.find(
-          (event) => event.event === "MetadataLiked"
+          (event) => event.event === "MetadataLike"
         );
         expect(event!.args!._id).to.equal(metadataId);
         savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);

@@ -13,10 +13,10 @@ import "../../interfaces/IERC1155.sol";
 
 contract MetadataFacet is Modifiers {
     event MetadataActionLog(uint256 indexed id, Metadata metaData);
-    event MetadataFlagged(uint256 indexed _id, address _flaggedBy);
-    event MetadataLiked(uint256 indexed _id, address _likedBy);
-    event ReviewPassed(uint256 indexed _id, address _reviewer);
-    event MetadataDeclined(uint256 indexed _id, address _declinedBy);
+    event MetadataFlag(uint256 indexed _id, address _flaggedBy);
+    event MetadataLike(uint256 indexed _id, address _likedBy);
+    event ReviewPass(uint256 indexed _id, address _reviewer);
+    event MetadataDecline(uint256 indexed _id, address _declinedBy);
 
     function getMetadata(uint256 _id) external view returns (Metadata memory) {
         validateMetadata(_id);
@@ -101,7 +101,7 @@ contract MetadataFacet is Modifiers {
 
         // emit event with metadata
         emit MetadataActionLog(_id, s.metadata[_id]);
-        emit MetadataDeclined(_id, msg.sender);
+        emit MetadataDecline(_id, msg.sender);
     }
 
     function mint(uint256 _id) external {
@@ -183,7 +183,7 @@ contract MetadataFacet is Modifiers {
             s.metadata[_id].status = METADATA_STATUS_PAUSED;
         }
 
-        emit MetadataFlagged(_id, _sender);
+        emit MetadataFlag(_id, _sender);
     }
 
     function passReview(uint256 _id) external onlyOwner {
@@ -196,7 +196,7 @@ contract MetadataFacet is Modifiers {
         // emit event with metadata
         emit MetadataActionLog(_id, s.metadata[_id]);
 
-        emit ReviewPassed(_id, msg.sender);
+        emit ReviewPass(_id, msg.sender);
     }
 
     function like(uint256 _id) external {
@@ -210,6 +210,6 @@ contract MetadataFacet is Modifiers {
         s.metadata[_id].likeCount++;
         s.metadataLiked[_id][_sender] = true;
 
-        emit MetadataLiked(_id, _sender);
+        emit MetadataLike(_id, _sender);
     }
 }
