@@ -60,9 +60,9 @@ export const maticAavegotchiDiamondAddress =
   "0x86935F11C86623deC8a25696E1C19a8659CbF95d";
 
 export const mumbaiFakeGotchisNFTDiamondAddress =
-  "0xBB7A12066dBE611C0F8e8BD1e80f1d6ffD1F4D21";
+  "0x330088c3372f4F78cF023DF16E1e1564109191dc";
 export const mumbaiFakeGotchisCardDiamondAddress =
-  "0x118c19F39a4Ad9032B7b7b228A2Cd927d3FddA13";
+  "0x9E282FE4a0be6A0C4B9f7d9fEF10547da35c52EA";
 export const mumbaiFakeGotchisUpgraderAddress =
   "0x94cb5C277FCC64C274Bd30847f0821077B231022";
 

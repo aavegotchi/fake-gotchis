@@ -10,7 +10,6 @@ import "../../interfaces/IERC721.sol";
 import "../../interfaces/IERC721Marketplace.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-
 contract FakeGotchisNFTFacet is Modifiers {
     event GhstAddressUpdated(address _ghstContract);
     event AavegotchiAddressUpdated(address _aavegotchiDiamond);
@@ -233,20 +232,26 @@ contract FakeGotchisNFTFacet is Modifiers {
         Metadata memory mData = s.metadata[s.fakeGotchis[_tokenId]];
         require(mData.publisher != address(0), "ERC721: Invalid token id");
 
-        bytes memory json = abi.encodePacked('{"trait_type":"Publisher","value":"', Strings.toHexString(uint256(uint160(mData.publisher)), 20), '"},');
+        bytes memory json = abi.encodePacked(
+            '{"trait_type":"Publisher","value":"',
+            Strings.toHexString(uint256(uint160(mData.publisher)), 20),
+            '"},'
+        );
         json = abi.encodePacked(json, '{"trait_type":"Publisher Name","value":"', mData.publisherName, '"},');
-        json = abi.encodePacked(json, '{"trait_type":"External Link","value":"', mData.externalLink, '"},');
         json = abi.encodePacked(json, '{"trait_type":"Artist","value":"', Strings.toHexString(uint256(uint160(mData.artist)), 20), '"},');
         json = abi.encodePacked(json, '{"trait_type":"Artist Name","value":"', mData.artistName, '"},');
-        json = abi.encodePacked(json, '{"trait_type":"Rarity","value":"', Strings.toString(mData.rarity), '"},');
-        json = abi.encodePacked(json, '{"trait_type":"Count","value":"', Strings.toString(mData.count), '"},');
+        json = abi.encodePacked(json, '{"trait_type":"External Link","value":"', mData.externalLink, '"},');
+        json = abi.encodePacked(json, '{"trait_type":"File MIME Type","value":"', mData.fileType, '"},');
+        json = abi.encodePacked(json, '{"trait_type":"Thumbnail Link","value":"', mData.thumbnailHash, '"},');
+        json = abi.encodePacked(json, '{"trait_type":"Thumbnail MIME Type","value":"', mData.thumbnailType, '"},');
+        json = abi.encodePacked(json, '{"trait_type":"Editions","value":"', Strings.toString(mData.editions), '"},');
         json = abi.encodePacked(json, '{"trait_type":"Created At","value":"', Strings.toString(mData.createdAt), '"},');
         json = abi.encodePacked(json, '{"trait_type":"Flag Count","value":"', Strings.toString(mData.flagCount), '"},');
         json = abi.encodePacked(json, '{"trait_type":"Like Count","value":"', Strings.toString(mData.likeCount), '"}');
-        json = abi.encodePacked('"attributes": [', json, ']');
-        json = abi.encodePacked('"image":"', mData.fileHash, '",',json);
-        json = abi.encodePacked('"description":"', mData.description, '",',json);
-        json = abi.encodePacked('{"name":"', mData.name, '",',json,'}');
+        json = abi.encodePacked('"attributes": [', json, "]");
+        json = abi.encodePacked('"image":"', mData.fileHash, '",', json);
+        json = abi.encodePacked('"description":"', mData.description, '",', json);
+        json = abi.encodePacked('{"name":"', mData.name, '",', json, "}");
 
         return string(json);
     }
@@ -260,12 +265,5 @@ contract FakeGotchisNFTFacet is Modifiers {
         for (uint256 index = 0; index < _tokenIds.length; index++) {
             safeTransferFrom(_from, _to, _tokenIds[index], _data);
         }
-    }
-
-    // Note: This is used for upgrading in mumbai once
-    function updateInterfaces() external {
-        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
-        ds.supportedInterfaces[0x24d34933] = true; // MultiRoyalty
-        ds.supportedInterfaces[0x2a55205a] = false; // ERC2981
     }
 }

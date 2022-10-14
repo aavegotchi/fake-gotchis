@@ -86,13 +86,12 @@ describe("Deploy tests", async function () {
   });
 
   it("Add, approve and mint metadata", async function () {
-    const count = 150;
+    const editions = 100;
     const mData = {
-      fileHash: "q".repeat(32), // 32 bytes
+      fileHash: "q".repeat(42), // 42 bytes
       name: "w".repeat(50), // 50 bytes
-      publisher: testAddress,
       publisherName: "e".repeat(30), // 30 bytes
-      externalLink: "r".repeat(240), // 240 bytes
+      externalLink: "r".repeat(50), // 50 bytes
       description: "t".repeat(120), // 120 bytes
       artist: ethers.constants.AddressZero,
       artistName: "y".repeat(30), // 30 bytes,
@@ -100,16 +99,19 @@ describe("Deploy tests", async function () {
         PromiseOrValue<BigNumberish>,
         PromiseOrValue<BigNumberish>
       ],
-      rarity: 500,
+      editions,
+      thumbnailHash: "q".repeat(42), // 42 bytes
+      fileType: "f".repeat(20), // 20 bytes
+      thumbnailType: "t".repeat(20), // 20 bytes
     };
     let receipt = await (
-      await metadataFacetWithUser.addMetadata(mData, cardSeriesId, count)
+      await metadataFacetWithUser.addMetadata(mData, cardSeriesId)
     ).wait();
     let event = receipt!.events!.find(
       (event) => event.event === "MetadataActionLog"
     );
     const metadataId = event!.args!.id;
-    expect(event!.args!.status).to.equal(0);
+    expect(event!.args!.metaData!.status).to.equal(0);
 
     // should revert in 5 days
     await expect(metadataFacetWithUser.mint(metadataId)).to.be.revertedWith(
@@ -123,8 +125,8 @@ describe("Deploy tests", async function () {
     await (await metadataFacetWithUser.mint(metadataId)).wait();
 
     const balance = await nftFacet.balanceOf(testAddress);
-    expect(balance).to.equal(count);
+    expect(balance).to.equal(editions);
     const cardBalance = await cardFacet.balanceOf(testAddress, cardSeriesId);
-    expect(cardBalance).to.equal(testCardBalance - count);
+    expect(cardBalance).to.equal(testCardBalance - 1);
   });
 });

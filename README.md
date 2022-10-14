@@ -67,22 +67,22 @@ The `test/diamondTest.js` file gives tests for the `diamondCut` function and the
 
 #### FAKE Gotchis Card Diamond
 
-- DiamondCutFacet deployed: 0x0d39651322061ee6c7bd87f5eB485fd9eb180607
-- FAKE Gotchis Card Diamond deployed: 0x118c19F39a4Ad9032B7b7b228A2Cd927d3FddA13
-  DiamondInit deployed: 0x39CBd9cA3D74E6ACC2617b46A9f4a14c5227F735
-- DiamondLoupeFacet deployed: 0x23Bab61c16a6DB79BC0d2C8Bf729bb46276D70B3
-- OwnershipFacet deployed: 0x48943B5a4C5B394B332503C82eED371968D47187
-- FakeGotchisCardFacet deployed: 0xcDf36f6Cb259d116Cde7DBe9c7b65F3Db3ed7Bb1
+- DiamondCutFacet deployed: 0xB54ab846150561cc70d8bFa88E1e1D628AD736dD
+- FAKE Gotchis Card Diamond deployed: 0x9E282FE4a0be6A0C4B9f7d9fEF10547da35c52EA
+- DiamondInit deployed: 0x114730e7c0623CA258a7dAA69e4Ed2E61ccaCbD7
+- DiamondLoupeFacet deployed: 0x0Da9b1aFC99912F1178FD4d1A8253Ac5Fa7CDD5B
+- OwnershipFacet deployed: 0x236E7dE4625A0488134654353942276A0D3aaB0A
+- FakeGotchisCardFacet deployed: 0x1FA1E9ddA528d00aA40Cb19eD3bdE975Cd6566B9
 
 #### FAKE Gotchis NFT Diamond
 
-- DiamondCutFacet deployed: 0x49C3c8f2dc3a3808E09cbab3D4171C15417df191
-  FAKE Gotchis NFT Diamond deployed: 0xBB7A12066dBE611C0F8e8BD1e80f1d6ffD1F4D21
-- DiamondInit deployed: 0xD5C852C9f407450348A93Cd08cedE7a3FBe89480
-- DiamondLoupeFacet deployed: 0x7C5A7BD98b6480fbBCE43f76209c5699d2ACF5e0
-- OwnershipFacet deployed: 0xAf9acC93Bd71702448502D094D1D2f647B634217
-- MetadataFacet deployed: 0x0387fF0463258a04F26531552f2a9A077Feb07fa
-- FakeGotchisNFTFacet deployed: 0x94527D2FE607523DBfbf8F07e2db9917e6a7DACa
+- DiamondCutFacet deployed: 0xd3C122de3B9CD0DAF48816947A0968E0Af745Ab3
+- FAKE Gotchis NFT Diamond deployed: 0x330088c3372f4F78cF023DF16E1e1564109191dc
+- DiamondInit deployed: 0x013Ab21754f7159915ed27366d07f0Aa8b81F417
+- DiamondLoupeFacet deployed: 0x985f5f933F2d2851980cbBDA1Dd56aE0e6d7f053
+- OwnershipFacet deployed: 0xbaC4AF2DFCdc352eFdd1de88f36FcEf2F0A0E948
+- MetadataFacet deployed: 0xb1B71f1c70E1D51563f383000c9201A73250c870
+- FakeGotchisNFTFacet deployed: 0x777D54190BDF91a0DB420015e1134C7b9dfC4D29
 
 ## Author
 
