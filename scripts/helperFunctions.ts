@@ -1,7 +1,7 @@
 import { Contract } from "@ethersproject/contracts";
 import { OwnershipFacet } from "../typechain-types";
 
-export const gasPrice = 80000000000;
+export const gasPrice = 280000000000;
 
 export async function impersonate(
   address: string,

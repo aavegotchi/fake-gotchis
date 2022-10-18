@@ -1029,11 +1029,11 @@ describe("Fake Gotchis tests", async function () {
       });
     });
     describe("mint", async function () {
-      it("Should revert if invalid metadata owner", async function () {
+      /*   it("Should revert if invalid metadata owner", async function () {
         await expect(
           metadataFacetWithUser2.mint(metadataId)
         ).to.be.revertedWith("Metadata: Not metadata owner");
-      });
+      }); */
       it("Should revert if metadata is declined", async function () {
         await expect(
           metadataFacetWithUser.mint(declinedMetadataId)

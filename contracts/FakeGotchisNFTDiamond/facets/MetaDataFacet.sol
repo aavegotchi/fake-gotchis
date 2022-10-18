@@ -105,19 +105,20 @@ contract MetadataFacet is Modifiers {
     }
 
     function mint(uint256 _id) external {
-        address _sender = LibMeta.msgSender();
-        require(_sender == s.metadataOwner[_id], "Metadata: Not metadata owner");
         Metadata memory mData = s.metadata[_id];
         require(mData.status != METADATA_STATUS_DECLINED, "Metadata: Declined");
         require(mData.status != METADATA_STATUS_PAUSED, "Metadata: Paused for review");
+
+        require(!mData.minted, "Metadata: Already minted");
+
         if (mData.status == METADATA_STATUS_PENDING) {
             require(mData.createdAt + 5 days <= block.timestamp, "Metadata: Still pending");
             s.metadata[_id].status = METADATA_STATUS_APPROVED;
             // emit event with metadata
             emit MetadataActionLog(_id, s.metadata[_id]);
         }
-        require(!mData.minted, "Metadata: Already mint");
-        LibERC721.safeBatchMint(_sender, _id, mData.editions);
+
+        LibERC721.safeBatchMint(mData.publisher, _id, mData.editions);
         s.metadata[_id].minted = true;
     }
 
