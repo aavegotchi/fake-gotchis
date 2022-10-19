@@ -44,9 +44,9 @@ export default {
       accounts: [process.env.DEPLOYER],
       // blockGasLimit: 20000000,
       // gasPrice: 1000000000,
-      maxFeePerGas: BigNumber.from("80").mul(1e9),
-      maxPriorityFeePerGas: BigNumber.from("50").mul(1e9),
-      gasLimit: 2000000,
+      // maxFeePerGas: BigNumber.from("80").mul(1e9),
+      // maxPriorityFeePerGas: BigNumber.from("50").mul(1e9),
+      // gasLimit: 2000000,
       timeout: 90000,
     },
     mumbai: {

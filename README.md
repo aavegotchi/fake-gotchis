@@ -84,10 +84,22 @@ The `test/diamondTest.js` file gives tests for the `diamondCut` function and the
 - MetadataFacet deployed: 0xb1B71f1c70E1D51563f383000c9201A73250c870
 - FakeGotchisNFTFacet deployed: 0x777D54190BDF91a0DB420015e1134C7b9dfC4D29
 
+### Polygon Mainnet
+
+#### FAKE Gotchis Card Diamond
+
+- 0x9f6BcC63e86D44c46e85564E9383E650dc0b56D7
+
+#### FAKE Gotchis NFT Diamond
+
+- 0xA4E3513c98b30d4D7cc578d2C328Bd550725D1D0
+
 ## Author
 
 Contact:
 
+- dan@pixelcraftstudios.io
+- william@pixelcraftstudios.io
 - nick@perfectabstractions.com
 
 ## License

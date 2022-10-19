@@ -35,9 +35,9 @@ export const maticVars: Constants = {
   realmDiamond: "0x1D0360BaC7299C86Ec8E99d0c1C9A95FEfaF2a11",
   installationDiamond: "0x19f870bD94A34b3adAa9CaA439d333DA18d6812A",
   tileDiamond: "0x9216c31d8146bCB3eA5a9162Dc1702e8AEDCa355",
-  ghstAddress: "",
-  fakeGotchiCards: "",
-  fakeGotchiArt: "",
+  ghstAddress: "0x385eeac5cb85a38a9a07a70c73e0a3271cfb54a7",
+  fakeGotchiCards: "0x9f6BcC63e86D44c46e85564E9383E650dc0b56D7",
+  fakeGotchiArt: "0xA4E3513c98b30d4D7cc578d2C328Bd550725D1D0",
 };
 
 const mumbaiVars: Constants = {

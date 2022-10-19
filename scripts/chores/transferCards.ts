@@ -8,9 +8,8 @@ const gasPrice = 100000000000;
 async function transferOwner() {
   const accounts = await ethers.getSigners();
 
-  //mumbai cards diamond
-  const diamondAddress = "0x9E282FE4a0be6A0C4B9f7d9fEF10547da35c52EA";
-  let currentOwner = "0xb7601193f559de56D67FB8e6a2AF219b05BD36c7";
+  const from = "0x8d46fd7160940d89da026d59b2e819208e714e82";
+  const to = "0x8d46fd7160940d89da026d59b2e819208e714e82";
   let signer: any;
 
   const c = await varsForNetwork(ethers);
@@ -22,9 +21,9 @@ async function transferOwner() {
   if (testing) {
     await hardhat.network.provider.request({
       method: "hardhat_impersonateAccount",
-      params: [currentOwner],
+      params: [from],
     });
-    signer = await ethers.provider.getSigner(currentOwner);
+    signer = await ethers.provider.getSigner(from);
   } else if (
     hardhat.network.name === "matic" ||
     hardhat.network.name === "mumbai"
@@ -34,49 +33,24 @@ async function transferOwner() {
     throw Error("Incorrect network selected");
   }
 
-  // const ghstAddress = "0x20d0A1ce31f8e8A77b291f25c5fbED007Adde932";
-  // const ghst = await ethers.getContractAt(
-  //   "IERC20Mintable",
-  //   c.ghstAddress,
-  //   signer
-  // );
-  //
-  // console.log("mint GHST");
-  // await ghst.mint();
-  //
-  // const balance = await ghst.balanceOf(currentOwner);
-  // console.log("balance:", balance.toString());
-
   const cardsFacet = (await ethers.getContractAt(
     "FakeGotchisCardFacet",
     c.fakeGotchiCards,
     signer
   )) as FakeGotchisCardFacet;
 
-  //   let tx = await cardsFacet.setAavegotchiAddress(ethers.constants.AddressZero);
+  console.log("Approving");
+  let tx = await cardsFacet.setApprovalForAll(c.fakeGotchiCards, true);
+  await tx.wait();
 
-  //   await tx.wait();
-  //   console.log("Approving");
-  //   tx = await cardsFacet.setApprovalForAll(diamondAddress, true);
-  //   await tx.wait();
+  console.log("Transferring");
+  tx = await cardsFacet.safeTransferFrom(from, to, 0, 100, []);
 
-  //   console.log("Transferring");
-  //   let tx = await cardsFacet.safeTransferFrom(
-  //     "0x94cb5C277FCC64C274Bd30847f0821077B231022",
-  //     "0xb7601193f559de56D67FB8e6a2AF219b05BD36c7",
-  //     0,
-  //     100,
-  //     []
-  //   );
+  await tx.wait();
 
-  //   await tx.wait();
+  const balance = await cardsFacet.balanceOf(to, 0);
 
-  //   const balance = await cardsFacet.balanceOf(
-  //     "0x6f839eb531F94D8A431627687Bd6E3aF50bB5824",
-  //     0
-  //   );
-
-  //   console.log("balance:", balance.toString());
+  console.log("balance:", balance.toString());
 }
 
 // We recommend this pattern to be able to use async/await everywhere
