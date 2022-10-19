@@ -125,6 +125,7 @@ contract MetadataFacet is Modifiers {
     function verifyMetadata(MetadataInput memory mData) internal pure {
         require(bytes(mData.fileHash).length > 0, "Metadata: File hash should exist");
         require(bytes(mData.fileType).length > 0, "Metadata: File type should exist");
+        require(mData.artist != address(0), "Metadata: Artist should exist");
         require(bytes(mData.fileType).length <= 20, "Metadata: Max file type length is 20 bytes");
         require(bytes(mData.name).length > 0, "Metadata: Name should exist");
         require(bytes(mData.name).length <= 50, "Metadata: Max name length is 50 bytes");
