@@ -104,6 +104,10 @@ contract MetadataFacet is Modifiers {
         emit MetadataDecline(_id, msg.sender);
     }
 
+    function unblockSender(address _address) external onlyOwner {
+        s.blocked[_address] = false;
+    }
+
     function mint(uint256 _id) external {
         Metadata memory mData = s.metadata[_id];
         require(mData.status != METADATA_STATUS_DECLINED, "Metadata: Declined");
