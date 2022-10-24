@@ -38,8 +38,29 @@ contract MetadataFacet is Modifiers {
         string thumbnailType;
     }
 
+    function togglePublishingOperator(address _operator, bool _whitelist) external {
+        s.publishingOperators[msg.sender][_operator] = _whitelist;
+    }
+
     function addMetadata(MetadataInput memory mData, uint256 series) external {
-        address _sender = LibMeta.msgSender();
+        _addMetadata(mData, series, LibMeta.msgSender());
+    }
+
+    function addMetadataViaOperator(
+        MetadataInput memory mData,
+        uint256 series,
+        address _operator
+    ) external {
+        require(s.publishingOperators[msg.sender][_operator] == true, "Metadata: Operator not set");
+
+        _addMetadata(mData, series, _operator);
+    }
+
+    function _addMetadata(
+        MetadataInput memory mData,
+        uint256 series,
+        address _sender
+    ) internal {
         // check blocked
         require(!s.blocked[_sender], "Metadata: Blocked address");
 
