@@ -57,6 +57,7 @@ struct AppStorage {
     mapping(uint256 => address) approved;
     mapping(string => address) nameToPublisher;
     mapping(address => string) publisherToName;
+    //publisher => operator => whitelisted
     mapping(address => mapping(address => bool)) publishingOperators;
 }
 

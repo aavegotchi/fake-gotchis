@@ -38,45 +38,48 @@ contract MetadataFacet is Modifiers {
         string thumbnailType;
     }
 
+    ///@dev Enable an operator to publish on behalf of you
     function togglePublishingOperator(address _operator, bool _whitelist) external {
-        s.publishingOperators[msg.sender][_operator] = _whitelist;
+        s.publishingOperators[LibMeta.msgSender()][_operator] = _whitelist;
     }
 
+    ///@dev Publish metadata as as Publisher
     function addMetadata(MetadataInput memory mData, uint256 series) external {
         _addMetadata(mData, series, LibMeta.msgSender());
     }
 
+    ///@dev Publish metadata as an Operator on behalf of a Publisher
     function addMetadataViaOperator(
         MetadataInput memory mData,
         uint256 series,
-        address _operator
+        address _publisher
     ) external {
-        require(s.publishingOperators[msg.sender][_operator] == true, "Metadata: Operator not set");
+        require(s.publishingOperators[_publisher][LibMeta.msgSender()] == true, "Metadata: Operator not set");
 
-        _addMetadata(mData, series, _operator);
+        _addMetadata(mData, series, _publisher);
     }
 
     function _addMetadata(
         MetadataInput memory mData,
         uint256 series,
-        address _sender
+        address _publisher
     ) internal {
         // check blocked
-        require(!s.blocked[_sender], "Metadata: Blocked address");
+        require(!s.blocked[_publisher], "Metadata: Blocked address");
 
         // Parameter validation
         verifyMetadata(mData);
 
-        if (bytes(s.publisherToName[_sender]).length == 0) {
+        if (bytes(s.publisherToName[_publisher]).length == 0) {
             require(s.nameToPublisher[mData.publisherName] == address(0), "Metadata: Publisher name already used");
-            s.publisherToName[_sender] = mData.publisherName;
-            s.nameToPublisher[mData.publisherName] = _sender;
+            s.publisherToName[_publisher] = mData.publisherName;
+            s.nameToPublisher[mData.publisherName] = _publisher;
         } else {
-            require(s.nameToPublisher[mData.publisherName] == _sender, "Metadata: Invalid publisher name");
+            require(s.nameToPublisher[mData.publisherName] == _publisher, "Metadata: Invalid publisher name");
         }
 
         // Burn card
-        IFakeGotchisCardDiamond(s.fakeGotchisCardDiamond).burn(_sender, series, 1);
+        IFakeGotchisCardDiamond(s.fakeGotchisCardDiamond).burn(_publisher, series, 1);
 
         // save
         s.metadataIdCounter++;
@@ -86,7 +89,7 @@ contract MetadataFacet is Modifiers {
             description: mData.description,
             externalLink: mData.externalLink,
             editions: mData.editions,
-            publisher: _sender,
+            publisher: _publisher,
             publisherName: mData.publisherName,
             artist: mData.artist,
             artistName: mData.artistName,
@@ -102,10 +105,10 @@ contract MetadataFacet is Modifiers {
             likeCount: 0
         });
 
-        s.ownerMetadataIdIndexes[_sender][_metadataId] = s.ownerMetadataIds[_sender].length;
-        s.ownerMetadataIds[_sender].push(_metadataId);
+        s.ownerMetadataIdIndexes[_publisher][_metadataId] = s.ownerMetadataIds[_publisher].length;
+        s.ownerMetadataIds[_publisher].push(_metadataId);
         s.metadataIds.push(_metadataId);
-        s.metadataOwner[_metadataId] = _sender;
+        s.metadataOwner[_metadataId] = _publisher;
 
         // emit event with metadata
         emit MetadataActionLog(_metadataId, s.metadata[_metadataId]);

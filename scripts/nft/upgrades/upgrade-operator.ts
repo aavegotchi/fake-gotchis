@@ -16,7 +16,7 @@ export async function upgrade() {
       facetName: "MetadataFacet",
       addSelectors: [
         `function addMetadataViaOperator(
-        ${MetadataInput} memory mData,uint256 series,address _operator) external`,
+        ${MetadataInput} memory mData,uint256 series,address _publisher) external`,
         `function togglePublishingOperator(address _operator, bool _whitelist) external`,
       ],
       removeSelectors: [],
