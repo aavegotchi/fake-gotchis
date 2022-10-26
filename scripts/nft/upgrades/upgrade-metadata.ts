@@ -5,16 +5,13 @@ import {
   DeployUpgradeTaskArgs,
   FacetsAndAddSelectors,
 } from "../../../tasks/deployUpgrade";
-import {
-  diamondOwner,
-  mumbaiFakeGotchisNFTDiamondAddress,
-  mumbaiFakeGotchisUpgraderAddress,
-} from "../../helperFunctions";
+import { diamondOwner } from "../../helperFunctions";
+import { FakeGotchisNFTFacet } from "../../../typechain-types";
 
 export async function upgrade() {
   const facets: FacetsAndAddSelectors[] = [
     {
-      facetName: "MetadataFacet",
+      facetName: "FakeGotchisNFTFacet",
       addSelectors: [],
       removeSelectors: [],
     },
@@ -33,6 +30,13 @@ export async function upgrade() {
   };
 
   await run("deployUpgrade", args);
+
+  const fakeGotchisNFTFacet = (await ethers.getContractAt(
+    "FakeGotchisNFTFacet",
+    c.fakeGotchiArt
+  )) as FakeGotchisNFTFacet;
+  const tokenUri = await fakeGotchisNFTFacet.tokenURI(0);
+  console.log(tokenUri);
 }
 
 if (require.main === module) {

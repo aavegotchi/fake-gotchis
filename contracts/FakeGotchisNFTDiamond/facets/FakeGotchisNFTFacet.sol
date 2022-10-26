@@ -242,14 +242,14 @@ contract FakeGotchisNFTFacet is Modifiers {
         json = abi.encodePacked(json, '{"trait_type":"Artist Name","value":"', mData.artistName, '"},');
         json = abi.encodePacked(json, '{"trait_type":"External Link","value":"', mData.externalLink, '"},');
         json = abi.encodePacked(json, '{"trait_type":"File MIME Type","value":"', mData.fileType, '"},');
-        json = abi.encodePacked(json, '{"trait_type":"Thumbnail Link","value":"', mData.thumbnailHash, '"},');
+        json = abi.encodePacked(json, '{"trait_type":"Thumbnail Link","value":"https://arweave.net/', mData.thumbnailHash, '"},');
         json = abi.encodePacked(json, '{"trait_type":"Thumbnail MIME Type","value":"', mData.thumbnailType, '"},');
         json = abi.encodePacked(json, '{"trait_type":"Editions","value":"', Strings.toString(mData.editions), '"},');
         json = abi.encodePacked(json, '{"trait_type":"Created At","value":"', Strings.toString(mData.createdAt), '"},');
         json = abi.encodePacked(json, '{"trait_type":"Flag Count","value":"', Strings.toString(mData.flagCount), '"},');
         json = abi.encodePacked(json, '{"trait_type":"Like Count","value":"', Strings.toString(mData.likeCount), '"}');
         json = abi.encodePacked('"attributes": [', json, "]");
-        json = abi.encodePacked('"image":"', mData.fileHash, '",', json);
+        json = abi.encodePacked('"image":"https://arweave.net/', mData.fileHash, '",', json);
         json = abi.encodePacked('"description":"', mData.description, '",', json);
         json = abi.encodePacked('{"name":"', mData.name, '",', json, "}");
 
