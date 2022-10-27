@@ -45,7 +45,7 @@ contract MetadataFacet is Modifiers {
 
     ///@dev Publish metadata as as Publisher
     function addMetadata(MetadataInput memory mData, uint256 series) external {
-        _addMetadata(mData, series, LibMeta.msgSender());
+        _addMetadata(mData, series, LibMeta.msgSender(), LibMeta.msgSender());
     }
 
     ///@dev Publish metadata as an Operator on behalf of a Publisher
@@ -56,12 +56,13 @@ contract MetadataFacet is Modifiers {
     ) external {
         require(s.publishingOperators[_publisher][LibMeta.msgSender()] == true, "Metadata: Operator not set");
 
-        _addMetadata(mData, series, _publisher);
+        _addMetadata(mData, series, LibMeta.msgSender(), _publisher);
     }
 
     function _addMetadata(
         MetadataInput memory mData,
         uint256 series,
+        address _operator,
         address _publisher
     ) internal {
         // check blocked
@@ -79,7 +80,7 @@ contract MetadataFacet is Modifiers {
         }
 
         // Burn card
-        IFakeGotchisCardDiamond(s.fakeGotchisCardDiamond).burn(_publisher, series, 1);
+        IFakeGotchisCardDiamond(s.fakeGotchisCardDiamond).burn(_operator, series, 1);
 
         // save
         s.metadataIdCounter++;
