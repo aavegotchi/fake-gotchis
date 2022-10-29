@@ -54,7 +54,7 @@ contract MetadataFacet is Modifiers {
         uint256 series,
         address _publisher
     ) external {
-        require(s.publishingOperators[_publisher][LibMeta.msgSender()] == true, "Metadata: Operator not set");
+        require(LibMeta.msgSender() == _publisher || s.publishingOperators[_publisher][LibMeta.msgSender()] == true, "Metadata: Operator not set");
 
         _addMetadata(mData, series, LibMeta.msgSender(), _publisher);
     }
