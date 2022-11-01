@@ -114,6 +114,31 @@ contract FakeGotchisCardFacet is Modifiers {
     }
 
     /**
+     * @notice Transfers `_amounts` of `_ids` from the `_from` address to the `_to` addresses specified (with safety call).
+     * @dev Caller must be approved to manage the tokens being transferred out of the `_from` account (see "Approval" section of the standard).
+     * Must contain scenario of internal _safeTransferFrom() function
+     * @param _from    Source address
+     * @param _to      Target addresses (order and length must match _ids and _amounts array)
+     * @param _ids     IDs of each token type (order and length must match _amounts array)
+     * @param _amounts Transfer amounts per token type (order and length must match _ids array)
+     * @param _data    Additional data with no specified format, MUST be sent unaltered in call to the `ERC1155TokenReceiver` hook(s) on `_to`
+     */
+    function safeBatchTransferTo(
+        address _from,
+        address[] calldata _to,
+        uint256[] calldata _ids,
+        uint256[] calldata _amounts,
+        bytes calldata _data
+    ) external {
+        address sender = LibMeta.msgSender();
+        require(sender == _from || s.operators[_from][sender], "FGCard: Not owner and not approved to transfer");
+        require((_to.length == _amounts.length) && (_ids.length == _amounts.length), "FGCard: Array length mismatch");
+        for (uint256 i; i < _to.length; i++) {
+            _safeTransferFrom(_from, _to[i], _ids[i], _amounts[i], _data);
+        }
+    }
+
+    /**
      * @notice Transfers `_amount` of an `_id` from the `_from` address to the `_to` address specified (with safety call).
      * @dev
      * MUST revert if `_to` is the zero address.
