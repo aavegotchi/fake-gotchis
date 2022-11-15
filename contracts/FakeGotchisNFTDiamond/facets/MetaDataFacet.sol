@@ -133,6 +133,28 @@ contract MetadataFacet is Modifiers {
         s.blocked[_address] = false;
     }
 
+    function unblockAll() external onlyOwner {
+        for (uint256 i; i < s.metadataIds.length; i++) {
+            if(s.blocked[s.metadataOwner[s.metadataIds[i]]]) {
+                s.blocked[s.metadataOwner[s.metadataIds[i]]] = false;
+            }
+        }
+    }
+
+    function checkBlocked() external view onlyOwner returns (uint256[] memory metadataIds, address[] memory accounts, bool[] memory blocked)  {
+        accounts = new address[](s.metadataIds.length);
+        blocked = new bool[](s.metadataIds.length);
+        metadataIds = s.metadataIds;
+        for (uint256 i; i < s.metadataIds.length; i++) {
+            accounts[i] = s.metadataOwner[s.metadataIds[i]];
+            blocked[i] = s.blocked[s.metadataOwner[s.metadataIds[i]]];
+        }
+    }
+
+    function isBlocked(address _address) external view returns (bool) {
+        return s.blocked[_address];
+    }
+
     function mint(uint256 _id) external {
         Metadata memory mData = s.metadata[_id];
         require(mData.status != METADATA_STATUS_DECLINED, "Metadata: Declined");
@@ -208,11 +230,6 @@ contract MetadataFacet is Modifiers {
 
         s.metadata[_id].flagCount++;
         s.metadataFlagged[_id][_sender] = true;
-
-        // pause after 10 flags
-        if (s.metadata[_id].flagCount == 10) {
-            s.metadata[_id].status = METADATA_STATUS_PAUSED;
-        }
 
         emit MetadataFlag(_id, _sender);
     }
