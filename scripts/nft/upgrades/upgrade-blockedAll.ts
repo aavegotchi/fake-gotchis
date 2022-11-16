@@ -1,4 +1,4 @@
-import hardhat, { ethers, run } from "hardhat";
+import { ethers, run } from "hardhat";
 import { varsForNetwork } from "../../../constants";
 import {
   convertFacetAndSelectorsToString,
@@ -6,7 +6,8 @@ import {
   FacetsAndAddSelectors,
 } from "../../../tasks/deployUpgrade";
 import { diamondOwner } from "../../helperFunctions";
-import { MetadataFacet } from "../../../typechain-types";
+import { MetadataFacetInterface } from "../../../typechain-types/contracts/FakeGotchisNFTDiamond/facets/MetaDataFacet.sol/MetadataFacet";
+import { MetadataFacet__factory } from "../../../typechain-types/factories/contracts/FakeGotchisNFTDiamond/facets/MetaDataFacet.sol";
 
 export async function upgrade() {
   const facets: FacetsAndAddSelectors[] = [
@@ -25,80 +26,88 @@ export async function upgrade() {
 
   const c = await varsForNetwork(ethers);
 
+  let iface: MetadataFacetInterface = new ethers.utils.Interface(
+    MetadataFacet__factory.abi
+  ) as MetadataFacetInterface;
+
+  const calldata = iface.encodeFunctionData("unblockAll");
+
   const args: DeployUpgradeTaskArgs = {
     diamondUpgrader: await diamondOwner(c.fakeGotchiArt, ethers),
     diamondAddress: c.fakeGotchiArt,
     facetsAndAddSelectors: joined,
     useLedger: false,
     useMultisig: false,
+    initCalldata: calldata,
+    initAddress: c.fakeGotchiArt,
   };
 
   await run("deployUpgrade", args);
 
-  // check blocked accounts
-  console.log("Checking blocked accounts...");
+  // // check blocked accounts
+  // console.log("Checking blocked accounts...");
 
-  const testing = ["hardhat", "localhost"].includes(hardhat.network.name);
-  let signer;
-  const owner = await diamondOwner(c.fakeGotchiArt, ethers);
-  if (testing) {
-    await hardhat.network.provider.request({
-      method: "hardhat_impersonateAccount",
-      params: [owner],
-    });
-    signer = await ethers.provider.getSigner(owner);
-  } else if (
-    hardhat.network.name === "matic" ||
-    hardhat.network.name === "mumbai"
-  ) {
-    const accounts = await ethers.getSigners();
-    signer = accounts[0];
-  } else {
-    throw Error("Incorrect network selected");
-  }
-  const metadataFacet = (await ethers.getContractAt(
-    "MetadataFacet",
-    c.fakeGotchiArt,
-    signer
-  )) as MetadataFacet;
-  const res = await metadataFacet.checkBlocked();
-  for (let i = 0; i < res.accounts.length; i++) {
-    console.log(
-      `${res.blocked[i] ? "Blocked" : "Unblocked"}: metadata id: ${
-        res.metadataIds[i]
-      }, account: ${res.accounts[i]}`
-    );
-  }
+  // const testing = ["hardhat", "localhost"].includes(hardhat.network.name);
+  // let signer;
+  // const owner = await diamondOwner(c.fakeGotchiArt, ethers);
+  // if (testing) {
+  //   await hardhat.network.provider.request({
+  //     method: "hardhat_impersonateAccount",
+  //     params: [owner],
+  //   });
+  //   signer = await ethers.provider.getSigner(owner);
+  // } else if (
+  //   hardhat.network.name === "matic" ||
+  //   hardhat.network.name === "mumbai"
+  // ) {
+  //   const accounts = await ethers.getSigners();
+  //   signer = accounts[0];
+  // } else {
+  //   throw Error("Incorrect network selected");
+  // }
+  // const metadataFacet = (await ethers.getContractAt(
+  //   "MetadataFacet",
+  //   c.fakeGotchiArt,
+  //   signer
+  // )) as MetadataFacet;
+  // const res = await metadataFacet.checkBlocked();
+  // for (let i = 0; i < res.accounts.length; i++) {
+  //   console.log(
+  //     `${res.blocked[i] ? "Blocked" : "Unblocked"}: metadata id: ${
+  //       res.metadataIds[i]
+  //     }, account: ${res.accounts[i]}`
+  //   );
+  // }
 
-  console.log("Unblocking all blocked accounts...");
-  await (await metadataFacet.unblockAll()).wait();
+  // // console.log("Unblocking all blocked accounts...");
+  // // await (await metadataFacet.unblockAll()).wait();
 
-  console.log("Checking blocked accounts again...");
-  const res2 = await metadataFacet.checkBlocked();
-  for (let i = 0; i < res2.accounts.length; i++) {
-    console.log(
-      `${res2.blocked[i] ? "Blocked" : "Unblocked"}: metadata id: ${
-        res2.metadataIds[i]
-      }, account: ${res2.accounts[i]}`
-    );
-  }
+  // console.log("Checking blocked accounts again...");
+  // const res2 = await metadataFacet.checkBlocked();
+  // for (let i = 0; i < res2.accounts.length; i++) {
+  //   console.log(
+  //     `${res2.blocked[i] ? "Blocked" : "Unblocked"}: metadata id: ${
+  //       res2.metadataIds[i]
+  //     }, account: ${res2.accounts[i]}`
+  //   );
+  // }
 
-  console.log("Testing declineMetadata...");
-  const testMetadataId = 61;
-  const testAccount = "0x38798bfB6016beEeae2b12ed1f7bA2c9bb49334f"; // This account is for metadata 61
-  let isBlocked = await metadataFacet.isBlocked(testAccount);
-  console.log(`${testAccount} is blocked : ${isBlocked}`);
-  await (await metadataFacet.declineMetadata(testMetadataId, false)).wait();
-  isBlocked = await metadataFacet.isBlocked(testAccount);
-  console.log(
-    `${testAccount} is blocked after declineMetadata with false: ${isBlocked}`
-  );
-  await (await metadataFacet.declineMetadata(testMetadataId, true)).wait();
-  isBlocked = await metadataFacet.isBlocked(testAccount);
-  console.log(
-    `${testAccount} is blocked after declineMetadata with true: ${isBlocked}`
-  );
-  await (await metadataFacet.unblockSender(testAccount)).wait();
+  // console.log("Testing declineMetadata...");
+  // const testMetadataId = 61;
+  // const testAccount = "0x38798bfB6016beEeae2b12ed1f7bA2c9bb49334f"; // This account is for metadata 61
+  // let isBlocked = await metadataFacet.isBlocked(testAccount);
+  // console.log(`${testAccount} is blocked : ${isBlocked}`);
+  // await (await metadataFacet.declineMetadata(testMetadataId, false)).wait();
+  // isBlocked = await metadataFacet.isBlocked(testAccount);
+  // console.log(
+  //   `${testAccount} is blocked after declineMetadata with false: ${isBlocked}`
+  // );
+  // await (await metadataFacet.declineMetadata(testMetadataId, true)).wait();
+  // isBlocked = await metadataFacet.isBlocked(testAccount);
+  // console.log(
+  //   `${testAccount} is blocked after declineMetadata with true: ${isBlocked}`
+  // );
+  // await (await metadataFacet.unblockSender(testAccount)).wait();
 }
 
 if (require.main === module) {
