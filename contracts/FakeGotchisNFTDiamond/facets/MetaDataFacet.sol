@@ -135,13 +135,22 @@ contract MetadataFacet is Modifiers {
 
     function unblockAll() external onlyOwner {
         for (uint256 i; i < s.metadataIds.length; i++) {
-            if(s.blocked[s.metadataOwner[s.metadataIds[i]]]) {
+            if (s.blocked[s.metadataOwner[s.metadataIds[i]]]) {
                 s.blocked[s.metadataOwner[s.metadataIds[i]]] = false;
             }
         }
     }
 
-    function checkBlocked() external view onlyOwner returns (uint256[] memory metadataIds, address[] memory accounts, bool[] memory blocked)  {
+    function checkBlocked()
+        external
+        view
+        onlyOwner
+        returns (
+            uint256[] memory metadataIds,
+            address[] memory accounts,
+            bool[] memory blocked
+        )
+    {
         accounts = new address[](s.metadataIds.length);
         blocked = new bool[](s.metadataIds.length);
         metadataIds = s.metadataIds;
@@ -225,11 +234,19 @@ contract MetadataFacet is Modifiers {
         checkForActions(_sender);
 
         // can only flag if in queue
-        require(s.metadata[_id].status == METADATA_STATUS_PENDING, "MetadataFacet: Can only flag in queue");
+        require(
+            s.metadata[_id].status == METADATA_STATUS_PENDING || s.metadata[_id].status == METADATA_STATUS_PAUSED,
+            "MetadataFacet: Can only flag in queue"
+        );
         require(!s.metadataFlagged[_id][_sender], "MetadataFacet: Already flagged");
 
         s.metadata[_id].flagCount++;
         s.metadataFlagged[_id][_sender] = true;
+
+        // pause after 10 flags
+        if (s.metadata[_id].flagCount == 10) {
+            s.metadata[_id].status = METADATA_STATUS_PAUSED;
+        }
 
         emit MetadataFlag(_id, _sender);
     }
