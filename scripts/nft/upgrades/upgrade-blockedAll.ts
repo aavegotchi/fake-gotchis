@@ -15,7 +15,6 @@ export async function upgrade() {
       facetName: "MetadataFacet",
       addSelectors: [
         `function unblockAll() external`,
-        `function checkBlocked() external returns (uint256[] memory metadataIds, address[] memory accounts, bool[] memory blocked)`,
         `function isBlocked(address _address) external returns (bool)`,
       ],
       removeSelectors: [],

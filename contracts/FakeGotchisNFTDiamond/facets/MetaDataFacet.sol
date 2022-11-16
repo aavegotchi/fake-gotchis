@@ -141,25 +141,6 @@ contract MetadataFacet is Modifiers {
         }
     }
 
-    function checkBlocked()
-        external
-        view
-        onlyOwner
-        returns (
-            uint256[] memory metadataIds,
-            address[] memory accounts,
-            bool[] memory blocked
-        )
-    {
-        accounts = new address[](s.metadataIds.length);
-        blocked = new bool[](s.metadataIds.length);
-        metadataIds = s.metadataIds;
-        for (uint256 i; i < s.metadataIds.length; i++) {
-            accounts[i] = s.metadataOwner[s.metadataIds[i]];
-            blocked[i] = s.blocked[s.metadataOwner[s.metadataIds[i]]];
-        }
-    }
-
     function isBlocked(address _address) external view returns (bool) {
         return s.blocked[_address];
     }
