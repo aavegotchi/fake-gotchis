@@ -266,4 +266,13 @@ contract FakeGotchisNFTFacet is Modifiers {
             safeTransferFrom(_from, _to, _tokenIds[index], _data);
         }
     }
+
+    /**
+     * @dev Burns `tokenId`.
+     * The caller must own `tokenId` or be an approved operator.
+     */
+    function burn(uint256 _tokenId) public {
+        LibERC721.transferFrom(LibMeta.msgSender(), s.fakeGotchiOwner[_tokenId], address(0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF), _tokenId);
+
+    }
 }
