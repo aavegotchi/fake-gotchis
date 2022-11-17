@@ -271,8 +271,19 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @dev Burns `tokenId`.
      * The caller must own `tokenId` or be an approved operator.
      */
-    function burn(uint256 _tokenId) public {
-        LibERC721.transferFrom(LibMeta.msgSender(), s.fakeGotchiOwner[_tokenId], address(0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF), _tokenId);
+    function burnTokens(uint256[] calldata _tokenIds) public {
+        for (uint256 i = 0; i < _tokenIds.length; i++) {
+            LibERC721.transferFrom(
+                LibMeta.msgSender(),
+                s.fakeGotchiOwner[_tokenIds[i]],
+                address(0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF),
+                _tokenIds[i]
+            );
 
+            //Update baazaar listing
+            if (s.aavegotchiDiamond != address(0)) {
+                IERC721Marketplace(s.aavegotchiDiamond).updateERC721Listing(address(this), _tokenIds[i], LibMeta.msgSender());
+            }
+        }
     }
 }
