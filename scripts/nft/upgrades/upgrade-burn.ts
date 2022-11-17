@@ -11,7 +11,9 @@ export async function upgrade() {
   const facets: FacetsAndAddSelectors[] = [
     {
       facetName: "FakeGotchisNFTFacet",
-      addSelectors: [`function burn(uint256 _tokenId) public`],
+      addSelectors: [
+        `function burnTokens(uint256[] calldata _tokenIds) public`,
+      ],
       removeSelectors: [],
     },
   ];
