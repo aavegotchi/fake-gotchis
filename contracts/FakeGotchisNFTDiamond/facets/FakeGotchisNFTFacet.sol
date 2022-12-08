@@ -9,6 +9,7 @@ import "../../libraries/LibERC721.sol";
 import "../../interfaces/IERC721.sol";
 import "../../interfaces/IERC721Marketplace.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/Base64.sol";
 
 contract FakeGotchisNFTFacet is Modifiers {
     event GhstAddressUpdated(address _ghstContract);
@@ -253,7 +254,7 @@ contract FakeGotchisNFTFacet is Modifiers {
         json = abi.encodePacked('"description":"', mData.description, '",', json);
         json = abi.encodePacked('{"name":"', mData.name, '",', json, "}");
 
-        return string(json);
+        return string(abi.encodePacked("data:application/json;base64,", Base64.encode(json)));
     }
 
     function safeBatchTransfer(
