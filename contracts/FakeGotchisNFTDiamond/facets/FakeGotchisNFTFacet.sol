@@ -251,9 +251,10 @@ contract FakeGotchisNFTFacet is Modifiers {
         json = abi.encodePacked(json, '{"trait_type":"Like Count","value":"', Strings.toString(mData.likeCount), '"}');
         json = abi.encodePacked('"attributes": [', json, "]");
         json = abi.encodePacked('"image":"https://arweave.net/', mData.fileHash, '",', json);
-        json = abi.encodePacked('"description":"', mData.description, '",', json);
+        json = abi.encodePacked('"description":"', LibStrings.removeLineBreak(mData.description), '",', json);
         json = abi.encodePacked('{"name":"', mData.name, '",', json, "}");
 
+//        return string(abi.encodePacked(json)); // For test
         return string(abi.encodePacked("data:application/json;base64,", Base64.encode(json)));
     }
 

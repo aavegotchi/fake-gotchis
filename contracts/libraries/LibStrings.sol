@@ -34,4 +34,13 @@ library LibStrings {
         }
         return string(abi.encodePacked(_str, buffer));
     }
+
+    function removeLineBreak(string memory _input) internal pure returns (string memory) {
+        bytes memory buffer;
+        bytes memory input = bytes(_input);
+        for (uint256 i = 0; i < input.length; i++) {
+            if (input[i] != "\n") buffer = abi.encodePacked(buffer, input[i]);
+        }
+        return string(buffer);
+    }
 }

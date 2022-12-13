@@ -35,7 +35,7 @@ export async function upgrade() {
     "FakeGotchisNFTFacet",
     c.fakeGotchiArt
   )) as FakeGotchisNFTFacet;
-  const tokenUri = await fakeGotchisNFTFacet.tokenURI(0);
+  const tokenUri = await fakeGotchisNFTFacet.tokenURI(644);
   console.log(tokenUri);
 }
 
