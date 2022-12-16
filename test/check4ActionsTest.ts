@@ -23,7 +23,7 @@ describe("Fake Gotchis tests", async function () {
   let metadataFacetWithGotchiOwner: MetadataFacet;
   let metadataFacetWithGotchiRenter: MetadataFacet;
   let metadataFacetWithNonActableUser: MetadataFacet;
-  const metadataId = 157;
+  const metadataId = 177;
   let ownerAddress: any;
   let user: Signer; // FG Card Owner
   let userAddress: any;
@@ -31,7 +31,7 @@ describe("Fake Gotchis tests", async function () {
 
   // test accounts for flag for like metadata
   const gotchiOwnerAddress = "0x0757153A8f90bdC50dC60b3F512df15D934e9832"; // gotchi owner, but hold less than 100 GHST
-  const gotchiRenterAddress = "0x79F563398ff8a5A5fF18650e56b9baC8BE84bFA5"; // gotchi renter, not owner
+  const gotchiRenterAddress = "0xD6CCE2Fb2d584f7867AF837A38537C855f1701aa"; // gotchi renter, not owner
   const ghstHolderAddress = "0xf3678737dC45092dBb3fc1f49D89e3950Abb866d"; // hold 100+ GHST, but not gotchi owner
   const fgCardHolderAddress = "0x86935F11C86623deC8a25696E1C19a8659CbF95d"; // fakegotchi card holder, but not gotchi owner and 100+ GHST holder
 
