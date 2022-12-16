@@ -51,7 +51,7 @@ export default {
     },
     mumbai: {
       url: process.env.MUMBAI_URL,
-      accounts: [process.env.DEPLOYER],
+      accounts: [process.env.SECRET],
       // blockGasLimit: 20000000,
       // gasPrice: 1000000000,
       maxFeePerGas: BigNumber.from("80").mul(1e9),
