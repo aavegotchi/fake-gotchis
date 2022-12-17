@@ -7,6 +7,7 @@ import "../../libraries/LibStrings.sol";
 import "../../libraries/LibMeta.sol";
 import "../../libraries/LibERC721.sol";
 import "../../interfaces/IFakeGotchisCardDiamond.sol";
+import "../../interfaces/IAavegotchiDiamond.sol";
 import "../../interfaces/IERC20.sol";
 import "../../interfaces/IERC721.sol";
 import "../../interfaces/IERC1155.sol";
@@ -198,13 +199,16 @@ contract MetadataFacet is Modifiers {
 
     function checkForActions(address _sender) internal view {
         uint256 cardSeries; // TODO: Think for the next card series
-        require(
-            (IERC1155(s.fakeGotchisCardDiamond).balanceOf(_sender, cardSeries) > 0) || // Fake gotchi card owner
-                (s.ownerTokenIds[_sender].length > 0) || // Fake gotchi owner
-                (IERC721(s.aavegotchiDiamond).balanceOf(_sender) > 0) || // Aavegotchi owner
-                (IERC20(s.ghstContract).balanceOf(_sender) >= 1e20), // 100+ GHST holder
-            "MetadataFacet: Should own a Fake Gotchi NFT or an aavegotchi or 100 GHST"
-        );
+        // check if Fake gotchi card owner | Fake gotchi owner | 100+ GHST holder
+        if ((IERC1155(s.fakeGotchisCardDiamond).balanceOf(_sender, cardSeries) == 0) && (s.ownerTokenIds[_sender].length == 0) && (IERC20(s.ghstContract).balanceOf(_sender) < 1e20)) {
+            // In this case, check if aavegotchi owner (not rented)
+            uint32[] memory tokenIds = IAavegotchiDiamond(s.aavegotchiDiamond).tokenIdsOfOwner(_sender);
+            for (uint256 i; i < tokenIds.length; i++) {
+                bool isGotchiLent = IAavegotchiDiamond(s.aavegotchiDiamond).isAavegotchiLent(tokenIds[i]);
+                if(isGotchiLent == false) return;
+            }
+            revert("MetadataFacet: Should own a Fake Gotchi NFT or an aavegotchi or 100 GHST");
+        }
     }
 
     function flag(uint256 _id) external {
