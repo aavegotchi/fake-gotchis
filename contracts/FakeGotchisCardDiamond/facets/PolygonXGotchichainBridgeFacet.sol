@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../../libraries/AppStorage.sol";
 import "../../libraries/LibERC721.sol";
 
-contract FakeGotchiPolygonXGotchichainBridgeFacet is Modifiers {
+contract FakeGotchiCardPolygonXGotchichainBridgeFacet is Modifiers {
     address public layerZeroBridge;
 
     modifier onlyLayerZeroBridge() {

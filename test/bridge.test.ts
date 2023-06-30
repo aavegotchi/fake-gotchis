@@ -8,6 +8,7 @@ import { impersonate } from "../scripts/helperFunctions";
 import {
   FakeGotchiBridgeGotchichainSide,
   FakeGotchiBridgePolygonSide,
+  FakeGotchiCardPolygonXGotchichainBridgeFacet,
   FakeGotchiPolygonXGotchichainBridgeFacet,
   FakeGotchisCardFacet,
   FakeGotchisNFTFacet,
@@ -30,22 +31,25 @@ describe("Fake Gotchis tests", async function () {
   let user: Signer;
   let userAddress: any;
   let artistAddress: any;
-  let polygonAdapterParams: any;
-  let gotchichainAdapterParams: any;
-
-  let cardSeriesId2: BigNumber;
-  let metadataId2: BigNumber;
+  let polygonNFTAdapterParams: any;
+  let gotchichainNFTAdapterParams: any;
+  let polygonCardAdapterParams: any;
+  let gotchichainCardAdapterParams: any;
 
   const chainId_A = 1;
   const chainId_B = 2;
 
-  let LZEndpointMock: any,
-    bridgePolygonSide: FakeGotchiBridgePolygonSide,
-    bridgeGotchichainSide: FakeGotchiBridgeGotchichainSide;
-  let lzEndpointMockA: any, lzEndpointMockB: any;
+  let bridgeNFTPolygonSide: FakeGotchiBridgePolygonSide,
+    bridgeNFTGotchichainSide: FakeGotchiBridgeGotchichainSide;
+
+  let bridgeCardPolygonSide: FakeGotchiBridgePolygonSide,
+    bridgeCardGotchichainSide: FakeGotchiBridgeGotchichainSide;
 
   let fakeGotchiPolygonBridgeFacet: FakeGotchiPolygonXGotchichainBridgeFacet;
   let fakeGotchiGotchichainBridgeFacet: FakeGotchiPolygonXGotchichainBridgeFacet;
+
+  let fakeGotchiPolygonCardBridgeFacet: FakeGotchiCardPolygonXGotchichainBridgeFacet;
+  let fakeGotchiGotchichainCardBridgeFacet: FakeGotchiCardPolygonXGotchichainBridgeFacet;
 
   let fakeGotchisGotchiCardDiamond: string;
   let fakeGotchisGotchiNftDiamond: string;
@@ -118,41 +122,60 @@ describe("Fake Gotchis tests", async function () {
       fakeGotchisGotchiNftDiamond
     );
 
+    fakeGotchiPolygonCardBridgeFacet = await ethers.getContractAt(
+      "FakeGotchiCardPolygonXGotchichainBridgeFacet",
+      fakeGotchisPolygonCardDiamond
+    );
+
+    fakeGotchiGotchichainCardBridgeFacet = await ethers.getContractAt(
+      "FakeGotchiCardPolygonXGotchichainBridgeFacet",
+      fakeGotchisGotchiCardDiamond
+    );
+
     ({
-      LZEndpointMock,
-      lzEndpointMockA,
-      lzEndpointMockB,
-      bridgePolygonSide,
-      bridgeGotchichainSide,
-      polygonAdapterParams,
-      gotchichainAdapterParams,
+      bridgePolygonSide: bridgeNFTPolygonSide as any,
+      bridgeGotchichainSide: bridgeNFTGotchichainSide as any,
+      polygonAdapterParams: polygonNFTAdapterParams,
+      gotchichainAdapterParams: gotchichainNFTAdapterParams,
     } = await setupBridge(
-      LZEndpointMock,
-      lzEndpointMockA,
-      lzEndpointMockB,
-      bridgePolygonSide,
       fakeGotchisPolygonNftDiamond,
-      bridgeGotchichainSide,
       fakeGotchisGotchiNftDiamond,
       fakeGotchiPolygonBridgeFacet,
       owner,
       fakeGotchiGotchichainBridgeFacet,
-      polygonAdapterParams,
-      gotchichainAdapterParams
+      "FakeGotchiBridgePolygonSide",
+      "FakeGotchiBridgeGotchichainSide"
     ));
+
+    ({
+      bridgePolygonSide: bridgeCardPolygonSide as any,
+      bridgeGotchichainSide: bridgeCardGotchichainSide as any,
+      polygonAdapterParams: polygonCardAdapterParams,
+      gotchichainAdapterParams: gotchichainCardAdapterParams,
+    } = await setupBridge(
+      fakeGotchisPolygonCardDiamond,
+      fakeGotchisGotchiCardDiamond,
+      fakeGotchiPolygonCardBridgeFacet,
+      owner,
+      fakeGotchiGotchichainCardBridgeFacet,
+      "FakeGotchiCardBridgePolygonSide",
+      "FakeGotchiCardBridgeGotchichainSide",
+      false
+    ));
+
     ({ cardSeriesId, metadataId } = await createSeriesAndMintFake(
       cardFacetWithOwner,
       ownerAddress,
       userAddress,
       metadataFacetWithUser
     ));
-    ({ cardSeriesId: cardSeriesId2, metadataId: metadataId2 } =
-      await createSeriesAndMintFake(
-        cardFacetWithOwner,
-        ownerAddress,
-        userAddress,
-        metadataFacetWithUser
-      ));
+    // ({ cardSeriesId: cardSeriesId2, metadataId: metadataId2 } =
+    //   await createSeriesAndMintFake(
+    //     cardFacetWithOwner,
+    //     ownerAddress,
+    //     userAddress,
+    //     metadataFacetWithUser
+    //   ));
   }
 
   beforeEach(async function () {
@@ -171,8 +194,9 @@ describe("Fake Gotchis tests", async function () {
 
       await nftFacetPolygon
         .connect(signers[1])
-        .setApprovalForAll(bridgePolygonSide.address, true);
-      let sendFromTx = await bridgePolygonSide
+        .setApprovalForAll(bridgeNFTPolygonSide.address, true);
+
+      await bridgeNFTPolygonSide
         .connect(signers[1])
         .sendFrom(
           userAddress,
@@ -181,24 +205,23 @@ describe("Fake Gotchis tests", async function () {
           metadataId,
           userAddress,
           ethers.constants.AddressZero,
-          polygonAdapterParams,
+          polygonNFTAdapterParams,
           {
             value: (
-              await bridgePolygonSide.estimateSendFee(
+              await bridgeNFTPolygonSide.estimateSendFee(
                 chainId_B,
                 userAddress,
                 metadataId,
                 false,
-                polygonAdapterParams
+                polygonNFTAdapterParams
               )
-            ).nativeFee.mul(3),
+            ).nativeFee,
           }
         );
-      await sendFromTx.wait();
-      expect(await nftFacetPolygon.balanceOf(userAddress)).to.equal(9);
-      expect(await nftFacetGotchichain.balanceOf(userAddress)).to.equal(1);
       // console.log(await nftFacetGotchichain.tokenIdsOfOwner(userAddress));
       // console.log(await nftFacetGotchichain.tokenURI(0));
+      expect(await nftFacetPolygon.balanceOf(userAddress)).to.equal(9);
+      expect(await nftFacetGotchichain.balanceOf(userAddress)).to.equal(1);
     });
   });
 
@@ -241,7 +264,7 @@ describe("Fake Gotchis tests", async function () {
       thumbnailType,
     };
 
-    const receipt = await(
+    const receipt = await (
       await cardFacetWithOwner.startNewSeries(cardCount)
     ).wait();
     const event = receipt.events?.find(
@@ -255,7 +278,8 @@ describe("Fake Gotchis tests", async function () {
       cardTransferAmount,
       []
     );
-    const receipt2 = await(
+
+    const receipt2 = await (
       await metadataFacetWithUser.addMetadata(metaData, cardSeriesId)
     ).wait();
     const event2 = receipt2.events?.find(
@@ -266,64 +290,71 @@ describe("Fake Gotchis tests", async function () {
   }
 
   async function setupBridge(
-    LZEndpointMock: any,
-    lzEndpointMockA: any,
-    lzEndpointMockB: any,
-    bridgePolygonSide: FakeGotchiBridgePolygonSide,
-    fakeGotchisPolygonNftDiamond: any,
-    bridgeGotchichainSide: FakeGotchiBridgeGotchichainSide,
-    fakeGotchisGotchiNftDiamond: string,
-    fakeGotchiPolygonBridgeFacet: FakeGotchiPolygonXGotchichainBridgeFacet,
+    polygonDiamond: any,
+    gotchiDiamond: string,
+    polygonBridgeFacet:
+      | FakeGotchiPolygonXGotchichainBridgeFacet
+      | FakeGotchiCardPolygonXGotchichainBridgeFacet,
     owner: Signer,
-    fakeGotchiGotchichainBridgeFacet: FakeGotchiPolygonXGotchichainBridgeFacet,
-    polygonAdapterParams: any,
-    gotchichainAdapterParams: any
+    gotchiBridgeFacet:
+      | FakeGotchiPolygonXGotchichainBridgeFacet
+      | FakeGotchiCardPolygonXGotchichainBridgeFacet,
+    polygonBridgeContractName: string,
+    gotchiBridgeContractName: string,
+    hasMinGasToStore: boolean = true
   ) {
     const minGasToStore = 50000;
 
-    LZEndpointMock = await ethers.getContractFactory(
+    const LZEndpointMock = await ethers.getContractFactory(
       LZEndpointMockCompiled.abi,
       LZEndpointMockCompiled.bytecode
     );
 
     const BridgePolygonSide = await ethers.getContractFactory(
-      "FakeGotchiBridgePolygonSide"
+      polygonBridgeContractName
     );
     const BridgeGotchichainSide = await ethers.getContractFactory(
-      "FakeGotchiBridgeGotchichainSide"
+      gotchiBridgeContractName
     );
 
     //Deploying LZEndpointMock contracts
-    console.log("Deploying LZEndpointMock contracts");
-    lzEndpointMockA = await LZEndpointMock.deploy(chainId_A);
-    console.log("lzEndpointMockA deployed at ", lzEndpointMockA.address);
-    lzEndpointMockB = await LZEndpointMock.deploy(chainId_B);
-    console.log("lzEndpointMockB deployed at ", lzEndpointMockB.address);
+    const lzEndpointMockA = await LZEndpointMock.deploy(chainId_A);
+    const lzEndpointMockB = await LZEndpointMock.deploy(chainId_B);
 
-    //Deploying bridge contracts
-    bridgePolygonSide = await BridgePolygonSide.deploy(
-      minGasToStore,
-      lzEndpointMockA.address,
-      fakeGotchisPolygonNftDiamond
-    );
-    bridgeGotchichainSide = await BridgeGotchichainSide.deploy(
-      minGasToStore,
-      lzEndpointMockB.address,
-      fakeGotchisGotchiNftDiamond
-    );
+    let bridgePolygonSide, bridgeGotchichainSide;
 
-    console.log("Setting LZEndpointMockA dest to bridgeGotchichainSide");
+    if (hasMinGasToStore) {
+      //Deploying bridge contracts
+      bridgePolygonSide = await BridgePolygonSide.deploy(
+        minGasToStore,
+        lzEndpointMockA.address,
+        polygonDiamond
+      );
+      bridgeGotchichainSide = await BridgeGotchichainSide.deploy(
+        minGasToStore,
+        lzEndpointMockB.address,
+        gotchiDiamond
+      );
+    } else {
+      bridgePolygonSide = await BridgePolygonSide.deploy(
+        lzEndpointMockA.address,
+        polygonDiamond
+      );
+      bridgeGotchichainSide = await BridgeGotchichainSide.deploy(
+        lzEndpointMockB.address,
+        gotchiDiamond
+      );
+    }
+
     lzEndpointMockA.setDestLzEndpoint(
       bridgeGotchichainSide.address,
       lzEndpointMockB.address
     );
-    console.log("Setting LZEndpointMockB dest to bridgePolygonSide");
     lzEndpointMockB.setDestLzEndpoint(
       bridgePolygonSide.address,
       lzEndpointMockA.address
     );
 
-    console.log("Setting bridgePolygonSide trusted remote");
     await bridgePolygonSide.setTrustedRemote(
       chainId_B,
       ethers.utils.solidityPack(
@@ -331,7 +362,6 @@ describe("Fake Gotchis tests", async function () {
         [bridgeGotchichainSide.address, bridgePolygonSide.address]
       )
     );
-    console.log("Setting bridgeGotchichainSide trusted remote");
     await bridgeGotchichainSide.setTrustedRemote(
       chainId_A,
       ethers.utils.solidityPack(
@@ -340,51 +370,52 @@ describe("Fake Gotchis tests", async function () {
       )
     );
 
-    console.log("Setting bridgePolygonSide minDstGas");
-    await bridgePolygonSide.setMinDstGas(chainId_B, 1, 35000);
-    await bridgePolygonSide.setMinDstGas(chainId_B, 2, 35000);
-    console.log("Setting bridgeGotchichainSide minDstGas");
-    await bridgeGotchichainSide.setMinDstGas(chainId_A, 1, 150000);
-    await bridgeGotchichainSide.setMinDstGas(chainId_A, 2, 150000);
-
     //Set layer zero bridge on facet
-    await fakeGotchiPolygonBridgeFacet
+    await polygonBridgeFacet
       .connect(owner)
       .setLayerZeroBridge(bridgePolygonSide.address);
-    await fakeGotchiGotchichainBridgeFacet
+    await gotchiBridgeFacet
       .connect(owner)
       .setLayerZeroBridge(bridgeGotchichainSide.address);
 
     const batchSizeLimit = 1;
 
-    //Set batch size limit
-    await bridgePolygonSide.setDstChainIdToBatchLimit(
-      chainId_B,
-      batchSizeLimit
-    );
-    await bridgeGotchichainSide.setDstChainIdToBatchLimit(
-      chainId_A,
-      batchSizeLimit
-    );
+    let transferGasPerTokenPolygonSide = BigNumber.from(0);
+    let transferGasPerTokenGotchichainSide = BigNumber.from(0);
+
+    if (hasMinGasToStore) {
+      //Set batch size limit
+      await bridgePolygonSide.setDstChainIdToBatchLimit(
+        chainId_B,
+        batchSizeLimit
+      );
+      await bridgeGotchichainSide.setDstChainIdToBatchLimit(
+        chainId_A,
+        batchSizeLimit
+      );
+
+      await bridgePolygonSide.setDstChainIdToTransferGas(chainId_B, 1950000);
+      await bridgeGotchichainSide.setDstChainIdToTransferGas(
+        chainId_A,
+        1950000
+      );
+      transferGasPerTokenPolygonSide =
+        await bridgePolygonSide.dstChainIdToTransferGas(chainId_B);
+      transferGasPerTokenGotchichainSide =
+        await bridgeGotchichainSide.dstChainIdToTransferGas(chainId_A);
+    }
 
     //Set min dst gas for swap
     await bridgePolygonSide.setMinDstGas(chainId_B, 1, 1950000);
     await bridgeGotchichainSide.setMinDstGas(chainId_A, 1, 1950000);
 
-    await bridgePolygonSide.setDstChainIdToTransferGas(chainId_B, 1950000);
-    await bridgeGotchichainSide.setDstChainIdToTransferGas(chainId_A, 1950000);
-
     const minGasToTransferAndStorePolygonSide =
       await bridgePolygonSide.minDstGasLookup(chainId_B, 1);
-    const transferGasPerTokenPolygonSide =
-      await bridgePolygonSide.dstChainIdToTransferGas(chainId_B);
 
     const minGasToTransferAndStoreGotchichainSide =
       await bridgeGotchichainSide.minDstGasLookup(chainId_A, 1);
-    const transferGasPerTokenGotchichainSide =
-      await bridgeGotchichainSide.dstChainIdToTransferGas(chainId_A);
 
-    polygonAdapterParams = ethers.utils.solidityPack(
+    const polygonAdapterParams = ethers.utils.solidityPack(
       ["uint16", "uint256"],
       [
         1,
@@ -393,7 +424,7 @@ describe("Fake Gotchis tests", async function () {
         ),
       ]
     );
-    gotchichainAdapterParams = ethers.utils.solidityPack(
+    const gotchichainAdapterParams = ethers.utils.solidityPack(
       ["uint16", "uint256"],
       [
         1,
@@ -402,10 +433,8 @@ describe("Fake Gotchis tests", async function () {
         ),
       ]
     );
+
     return {
-      LZEndpointMock,
-      lzEndpointMockA,
-      lzEndpointMockB,
       bridgePolygonSide,
       bridgeGotchichainSide,
       polygonAdapterParams,
