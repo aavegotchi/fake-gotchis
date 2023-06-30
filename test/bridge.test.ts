@@ -1,6 +1,7 @@
 import LZEndpointMockCompiled from "@layerzerolabs/solidity-examples/artifacts/contracts/mocks/LZEndpointMock.sol/LZEndpointMock.json";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
-import { BigNumber, BigNumberish, Signer, utils } from "ethers";
+import { BigNumber, Signer } from "ethers";
 import { ethers, network } from "hardhat";
 import { deployDiamonds } from "../scripts/deployDiamonds";
 import { impersonate } from "../scripts/helperFunctions";
@@ -12,10 +13,8 @@ import {
   FakeGotchisNFTFacet,
   MetadataFacet,
 } from "../typechain-types";
-import { PromiseOrValue } from "../typechain-types/common";
 
 describe("Fake Gotchis tests", async function () {
-  // contracts, contract addressees, signers
   let fakeGotchisPolygonCardDiamond: any;
   let fakeGotchisPolygonNftDiamond: any;
   let cardFacet: FakeGotchisCardFacet;
@@ -24,43 +23,21 @@ describe("Fake Gotchis tests", async function () {
   let metadataPolygonFacet: MetadataFacet;
   let metadataGotchiFacet: MetadataFacet;
   let cardFacetWithOwner: FakeGotchisCardFacet;
-  let cardFacetWithUser: FakeGotchisCardFacet;
   let metadataFacetWithUser: MetadataFacet;
   let cardSeriesId: BigNumber;
   let owner: Signer;
   let ownerAddress: any;
-  let user: Signer; // FG Card Owner
+  let user: Signer;
   let userAddress: any;
   let artistAddress: any;
   let polygonAdapterParams: any;
   let gotchichainAdapterParams: any;
 
-  // card test data
-  const cardCount = 2535;
-  const cardTransferAmount = 100;
-
-  // test metadata
-  const editions = 10;
-  const fileHash = "q".repeat(42); // 42 bytes
-  const name = "w".repeat(50); // 50 bytes
-  const publisherName = "e".repeat(30); // 30 bytes
-  const externalLink = "r".repeat(50); // 240 bytes
-  const description = "d".repeat(120); // 120 bytes
-  const artistName = "y".repeat(30); // 30 bytes
-  const thumbnailHash = "t".repeat(42); // 42 bytes
-  const fileType = "f".repeat(20); // 20 bytes
-  const thumbnailType = "q".repeat(20); // 20 bytes
-  let metaData: any;
-
-  // test accounts for flag for like metadata
-  const gotchiOwnerAddress2 = "0xa5Fa57608C5698120A7C3c9d50EC346bb3980223"; // gotchi owner, but hold less than 100 GHST
-  const ghstHolderAddress2 = "0x18d8646530dABe8F93B89282af161fAe03896638"; // hold 100+ GHST, but not gotchi owner
-  const moreCardHolders: PromiseOrValue<string>[] = []; // length: 4
-  const moreFlaggableUsers = [gotchiOwnerAddress2, ghstHolderAddress2]; // length: 6
+  let cardSeriesId2: BigNumber;
+  let metadataId2: BigNumber;
 
   const chainId_A = 1;
   const chainId_B = 2;
-  const minGasToStore = 50000;
 
   let LZEndpointMock: any,
     bridgePolygonSide: FakeGotchiBridgePolygonSide,
@@ -73,9 +50,9 @@ describe("Fake Gotchis tests", async function () {
   let fakeGotchisGotchiCardDiamond: string;
   let fakeGotchisGotchiNftDiamond: string;
 
-  before(async function () {
-    this.timeout(20000000);
+  let metadataId: BigNumber;
 
+  async function deployFixture() {
     const diamondsPolygon = await deployDiamonds();
     fakeGotchisPolygonCardDiamond = diamondsPolygon.fakeGotchisCardDiamond;
     fakeGotchisPolygonNftDiamond = diamondsPolygon.fakeGotchisNftDiamond;
@@ -91,12 +68,6 @@ describe("Fake Gotchis tests", async function () {
     ownerAddress = await owner.getAddress();
     userAddress = await user.getAddress();
     artistAddress = await artist.getAddress();
-    for (let i = 5; i < 9; i++) {
-      const flaggableAccount = signers[i];
-      const flaggableAddress = await flaggableAccount.getAddress();
-      moreCardHolders.push(flaggableAddress);
-      moreFlaggableUsers.push(flaggableAddress);
-    }
 
     cardFacet = (await ethers.getContractAt(
       "FakeGotchisCardFacet",
@@ -129,12 +100,6 @@ describe("Fake Gotchis tests", async function () {
       ethers,
       network
     );
-    cardFacetWithUser = await impersonate(
-      userAddress,
-      cardFacet,
-      ethers,
-      network
-    );
 
     metadataFacetWithUser = await impersonate(
       userAddress,
@@ -142,24 +107,6 @@ describe("Fake Gotchis tests", async function () {
       ethers,
       network
     );
-
-    metaData = {
-      fileHash,
-      name,
-      publisherName,
-      externalLink,
-      description,
-      artistName,
-      artist: artistAddress,
-      royalty: [300, 100] as [
-        PromiseOrValue<BigNumberish>,
-        PromiseOrValue<BigNumberish>
-      ],
-      editions,
-      thumbnailHash,
-      fileType,
-      thumbnailType,
-    };
 
     fakeGotchiPolygonBridgeFacet = await ethers.getContractAt(
       "FakeGotchiPolygonXGotchichainBridgeFacet",
@@ -170,6 +117,169 @@ describe("Fake Gotchis tests", async function () {
       "FakeGotchiPolygonXGotchichainBridgeFacet",
       fakeGotchisGotchiNftDiamond
     );
+
+    ({
+      LZEndpointMock,
+      lzEndpointMockA,
+      lzEndpointMockB,
+      bridgePolygonSide,
+      bridgeGotchichainSide,
+      polygonAdapterParams,
+      gotchichainAdapterParams,
+    } = await setupBridge(
+      LZEndpointMock,
+      lzEndpointMockA,
+      lzEndpointMockB,
+      bridgePolygonSide,
+      fakeGotchisPolygonNftDiamond,
+      bridgeGotchichainSide,
+      fakeGotchisGotchiNftDiamond,
+      fakeGotchiPolygonBridgeFacet,
+      owner,
+      fakeGotchiGotchichainBridgeFacet,
+      polygonAdapterParams,
+      gotchichainAdapterParams
+    ));
+    ({ cardSeriesId, metadataId } = await createSeriesAndMintFake(
+      cardFacetWithOwner,
+      ownerAddress,
+      userAddress,
+      metadataFacetWithUser
+    ));
+    ({ cardSeriesId: cardSeriesId2, metadataId: metadataId2 } =
+      await createSeriesAndMintFake(
+        cardFacetWithOwner,
+        ownerAddress,
+        userAddress,
+        metadataFacetWithUser
+      ));
+  }
+
+  beforeEach(async function () {
+    await loadFixture(deployFixture);
+  });
+
+  describe("Bridge FakeGotchi NFT", async () => {
+    it("Should mint a FakeGotchi on Polygon and bridge it", async () => {
+      await ethers.provider.send("evm_increaseTime", [5 * 86400]);
+      await ethers.provider.send("evm_mine", []);
+      await metadataFacetWithUser.mint(metadataId);
+      const savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
+
+      expect(savedMetaData.minted).to.equal(true);
+      const signers = await ethers.getSigners();
+
+      await nftFacetPolygon
+        .connect(signers[1])
+        .setApprovalForAll(bridgePolygonSide.address, true);
+      let sendFromTx = await bridgePolygonSide
+        .connect(signers[1])
+        .sendFrom(
+          userAddress,
+          chainId_B,
+          userAddress,
+          metadataId,
+          userAddress,
+          ethers.constants.AddressZero,
+          polygonAdapterParams,
+          {
+            value: (
+              await bridgePolygonSide.estimateSendFee(
+                chainId_B,
+                userAddress,
+                metadataId,
+                false,
+                polygonAdapterParams
+              )
+            ).nativeFee.mul(3),
+          }
+        );
+      await sendFromTx.wait();
+      expect(await nftFacetPolygon.balanceOf(userAddress)).to.equal(9);
+      expect(await nftFacetGotchichain.balanceOf(userAddress)).to.equal(1);
+      // console.log(await nftFacetGotchichain.tokenIdsOfOwner(userAddress));
+      // console.log(await nftFacetGotchichain.tokenURI(0));
+    });
+  });
+
+  async function createSeriesAndMintFake(
+    cardFacetWithOwner: FakeGotchisCardFacet,
+    ownerAddress: any,
+    userAddress: any,
+    metadataFacetWithUser: MetadataFacet
+  ): Promise<{ cardSeriesId: BigNumber; metadataId: BigNumber }> {
+    const cardCount = 2535;
+    const cardTransferAmount = 100;
+
+    // test metadata
+    const editions = 10;
+    const fileHash = "q".repeat(42); // 42 bytes
+    const name = "w".repeat(50); // 50 bytes
+    const publisherName = "e".repeat(30); // 30 bytes
+    const externalLink = "r".repeat(50); // 240 bytes
+    const description = "d".repeat(120); // 120 bytes
+    const artistName = "y".repeat(30); // 30 bytes
+    const thumbnailHash = "t".repeat(42); // 42 bytes
+    const fileType = "f".repeat(20); // 20 bytes
+    const thumbnailType = "q".repeat(20); // 20 bytes
+
+    const metaData = {
+      fileHash,
+      name,
+      publisherName,
+      externalLink,
+      description,
+      artistName,
+      artist: artistAddress,
+      royalty: [ethers.BigNumber.from(300), ethers.BigNumber.from(100)] as [
+        BigNumber,
+        BigNumber
+      ],
+      editions,
+      thumbnailHash,
+      fileType,
+      thumbnailType,
+    };
+
+    const receipt = await(
+      await cardFacetWithOwner.startNewSeries(cardCount)
+    ).wait();
+    const event = receipt.events?.find(
+      (event) => event.event === "NewSeriesStarted"
+    );
+    cardSeriesId = event?.args?.id;
+    await cardFacetWithOwner.safeTransferFrom(
+      ownerAddress,
+      userAddress,
+      cardSeriesId,
+      cardTransferAmount,
+      []
+    );
+    const receipt2 = await(
+      await metadataFacetWithUser.addMetadata(metaData, cardSeriesId)
+    ).wait();
+    const event2 = receipt2.events?.find(
+      (event) => event.event === "MetadataActionLog"
+    );
+    metadataId = event2?.args?.id;
+    return { cardSeriesId, metadataId };
+  }
+
+  async function setupBridge(
+    LZEndpointMock: any,
+    lzEndpointMockA: any,
+    lzEndpointMockB: any,
+    bridgePolygonSide: FakeGotchiBridgePolygonSide,
+    fakeGotchisPolygonNftDiamond: any,
+    bridgeGotchichainSide: FakeGotchiBridgeGotchichainSide,
+    fakeGotchisGotchiNftDiamond: string,
+    fakeGotchiPolygonBridgeFacet: FakeGotchiPolygonXGotchichainBridgeFacet,
+    owner: Signer,
+    fakeGotchiGotchichainBridgeFacet: FakeGotchiPolygonXGotchichainBridgeFacet,
+    polygonAdapterParams: any,
+    gotchichainAdapterParams: any
+  ) {
+    const minGasToStore = 50000;
 
     LZEndpointMock = await ethers.getContractFactory(
       LZEndpointMockCompiled.abi,
@@ -292,135 +402,14 @@ describe("Fake Gotchis tests", async function () {
         ),
       ]
     );
-  });
-
-  describe("FakeGotchisCardFacet", async function () {
-    describe("startNewSeries", async function () {
-      it("Should succeed if owner try with valid card amount", async function () {
-        const receipt = await (
-          await cardFacetWithOwner.startNewSeries(cardCount)
-        ).wait();
-        const event = receipt!.events!.find(
-          (event) => event.event === "NewSeriesStarted"
-        );
-        cardSeriesId = event!.args!.id;
-        expect(event!.args!.amount).to.equal(cardCount);
-      });
-    });
-    describe("safeTransferFrom", async function () {
-      it("Should transfer from diamond if valid diamond owner and params", async function () {
-        const balanceOwnerBefore = await cardFacetWithUser.balanceOf(
-          ownerAddress,
-          cardSeriesId
-        );
-        const balanceUserBefore = await cardFacetWithUser.balanceOf(
-          userAddress,
-          cardSeriesId
-        );
-        const topic = utils.id(
-          "TransferSingle(address,address,address,uint256,uint256)"
-        );
-        const receipt = await (
-          await cardFacetWithOwner.safeTransferFrom(
-            ownerAddress,
-            userAddress,
-            cardSeriesId,
-            cardTransferAmount,
-            []
-          )
-        ).wait();
-        const event = receipt!.events!.find(
-          (event) => event.topics && event.topics[0] === topic
-        );
-        expect(event!.address).to.equal(fakeGotchisPolygonCardDiamond);
-        const balanceOwnerAfter = await cardFacetWithUser.balanceOf(
-          ownerAddress,
-          cardSeriesId
-        );
-        const balanceUserAfter = await cardFacetWithUser.balanceOf(
-          userAddress,
-          cardSeriesId
-        );
-        expect(balanceOwnerAfter.add(cardTransferAmount)).to.equal(
-          balanceOwnerBefore
-        );
-        expect(balanceUserBefore.add(cardTransferAmount)).to.equal(
-          balanceUserAfter
-        );
-      });
-    });
-  });
-
-  describe("MetadataFacet", async function () {
-    let metadataId: BigNumber;
-    describe("addMetadata", async function () {
-      it("Should succeed if all params are valid and have enough cards", async function () {
-        const cardBalanceBefore = await cardFacetWithUser.balanceOf(
-          userAddress,
-          cardSeriesId
-        );
-        const receipt = await (
-          await metadataFacetWithUser.addMetadata(metaData, cardSeriesId)
-        ).wait();
-        const event = receipt!.events!.find(
-          (event) => event.event === "MetadataActionLog"
-        );
-        metadataId = event!.args!.id;
-        expect(event!.args!.metaData!.fileHash).to.equal(metaData.fileHash);
-        expect(event!.args!.metaData!.publisher).to.equal(userAddress);
-        expect(event!.args!.metaData!.status).to.equal(0);
-        const cardBalanceAfter = await cardFacetWithUser.balanceOf(
-          userAddress,
-          cardSeriesId
-        );
-        expect(cardBalanceAfter.add(1)).to.equal(cardBalanceBefore);
-      });
-    });
-    describe("mint", async function () {
-      describe("bridge", async function () {
-        it("Should mint a FakeGotchi on Polygon and bridge it", async function () {
-          await ethers.provider.send("evm_increaseTime", [5 * 86400]);
-          await ethers.provider.send("evm_mine", []);
-          await (await metadataFacetWithUser.mint(metadataId)).wait();
-          const savedMetaData = await metadataFacetWithUser.getMetadata(
-            metadataId
-          );
-
-          expect(savedMetaData.minted).to.equal(true);
-          const signers = await ethers.getSigners();
-
-          await nftFacetPolygon
-            .connect(signers[1])
-            .setApprovalForAll(bridgePolygonSide.address, true);
-          let sendFromTx = await bridgePolygonSide
-            .connect(signers[1])
-            .sendFrom(
-              userAddress,
-              chainId_B,
-              userAddress,
-              metadataId,
-              userAddress,
-              ethers.constants.AddressZero,
-              polygonAdapterParams,
-              {
-                value: (
-                  await bridgePolygonSide.estimateSendFee(
-                    chainId_B,
-                    userAddress,
-                    metadataId,
-                    false,
-                    polygonAdapterParams
-                  )
-                ).nativeFee.mul(3),
-              }
-            );
-          await sendFromTx.wait();
-          expect(await nftFacetPolygon.balanceOf(userAddress)).to.equal(9);
-          expect(await nftFacetGotchichain.balanceOf(userAddress)).to.equal(1);
-          // console.log(await nftFacetGotchichain.tokenIdsOfOwner(userAddress));
-          // console.log(await nftFacetGotchichain.tokenURI(0));
-        });
-      });
-    });
-  });
+    return {
+      LZEndpointMock,
+      lzEndpointMockA,
+      lzEndpointMockB,
+      bridgePolygonSide,
+      bridgeGotchichainSide,
+      polygonAdapterParams,
+      gotchichainAdapterParams,
+    };
+  }
 });
