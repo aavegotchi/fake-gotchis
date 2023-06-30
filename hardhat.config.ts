@@ -30,6 +30,8 @@ export default {
       forking: {
         url: process.env.MATIC_URL,
         timeout: 12000000,
+        enabled: process.env.FORKING === "true",
+        blockNumber: 44378127,
       },
       chainId: 137,
       blockGasLimit: 20000000,

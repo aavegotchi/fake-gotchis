@@ -9,7 +9,8 @@
     "prettier:js": "prettier --write \"{scripts,tasks,test}/**/*.js\"",
     "prettier:ts": "prettier --write \"{scripts,tasks,test}/**/*.ts\"",
     "prettier:sol": "prettier --write contracts/**/*.sol",
-    "solhint": "solhint 'contracts/**/*.sol'"
+    "solhint": "solhint 'contracts/**/*.sol'",
+    "test:nft:bridge": "FORKING=true npx hardhat test test/bridge.test.ts --network hardhat"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,8 @@
   },
   "homepage": "https://github.com/mudgen/contracts-starter#readme",
   "devDependencies": {
+    "@layerzerolabs/solidity-examples": "^0.0.12",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.8",
     "@nomiclabs/hardhat-ethers": "^2.0.6",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
     "@typechain/ethers-v5": "^10.1.0",

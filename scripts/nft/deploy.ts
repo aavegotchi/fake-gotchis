@@ -55,6 +55,7 @@ export async function deployNftDiamond(cardAddress: string) {
     "OwnershipFacet",
     "MetadataFacet",
     "FakeGotchisNFTFacet",
+    "FakeGotchiPolygonXGotchichainBridgeFacet",
   ];
   const cut = [];
   for (const FacetName of FacetNames) {
