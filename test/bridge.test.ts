@@ -206,6 +206,8 @@ describe("Fake Gotchis tests", async function () {
 
       expect(savedMetaData.minted).to.equal(true);
 
+      const polygonMetadata = await nftFacetPolygon.tokenURI(metadataId);
+
       await nftFacetPolygon
         .connect(signers[1])
         .setApprovalForAll(bridgeNFTPolygonSide.address, true);
@@ -232,10 +234,9 @@ describe("Fake Gotchis tests", async function () {
             ).nativeFee,
           }
         );
-      // console.log(await nftFacetGotchichain.tokenIdsOfOwner(userAddress));
-      // console.log(await nftFacetGotchichain.tokenURI(0));
       expect(await nftFacetPolygon.balanceOf(userAddress)).to.equal(9);
       expect(await nftFacetGotchichain.balanceOf(userAddress)).to.equal(1);
+      expect(await nftFacetGotchichain.tokenURI(0)).to.equal(polygonMetadata);
     });
   });
 
@@ -245,7 +246,7 @@ describe("Fake Gotchis tests", async function () {
       const tokenId = 1; // because we are minting one on setup already
       const amountToBridge = 1;
 
-      await cardFacetPolygon.startNewSeries(cardCount)
+      await cardFacetPolygon.startNewSeries(cardCount);
       await cardFacetPolygon.safeTransferFrom(
         ownerAddress,
         userAddress,
@@ -253,34 +254,44 @@ describe("Fake Gotchis tests", async function () {
         cardCount,
         []
       );
-      expect(await cardFacetPolygon.balanceOf(userAddress, tokenId)).to.equal(cardCount);
-
-      await cardFacetPolygon.connect(signers[1]).setApprovalForAll(bridgeCardPolygonSide.address, true)
-
-      await bridgeCardPolygonSide.connect(signers[1]).sendFrom(
-        userAddress,
-        chainId_B,
-        userAddress,
-        tokenId,
-        amountToBridge,
-        userAddress,
-        ethers.constants.AddressZero,
-        [],
-        {
-          value: (
-            await bridgeCardPolygonSide.estimateSendFee(
-              chainId_B,
-              userAddress,
-              tokenId,
-              amountToBridge,
-              false,
-              []
-            )
-          ).nativeFee,
-        }
+      expect(await cardFacetPolygon.balanceOf(userAddress, tokenId)).to.equal(
+        cardCount
       );
-      expect(await cardFacetPolygon.balanceOf(userAddress, tokenId)).to.equal(cardCount - amountToBridge);
-      expect(await cardFacetGotchichain.balanceOf(userAddress, tokenId)).to.equal(amountToBridge);
+
+      await cardFacetPolygon
+        .connect(signers[1])
+        .setApprovalForAll(bridgeCardPolygonSide.address, true);
+
+      await bridgeCardPolygonSide
+        .connect(signers[1])
+        .sendFrom(
+          userAddress,
+          chainId_B,
+          userAddress,
+          tokenId,
+          amountToBridge,
+          userAddress,
+          ethers.constants.AddressZero,
+          [],
+          {
+            value: (
+              await bridgeCardPolygonSide.estimateSendFee(
+                chainId_B,
+                userAddress,
+                tokenId,
+                amountToBridge,
+                false,
+                []
+              )
+            ).nativeFee,
+          }
+        );
+      expect(await cardFacetPolygon.balanceOf(userAddress, tokenId)).to.equal(
+        cardCount - amountToBridge
+      );
+      expect(
+        await cardFacetGotchichain.balanceOf(userAddress, tokenId)
+      ).to.equal(amountToBridge);
     });
   });
 
