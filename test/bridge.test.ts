@@ -198,10 +198,11 @@ describe("Fake Gotchis tests", async function () {
   });
 
   describe("Bridge FakeGotchi NFT", async () => {
-    it("Should mint a FakeGotchi on Polygon and bridge it", async () => {
+    it("Should mint a FakeGotchi on Polygon and bridge it to Gotchichain and back", async () => {
       await ethers.provider.send("evm_increaseTime", [5 * 86400]);
       await ethers.provider.send("evm_mine", []);
       await metadataFacetWithUser.mint(metadataId);
+
       const savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
 
       expect(savedMetaData.minted).to.equal(true);
@@ -231,12 +232,45 @@ describe("Fake Gotchis tests", async function () {
                 false,
                 polygonNFTAdapterParams
               )
-            ).nativeFee,
+            ).nativeFee.mul(10),
           }
         );
       expect(await nftFacetPolygon.balanceOf(userAddress)).to.equal(9);
       expect(await nftFacetGotchichain.balanceOf(userAddress)).to.equal(1);
-      expect(await nftFacetGotchichain.tokenURI(0)).to.equal(polygonMetadata);
+      expect(await nftFacetGotchichain.tokenURI(metadataId)).to.equal(polygonMetadata);
+
+
+      await nftFacetGotchichain
+        .connect(signers[1])
+        .setApprovalForAll(bridgeNFTGotchichainSide.address, true);
+
+
+      await bridgeNFTGotchichainSide
+        .connect(signers[1])
+        .sendFrom(
+          userAddress,
+          chainId_A,
+          userAddress,
+          metadataId,
+          userAddress,
+          ethers.constants.AddressZero,
+          gotchichainNFTAdapterParams,
+          {
+            value: (
+              await bridgeNFTGotchichainSide.connect(signers[1]).estimateSendFee(
+                chainId_A,
+                userAddress,
+                metadataId,
+                false,
+                gotchichainNFTAdapterParams
+              )
+            ).nativeFee.mul(100),
+          }
+        );
+
+        expect(await nftFacetGotchichain.balanceOf(userAddress)).to.equal(0);
+        expect(await nftFacetPolygon.balanceOf(userAddress)).to.equal(10);
+        expect(await nftFacetPolygon.tokenURI(metadataId)).to.equal(polygonMetadata);
     });
   });
 
@@ -490,7 +524,7 @@ describe("Fake Gotchis tests", async function () {
       [
         1,
         minGasToTransferAndStorePolygonSide.add(
-          transferGasPerTokenPolygonSide.mul(2)
+          transferGasPerTokenPolygonSide
         ),
       ]
     );
@@ -499,7 +533,7 @@ describe("Fake Gotchis tests", async function () {
       [
         1,
         minGasToTransferAndStoreGotchichainSide.add(
-          transferGasPerTokenGotchichainSide.mul(2)
+          transferGasPerTokenGotchichainSide
         ),
       ]
     );

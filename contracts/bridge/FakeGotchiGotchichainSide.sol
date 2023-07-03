@@ -51,7 +51,7 @@ contract FakeGotchiBridgeGotchichainSide is ProxyONFT721 {
 
     function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 /*_nonce*/, bytes memory _payload) internal virtual override {
         // decode and load the toAddress
-        (bytes memory toAddressBytes, uint[] memory tokenIds, Metadata[] memory fakegotchis) = abi.decode(_payload, (bytes, uint[], Metadata[]));
+        (bytes memory toAddressBytes, uint[] memory tokenIds, Metadata[] memory fakegotchis, uint256 metadataId) = abi.decode(_payload, (bytes, uint[], Metadata[], uint256));
 
         address toAddress;
         assembly {
@@ -65,7 +65,7 @@ contract FakeGotchiBridgeGotchichainSide is ProxyONFT721 {
             emit CreditStored(hashedPayload, _payload);
         }
 
-        _updateFakeGotchiMetadata(tokenIds, fakegotchis);
+        _updateFakeGotchiMetadata(tokenIds, fakegotchis, metadataId);
 
         emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenIds);
     }
@@ -79,9 +79,9 @@ contract FakeGotchiBridgeGotchichainSide is ProxyONFT721 {
         }
     }
 
-    function _updateFakeGotchiMetadata(uint[] memory tokenIds, Metadata[] memory fakegotchis) internal {
+    function _updateFakeGotchiMetadata(uint[] memory tokenIds, Metadata[] memory fakegotchis, uint256 metadataId) internal {
         for (uint i = 0; i < tokenIds.length; i++) {
-            FakeGotchiPolygonXGotchichainBridgeFacet(address(token)).setFakeGotchiMetadata(tokenIds[i], fakegotchis[i]);
+            FakeGotchiPolygonXGotchichainBridgeFacet(address(token)).setFakeGotchiMetadata(tokenIds[i], fakegotchis[i], metadataId);
         }
     }
 }

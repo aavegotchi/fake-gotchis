@@ -37,12 +37,13 @@ contract FakeGotchiBridgePolygonSide is ProxyONFT721 {
         require(_tokenIds.length == 1 || _tokenIds.length <= dstChainIdToBatchLimit[_dstChainId], "ONFT721: batch size exceeds dst batch limit");
 
         Metadata[] memory fakegotchis = new Metadata[](_tokenIds.length);
+        uint256 metadataId = FakeGotchiPolygonXGotchichainBridgeFacet(address(token)).getMetadataId(_tokenIds[0]);
         for (uint i = 0; i < _tokenIds.length; i++) {
             _debitFrom(_from, _dstChainId, _toAddress, _tokenIds[i]);
             fakegotchis[i] = FakeGotchiPolygonXGotchichainBridgeFacet(address(token)).getFakeGotchiData(_tokenIds[i]);
         }
 
-        bytes memory payload = abi.encode(_toAddress, _tokenIds, fakegotchis);
+        bytes memory payload = abi.encode(_toAddress, _tokenIds, fakegotchis, metadataId);
 
         _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, dstChainIdToTransferGas[_dstChainId] * _tokenIds.length);
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
@@ -65,23 +66,10 @@ contract FakeGotchiBridgePolygonSide is ProxyONFT721 {
             emit CreditStored(hashedPayload, _payload);
         }
 
-        _updateFakeGotchiMetadata(tokenIds, fakegotchis);
-
         emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenIds);
     }
 
     function _creditTo(uint16, address _toAddress, uint _tokenId) internal override {
-        address owner = token.ownerOf(_tokenId);
-        if (owner != 0x0000000000000000000000000000000000000000) {
-            token.transferFrom(address(this), _toAddress, _tokenId);
-        } else {
-            FakeGotchiPolygonXGotchichainBridgeFacet(address(token)).mintWithId(_toAddress, _tokenId);
-        }
-    }
-
-    function _updateFakeGotchiMetadata(uint[] memory tokenIds, Metadata[] memory fakegotchis) internal {
-        for (uint i = 0; i < tokenIds.length; i++) {
-            FakeGotchiPolygonXGotchichainBridgeFacet(address(token)).setFakeGotchiMetadata(tokenIds[i], fakegotchis[i]);
-        }
+        token.transferFrom(address(this), _toAddress, _tokenId);
     }
 }
