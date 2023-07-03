@@ -1,13 +1,15 @@
 import LZEndpointMockCompiled from "@layerzerolabs/solidity-examples/artifacts/contracts/mocks/LZEndpointMock.sol/LZEndpointMock.json";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
-import { BigNumber, Signer } from "ethers";
+import { BigNumber, Signer, utils } from "ethers";
 import { ethers, network } from "hardhat";
 import { deployDiamonds } from "../scripts/deployDiamonds";
 import { impersonate } from "../scripts/helperFunctions";
 import {
   FakeGotchiBridgeGotchichainSide,
   FakeGotchiBridgePolygonSide,
+  FakeGotchiCardBridgeGotchichainSide,
+  FakeGotchiCardBridgePolygonSide,
   FakeGotchiCardPolygonXGotchichainBridgeFacet,
   FakeGotchiPolygonXGotchichainBridgeFacet,
   FakeGotchisCardFacet,
@@ -21,6 +23,8 @@ describe("Fake Gotchis tests", async function () {
   let cardFacet: FakeGotchisCardFacet;
   let nftFacetPolygon: FakeGotchisNFTFacet;
   let nftFacetGotchichain: FakeGotchisNFTFacet;
+  let cardFacetPolygon: FakeGotchisCardFacet;
+  let cardFacetGotchichain: FakeGotchisCardFacet;
   let metadataPolygonFacet: MetadataFacet;
   let metadataGotchiFacet: MetadataFacet;
   let cardFacetWithOwner: FakeGotchisCardFacet;
@@ -42,8 +46,8 @@ describe("Fake Gotchis tests", async function () {
   let bridgeNFTPolygonSide: FakeGotchiBridgePolygonSide,
     bridgeNFTGotchichainSide: FakeGotchiBridgeGotchichainSide;
 
-  let bridgeCardPolygonSide: FakeGotchiBridgePolygonSide,
-    bridgeCardGotchichainSide: FakeGotchiBridgeGotchichainSide;
+  let bridgeCardPolygonSide: FakeGotchiCardBridgePolygonSide,
+    bridgeCardGotchichainSide: FakeGotchiCardBridgeGotchichainSide;
 
   let fakeGotchiPolygonBridgeFacet: FakeGotchiPolygonXGotchichainBridgeFacet;
   let fakeGotchiGotchichainBridgeFacet: FakeGotchiPolygonXGotchichainBridgeFacet;
@@ -53,6 +57,7 @@ describe("Fake Gotchis tests", async function () {
 
   let fakeGotchisGotchiCardDiamond: string;
   let fakeGotchisGotchiNftDiamond: string;
+  let signers: Signer[];
 
   let metadataId: BigNumber;
 
@@ -65,7 +70,7 @@ describe("Fake Gotchis tests", async function () {
     fakeGotchisGotchiCardDiamond = diamondsGotchi.fakeGotchisCardDiamond;
     fakeGotchisGotchiNftDiamond = diamondsGotchi.fakeGotchisNftDiamond;
 
-    const signers = await ethers.getSigners();
+    signers = await ethers.getSigners();
     owner = signers[0];
     user = signers[1];
     const artist = signers[9];
@@ -87,6 +92,16 @@ describe("Fake Gotchis tests", async function () {
       "FakeGotchisNFTFacet",
       fakeGotchisGotchiNftDiamond
     )) as FakeGotchisNFTFacet;
+
+    cardFacetPolygon = (await ethers.getContractAt(
+      "FakeGotchisCardFacet",
+      fakeGotchisPolygonCardDiamond
+    )) as FakeGotchisCardFacet;
+
+    cardFacetGotchichain = (await ethers.getContractAt(
+      "FakeGotchisCardFacet",
+      fakeGotchisGotchiCardDiamond
+    )) as FakeGotchisCardFacet;
 
     metadataPolygonFacet = (await ethers.getContractAt(
       "MetadataFacet",
@@ -190,7 +205,6 @@ describe("Fake Gotchis tests", async function () {
       const savedMetaData = await metadataFacetWithUser.getMetadata(metadataId);
 
       expect(savedMetaData.minted).to.equal(true);
-      const signers = await ethers.getSigners();
 
       await nftFacetPolygon
         .connect(signers[1])
@@ -222,6 +236,51 @@ describe("Fake Gotchis tests", async function () {
       // console.log(await nftFacetGotchichain.tokenURI(0));
       expect(await nftFacetPolygon.balanceOf(userAddress)).to.equal(9);
       expect(await nftFacetGotchichain.balanceOf(userAddress)).to.equal(1);
+    });
+  });
+
+  describe("Bridge FakeGotchi Card", async () => {
+    it("Should mint a card on Polygon and bridge it", async () => {
+      const cardCount = 10;
+      const tokenId = 1; // because we are minting one on setup already
+      const amountToBridge = 1;
+
+      await cardFacetPolygon.startNewSeries(cardCount)
+      await cardFacetPolygon.safeTransferFrom(
+        ownerAddress,
+        userAddress,
+        tokenId,
+        cardCount,
+        []
+      );
+      expect(await cardFacetPolygon.balanceOf(userAddress, tokenId)).to.equal(cardCount);
+
+      await cardFacetPolygon.connect(signers[1]).setApprovalForAll(bridgeCardPolygonSide.address, true)
+
+      await bridgeCardPolygonSide.connect(signers[1]).sendFrom(
+        userAddress,
+        chainId_B,
+        userAddress,
+        tokenId,
+        amountToBridge,
+        userAddress,
+        ethers.constants.AddressZero,
+        [],
+        {
+          value: (
+            await bridgeCardPolygonSide.estimateSendFee(
+              chainId_B,
+              userAddress,
+              tokenId,
+              amountToBridge,
+              false,
+              []
+            )
+          ).nativeFee,
+        }
+      );
+      expect(await cardFacetPolygon.balanceOf(userAddress, tokenId)).to.equal(cardCount - amountToBridge);
+      expect(await cardFacetGotchichain.balanceOf(userAddress, tokenId)).to.equal(amountToBridge);
     });
   });
 
