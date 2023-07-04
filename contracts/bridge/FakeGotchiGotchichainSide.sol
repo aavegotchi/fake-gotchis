@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {ProxyONFT721} from "./ProxyONFT721.sol";
-import {FakeGotchiPolygonXGotchichainBridgeFacet} from "../FakeGotchisNFTDiamond/facets/PolygonXGotchichainBridgeFacet.sol";
+import {FakeGotchiPolygonXGotchichainBridgeFacet} from "../FakeGotchisNFTDiamond/facets/FakeGotchiPolygonXGotchichainBridgeFacet.sol";
 import {Metadata} from "../libraries/AppStorage.sol";
 
 contract FakeGotchiBridgeGotchichainSide is ProxyONFT721 {

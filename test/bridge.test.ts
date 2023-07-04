@@ -272,6 +272,70 @@ describe("Fake Gotchis tests", async function () {
         expect(await nftFacetPolygon.balanceOf(userAddress)).to.equal(10);
         expect(await nftFacetPolygon.tokenURI(metadataId)).to.equal(polygonMetadata);
     });
+
+    it("Only owner can set layerzero bridge", async () => {
+      const accounts = await ethers.getSigners();
+      const bob = accounts[1];
+      await expect(
+        fakeGotchiPolygonBridgeFacet
+          .connect(bob)
+          .setLayerZeroBridge(fakeGotchiPolygonBridgeFacet.address)
+      ).to.be.revertedWith("LibDiamond: Must be contract owner");
+    });
+
+    it("Only layerzero can call mintWithId and setFakeGotchiMetadata", async () => {
+      const accounts = await ethers.getSigners();
+      const bob = accounts[1];
+      await expect(
+        fakeGotchiPolygonBridgeFacet
+          .connect(bob)
+          .mintWithId(bob.address, 0)
+      ).to.be.revertedWith(
+        "LibAppStorage: Do not have access"
+      );
+
+    const editions = 10;
+    const fileHash = "q".repeat(42); // 42 bytes
+    const name = "w".repeat(50); // 50 bytes
+    const externalLink = "r".repeat(50); // 240 bytes
+    const description = "d".repeat(120); // 120 bytes
+    const artistName = "y".repeat(30); // 30 bytes
+    const thumbnailHash = "t".repeat(42); // 42 bytes
+    const fileType = "f".repeat(20); // 20 bytes
+    const thumbnailType = "q".repeat(20); // 20 bytes
+
+    const metaData = {
+      fileHash,
+      name,
+      publisher: artistAddress,
+      externalLink,
+      description,
+      artistName,
+      artist: artistAddress,
+      royalty: [ethers.BigNumber.from(300), ethers.BigNumber.from(100)] as [
+        BigNumber,
+        BigNumber
+      ],
+      editions,
+      thumbnailHash,
+      fileType,
+      thumbnailType,
+      flagCount: 0,
+      likeCount: 0,
+      createdAt: 0,
+      status: 0,
+      publisherName: artistAddress,
+      minted: true,
+    };
+
+      await expect(
+        fakeGotchiPolygonBridgeFacet
+          .connect(bob)
+          .setFakeGotchiMetadata(bob.address, metaData, 1)
+      ).to.be.revertedWith(
+        "LibAppStorage: Do not have access"
+      );
+    });
   });
 
   describe("Bridge FakeGotchi Card", async () => {

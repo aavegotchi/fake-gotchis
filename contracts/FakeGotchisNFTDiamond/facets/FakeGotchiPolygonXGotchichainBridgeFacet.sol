@@ -6,17 +6,9 @@ import "../../libraries/LibERC721.sol";
 
 
 contract FakeGotchiPolygonXGotchichainBridgeFacet is Modifiers {
-
-    address public layerZeroBridge;
-
-    modifier onlyLayerZeroBridge() {
-        require(msg.sender == layerZeroBridge, "TilesPolygonXGotchichainBridgeFacet: Only layerzero bridge");
-        _;
-    }
-
     function setLayerZeroBridge(address _newLayerZeroBridge) external onlyOwner {
         // todo check only dao or owner
-        layerZeroBridge = _newLayerZeroBridge;
+        s.layerZeroBridge = _newLayerZeroBridge;
     }
 
     function mintWithId(address _toAddress, uint _tokenId) external onlyLayerZeroBridge {
