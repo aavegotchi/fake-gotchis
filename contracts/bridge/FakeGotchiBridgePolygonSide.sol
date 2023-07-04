@@ -38,6 +38,7 @@ contract FakeGotchiBridgePolygonSide is ProxyONFT721 {
 
         Metadata[] memory fakegotchis = new Metadata[](_tokenIds.length);
         uint256 metadataId = FakeGotchiPolygonXGotchichainBridgeFacet(address(token)).getMetadataId(_tokenIds[0]);
+
         for (uint i = 0; i < _tokenIds.length; i++) {
             _debitFrom(_from, _dstChainId, _toAddress, _tokenIds[i]);
             fakegotchis[i] = FakeGotchiPolygonXGotchichainBridgeFacet(address(token)).getFakeGotchiData(_tokenIds[i]);

@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import {Modifiers, Metadata, LibAppStorage, AppStorage} from "../../libraries/AppStorage.sol";
 import "../../libraries/LibERC721.sol";
 
-
 contract FakeGotchiPolygonXGotchichainBridgeFacet is Modifiers {
     function setLayerZeroBridge(address _newLayerZeroBridge) external onlyOwner {
         // todo check only dao or owner
@@ -27,12 +26,12 @@ contract FakeGotchiPolygonXGotchichainBridgeFacet is Modifiers {
     }
 
     function setFakeGotchiMetadata(uint _id, Metadata memory _fakegotchi, uint256 metadataId) external onlyLayerZeroBridge {
-        s.metadata[_id] = _fakegotchi;
+        s.metadata[metadataId] = _fakegotchi;
         s.fakeGotchis[_id] = metadataId;
     }
 
     function getFakeGotchiData(uint256 _tokenId) external view returns (Metadata memory fakegotchi_) {
-        fakegotchi_ = s.metadata[_tokenId];
+        fakegotchi_ = s.metadata[s.fakeGotchis[_tokenId]];
     }
 
     function getMetadataId(uint256 _tokenId) external view returns (uint256 metadataId_) {
