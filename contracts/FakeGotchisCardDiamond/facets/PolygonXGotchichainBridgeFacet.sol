@@ -18,8 +18,10 @@ contract FakeGotchiCardPolygonXGotchichainBridgeFacet is Modifiers {
     }
 
     function mintWithId(address _toAddress, uint _tokenId, uint _amount) external onlyLayerZeroBridge {
-        s.maxCards[_tokenId] = _amount;
+        s.maxCards[_tokenId] = s.maxCards[_tokenId] + _amount;
         LibERC1155._mint(_toAddress, _tokenId, _amount, new bytes(0));
-        s.nextCardId = _tokenId + 1;
+        if (_tokenId >= s.nextCardId) { //TODO be careful if minting on gotchichain
+            s.nextCardId = _tokenId + 1;
+        }
     }
 }
