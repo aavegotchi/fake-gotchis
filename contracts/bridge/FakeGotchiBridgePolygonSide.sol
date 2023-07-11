@@ -53,7 +53,7 @@ contract FakeGotchiBridgePolygonSide is ProxyONFT721 {
 
     function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 /*_nonce*/, bytes memory _payload) internal virtual override {
         // decode and load the toAddress
-        (bytes memory toAddressBytes, uint[] memory tokenIds, Metadata[] memory fakegotchis) = abi.decode(_payload, (bytes, uint[], Metadata[]));
+        (bytes memory toAddressBytes, uint[] memory tokenIds) = abi.decode(_payload, (bytes, uint[]));
 
         address toAddress;
         assembly {

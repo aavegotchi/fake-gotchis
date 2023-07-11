@@ -11,6 +11,7 @@ contract FakeGotchisCardFacet is Modifiers {
     event NewSeriesStarted(uint256 indexed id, uint256 indexed amount);
     event AavegotchiAddressUpdated(address _aavegotchiDiamond);
     event FakeGotchisNftAddressUpdated(address _fakeGotchisNftDiamond);
+    event LayerZeroBridgeSet(address _newLayerZeroBridge);
 
     function setAavegotchiAddress(address _aavegotchiDiamond) external onlyOwner {
         s.aavegotchiDiamond = _aavegotchiDiamond;
@@ -258,6 +259,13 @@ contract FakeGotchisCardFacet is Modifiers {
             address owner = _owners[i];
             bals[i] = s.cards[owner][id];
         }
+    }
+
+    ///@notice Allow the owner to add an address as a Layer Zero bridge
+    ///@param _newLayerZeroBridge The address to be added as Layer Zero bridge
+    function setLayerZeroBridgeAddress(address _newLayerZeroBridge) external onlyOwner {
+        s.layerZeroBridge = _newLayerZeroBridge;
+        emit LayerZeroBridgeSet(_newLayerZeroBridge);
     }
 
     /**

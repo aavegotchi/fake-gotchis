@@ -5,11 +5,6 @@ import {Modifiers, Metadata, LibAppStorage, AppStorage} from "../../libraries/Ap
 import "../../libraries/LibERC721.sol";
 
 contract FakeGotchiPolygonXGotchichainBridgeFacet is Modifiers {
-    function setLayerZeroBridge(address _newLayerZeroBridge) external onlyOwner {
-        // todo check only dao or owner
-        s.layerZeroBridge = _newLayerZeroBridge;
-    }
-
     function mintWithId(address _toAddress, uint _tokenId) external onlyLayerZeroBridge {
         AppStorage storage s = LibAppStorage.diamondStorage();
 

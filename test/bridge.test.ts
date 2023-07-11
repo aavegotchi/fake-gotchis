@@ -158,9 +158,9 @@ describe("Fake Gotchis tests", async function () {
     } = await setupBridge(
       fakeGotchisPolygonNftDiamond,
       fakeGotchisGotchiNftDiamond,
-      fakeGotchiPolygonBridgeFacet,
+      nftFacetPolygon,
       owner,
-      fakeGotchiGotchichainBridgeFacet,
+      nftFacetGotchichain,
       "FakeGotchiBridgePolygonSide",
       "FakeGotchiBridgeGotchichainSide"
     ));
@@ -173,9 +173,9 @@ describe("Fake Gotchis tests", async function () {
     } = await setupBridge(
       fakeGotchisPolygonCardDiamond,
       fakeGotchisGotchiCardDiamond,
-      fakeGotchiPolygonCardBridgeFacet,
+      cardFacetPolygon,
       owner,
-      fakeGotchiGotchichainCardBridgeFacet,
+      cardFacetGotchichain,
       "FakeGotchiCardBridgePolygonSide",
       "FakeGotchiCardBridgeGotchichainSide",
       false
@@ -357,9 +357,9 @@ describe("Fake Gotchis tests", async function () {
       const accounts = await ethers.getSigners();
       const bob = accounts[1];
       await expect(
-        fakeGotchiPolygonBridgeFacet
+        nftFacetPolygon
           .connect(bob)
-          .setLayerZeroBridge(fakeGotchiPolygonBridgeFacet.address)
+          .setLayerZeroBridgeAddress(fakeGotchiPolygonBridgeFacet.address)
       ).to.be.revertedWith("LibDiamond: Must be contract owner");
     });
 
@@ -556,7 +556,7 @@ describe("Fake Gotchis tests", async function () {
       ).to.equal(1);
     });
 
-    it.only("Should mint a card and bridge it Gotchichain, lock it back, and bridge Poly -> Gotchi to enforce a mint and transfer on Gotchi", async () => {
+    it("Should mint a card and bridge it Gotchichain, lock it back, and bridge Poly -> Gotchi to enforce a mint and transfer on Gotchi", async () => {
       const cardCount = 10;
       const tokenId = 2; // because we are minting one on setup already
       const amountToBridgeToGotchi = 2;
@@ -751,13 +751,13 @@ describe("Fake Gotchis tests", async function () {
   async function setupBridge(
     polygonDiamond: any,
     gotchiDiamond: string,
-    polygonBridgeFacet:
-      | FakeGotchiPolygonXGotchichainBridgeFacet
-      | FakeGotchiCardPolygonXGotchichainBridgeFacet,
+    facetPolygon:
+      | FakeGotchisCardFacet
+      | FakeGotchisNFTFacet,
     owner: Signer,
-    gotchiBridgeFacet:
-      | FakeGotchiPolygonXGotchichainBridgeFacet
-      | FakeGotchiCardPolygonXGotchichainBridgeFacet,
+    facetGotchichain:
+      | FakeGotchisCardFacet
+      | FakeGotchisNFTFacet,
     polygonBridgeContractName: string,
     gotchiBridgeContractName: string,
     hasMinGasToStore: boolean = true
@@ -830,12 +830,12 @@ describe("Fake Gotchis tests", async function () {
     );
 
     //Set layer zero bridge on facet
-    await polygonBridgeFacet
+    await facetPolygon
       .connect(owner)
-      .setLayerZeroBridge(bridgePolygonSide.address);
-    await gotchiBridgeFacet
+      .setLayerZeroBridgeAddress(bridgePolygonSide.address);
+    await facetGotchichain
       .connect(owner)
-      .setLayerZeroBridge(bridgeGotchichainSide.address);
+      .setLayerZeroBridgeAddress(bridgeGotchichainSide.address);
 
     const batchSizeLimit = 1;
 
