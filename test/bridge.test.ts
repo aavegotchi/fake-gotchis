@@ -555,6 +555,132 @@ describe("Fake Gotchis tests", async function () {
         )
       ).to.equal(1);
     });
+
+    it.only("Should mint a card and bridge it Gotchichain, lock it back, and bridge Poly -> Gotchi to enforce a mint and transfer on Gotchi", async () => {
+      const cardCount = 10;
+      const tokenId = 2; // because we are minting one on setup already
+      const amountToBridgeToGotchi = 2;
+
+      await cardFacetPolygon.startNewSeries(cardCount);
+      await cardFacetPolygon.safeTransferFrom(
+        ownerAddress,
+        userAddress,
+        tokenId,
+        cardCount,
+        []
+      );
+      expect(await cardFacetPolygon.balanceOf(userAddress, tokenId)).to.equal(
+        10
+      );
+
+      await cardFacetPolygon
+        .connect(signers[1])
+        .setApprovalForAll(bridgeCardPolygonSide.address, true);
+
+      await bridgeCardPolygonSide
+        .connect(signers[1])
+        .sendFrom(
+          userAddress,
+          chainId_B,
+          userAddress,
+          tokenId,
+          amountToBridgeToGotchi,
+          userAddress,
+          ethers.constants.AddressZero,
+          [],
+          {
+            value: (
+              await bridgeCardPolygonSide.estimateSendFee(
+                chainId_B,
+                userAddress,
+                tokenId,
+                amountToBridgeToGotchi,
+                false,
+                []
+              )
+            ).nativeFee,
+          }
+        );
+      expect(await cardFacetPolygon.balanceOf(userAddress, tokenId)).to.equal(
+        cardCount - amountToBridgeToGotchi
+      );
+      expect(
+        await cardFacetGotchichain.balanceOf(userAddress, tokenId)
+      ).to.equal(amountToBridgeToGotchi);
+
+      // back to polygon, but just one
+      const amountToBridgeToPolygon = 1;
+
+      await cardFacetGotchichain
+        .connect(signers[1])
+        .setApprovalForAll(bridgeCardGotchichainSide.address, true);
+
+      await bridgeCardGotchichainSide
+        .connect(signers[1])
+        .sendFrom(
+          userAddress,
+          chainId_A,
+          userAddress,
+          tokenId,
+          amountToBridgeToPolygon,
+          userAddress,
+          ethers.constants.AddressZero,
+          [],
+          {
+            value: (
+              await bridgeCardGotchichainSide.estimateSendFee(
+                chainId_A,
+                userAddress,
+                tokenId,
+                amountToBridgeToPolygon,
+                false,
+                []
+              )
+            ).nativeFee,
+          }
+        );
+      expect(
+        await cardFacetGotchichain.balanceOf(
+          bridgeCardGotchichainSide.address,
+          tokenId
+        )
+      ).to.equal(1);
+      // bridge from Polygon, to make Gotchi mint and transfer
+      const amountToBridgeToGotchiFinal = 3;
+      await bridgeCardPolygonSide
+        .connect(signers[1])
+        .sendFrom(
+          userAddress,
+          chainId_B,
+          userAddress,
+          tokenId,
+          amountToBridgeToGotchiFinal,
+          userAddress,
+          ethers.constants.AddressZero,
+          [],
+          {
+            value: (
+              await bridgeCardPolygonSide.estimateSendFee(
+                chainId_B,
+                userAddress,
+                tokenId,
+                amountToBridgeToGotchiFinal,
+                false,
+                []
+              )
+            ).nativeFee,
+          }
+        );
+      expect(await cardFacetGotchichain.balanceOf(userAddress, tokenId)).to.equal(
+        4
+      );
+      expect(
+        await cardFacetGotchichain.balanceOf(
+          bridgeCardGotchichainSide.address,
+          tokenId
+        )
+      ).to.equal(0);
+    });
   });
 
   function createMetaData(editions: number, name: string) {
