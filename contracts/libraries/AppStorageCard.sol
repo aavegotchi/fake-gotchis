@@ -12,6 +12,8 @@ struct CardAppStorage {
     mapping(uint256 => uint256) maxCards; // card id => max card amount
     mapping(address => mapping(address => bool)) operators;
     mapping(address => mapping(uint256 => uint256)) cards; // owner => card id
+
+    address layerZeroBridge;
 }
 
 library LibAppStorageCard {
@@ -32,6 +34,11 @@ contract Modifiers {
 
     modifier onlyNftDiamond() {
         require(msg.sender == s.fakeGotchisNftDiamond, "LibDiamond: Must be NFT diamond");
+        _;
+    }
+
+    modifier onlyLayerZeroBridge() {
+        require(msg.sender == s.layerZeroBridge, "LibAppStorage: Only layerzero bridge");
         _;
     }
 }

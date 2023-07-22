@@ -59,6 +59,8 @@ struct AppStorage {
     mapping(address => string) publisherToName;
     //publisher => operator => whitelisted
     mapping(address => mapping(address => bool)) publishingOperators;
+
+    address layerZeroBridge;
 }
 
 library LibAppStorage {
@@ -76,4 +78,10 @@ contract Modifiers {
         LibDiamond.enforceIsContractOwner();
         _;
     }
+
+    modifier onlyLayerZeroBridge() {
+        require(msg.sender == s.layerZeroBridge, "LibAppStorage: Do not have access");
+        _;
+    }
+
 }

@@ -15,6 +15,7 @@ contract FakeGotchisNFTFacet is Modifiers {
     event GhstAddressUpdated(address _ghstContract);
     event AavegotchiAddressUpdated(address _aavegotchiDiamond);
     event FakeGotchisCardAddressUpdated(address _fakeGotchisCardDiamond);
+    event LayerZeroBridgeSet(address _newLayerZeroBridge);
 
     function setGhstAddress(address _ghstContract) external onlyOwner {
         s.ghstContract = _ghstContract;
@@ -287,5 +288,12 @@ contract FakeGotchisNFTFacet is Modifiers {
                 IERC721Marketplace(s.aavegotchiDiamond).updateERC721Listing(address(this), _tokenIds[i], LibMeta.msgSender());
             }
         }
+    }
+
+    ///@notice Allow the owner to add an address as a Layer Zero bridge
+    ///@param _newLayerZeroBridge The address to be added as Layer Zero bridge
+    function setLayerZeroBridgeAddress(address _newLayerZeroBridge) external onlyOwner {
+        s.layerZeroBridge = _newLayerZeroBridge;
+        emit LayerZeroBridgeSet(_newLayerZeroBridge);
     }
 }

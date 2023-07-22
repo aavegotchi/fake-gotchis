@@ -45,6 +45,7 @@ export async function deployCardDiamond() {
     "DiamondLoupeFacet",
     "OwnershipFacet",
     "FakeGotchisCardFacet",
+    "FakeGotchiCardPolygonXGotchichainBridgeFacet",
   ];
   const cut = [];
   for (const FacetName of FacetNames) {
