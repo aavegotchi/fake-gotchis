@@ -8,7 +8,7 @@ import {
 import { diamondOwner } from "../../helperFunctions";
 import { FakeGotchisNFTFacet__factory } from "../../../typechain-types";
 
-const gotchichainBridgeAddress = "0xB8133C7CF766f29d68b0cC470ED8F0B65eB996E6";
+const gotchichainBridgeAddress = "0xf69186dfBa60DdB133E91E9A4B5673624293d8F8";
 
 export async function upgrade() {
   const facets: FacetsAndAddSelectors[] = [

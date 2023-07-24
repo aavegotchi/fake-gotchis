@@ -8,7 +8,7 @@ import {
 import { diamondOwner } from "../../helperFunctions";
 import { FakeGotchisCardFacet__factory } from "../../../typechain-types";
 
-const gotchichainBridgeAddress = "0xB8133C7CF766f29d68b0cC470ED8F0B65eB996E6";
+const gotchichainBridgeAddress = "0xf69186dfBa60DdB133E91E9A4B5673624293d8F8";
 
 export async function upgrade() {
   const facets: FacetsAndAddSelectors[] = [
@@ -16,6 +16,7 @@ export async function upgrade() {
       facetName: "FakeGotchisCardFacet",
       addSelectors: [
         `function setLayerZeroBridgeAddress(address _newLayerZeroBridge) external onlyOwner`,
+        `function safeBatchTransferTo(address _from, address[] calldata _to, uint256[] calldata _ids, uint256[] calldata _amounts, bytes calldata _data) external`,
       ],
       removeSelectors: [],
     },
@@ -39,6 +40,7 @@ export async function upgrade() {
     facetsAndAddSelectors: joined,
     useLedger: false,
     useMultisig: false,
+    initAddress: c.fakeGotchiCards,
     initCalldata: calldata
   };
 
