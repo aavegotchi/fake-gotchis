@@ -200,12 +200,16 @@ contract MetadataFacet is Modifiers {
     function checkForActions(address _sender) internal view {
         uint256 cardSeries; // TODO: Think for the next card series
         // check if Fake gotchi card owner | Fake gotchi owner | 100+ GHST holder
-        if ((IERC1155(s.fakeGotchisCardDiamond).balanceOf(_sender, cardSeries) == 0) && (s.ownerTokenIds[_sender].length == 0) && (IERC20(s.ghstContract).balanceOf(_sender) < 1e20)) {
+        if (
+            (IERC1155(s.fakeGotchisCardDiamond).balanceOf(_sender, cardSeries) == 0) &&
+            (s.ownerTokenIds[_sender].length == 0) &&
+            (IERC20(s.ghstContract).balanceOf(_sender) < 1e20)
+        ) {
             // In this case, check if aavegotchi owner (not rented)
             uint32[] memory tokenIds = IAavegotchiDiamond(s.aavegotchiDiamond).tokenIdsOfOwner(_sender);
             for (uint256 i; i < tokenIds.length; i++) {
                 bool isGotchiLent = IAavegotchiDiamond(s.aavegotchiDiamond).isAavegotchiLent(tokenIds[i]);
-                if(isGotchiLent == false) return;
+                if (isGotchiLent == false) return;
             }
             revert("MetadataFacet: Should own a Fake Gotchi NFT or an aavegotchi or 100 GHST");
         }
