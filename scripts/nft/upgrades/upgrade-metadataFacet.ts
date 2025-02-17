@@ -7,11 +7,34 @@ import {
 } from "../../../tasks/deployUpgrade";
 import { diamondOwner } from "../../helperFunctions";
 
+const metadata = `tuple(
+address publisher,
+    uint16[2] royalty,
+    uint16 editions,
+    uint32 flagCount,
+    uint32 likeCount,
+    address artist,
+    uint40 createdAt,
+    uint8 status,
+    bool minted,
+    string name,
+    string description,
+    string externalLink,
+    string artistName,
+    string publisherName,
+    string fileHash,
+    string fileType,
+    string thumbnailHash,
+    string thumbnailType,
+)`;
 export async function upgrade() {
   const facets: FacetsAndAddSelectors[] = [
     {
       facetName: "MetadataFacet",
-      addSelectors: [],
+      addSelectors: [
+        `function getMetadataIdCounter() public view returns (uint256)`,
+        `function getMetadataBatch(uint256[] memory _ids) external view returns (${metadata}[] memory)`,
+      ],
       removeSelectors: [],
     },
   ];
