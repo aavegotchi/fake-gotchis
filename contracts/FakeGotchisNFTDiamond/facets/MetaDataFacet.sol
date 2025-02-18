@@ -24,6 +24,14 @@ contract MetadataFacet is Modifiers {
         return s.metadata[_id];
     }
 
+    function getMetadataBatch(uint256[] memory _ids) external view returns (Metadata[] memory) {
+        Metadata[] memory _metadata = new Metadata[](_ids.length);
+        for (uint256 i; i < _ids.length; i++) {
+            _metadata[i] = s.metadata[_ids[i]];
+        }
+        return _metadata;
+    }
+
     struct MetadataInput {
         string name;
         string publisherName;
@@ -50,22 +58,13 @@ contract MetadataFacet is Modifiers {
     }
 
     ///@dev Publish metadata as an Operator on behalf of a Publisher
-    function addMetadataViaOperator(
-        MetadataInput memory mData,
-        uint256 series,
-        address _publisher
-    ) external {
+    function addMetadataViaOperator(MetadataInput memory mData, uint256 series, address _publisher) external {
         require(LibMeta.msgSender() == _publisher || s.publishingOperators[_publisher][LibMeta.msgSender()] == true, "Metadata: Operator not set");
 
         _addMetadata(mData, series, LibMeta.msgSender(), _publisher);
     }
 
-    function _addMetadata(
-        MetadataInput memory mData,
-        uint256 series,
-        address _operator,
-        address _publisher
-    ) internal {
+    function _addMetadata(MetadataInput memory mData, uint256 series, address _operator, address _publisher) internal {
         // check blocked
         require(!s.blocked[_publisher], "Metadata: Blocked address");
 
@@ -265,5 +264,9 @@ contract MetadataFacet is Modifiers {
         s.metadataLiked[_id][_sender] = true;
 
         emit MetadataLike(_id, _sender);
+    }
+
+    function getMetadataIdCounter() public view returns (uint256) {
+        return s.metadataIdCounter;
     }
 }
