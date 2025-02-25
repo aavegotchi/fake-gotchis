@@ -38,11 +38,10 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @return receivers - address of who should be sent the royalty payment
      * @return royaltyAmounts - the royalty payment amount for _salePrice
      */
-    function multiRoyaltyInfo(uint256 _tokenId, uint256 _salePrice)
-        external
-        view
-        returns (address[] memory receivers, uint256[] memory royaltyAmounts)
-    {
+    function multiRoyaltyInfo(
+        uint256 _tokenId,
+        uint256 _salePrice
+    ) external view returns (address[] memory receivers, uint256[] memory royaltyAmounts) {
         Metadata memory mData = s.metadata[s.fakeGotchis[_tokenId]];
         receivers = new address[](2);
         royaltyAmounts = new uint256[](2);
@@ -130,12 +129,7 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @param _tokenId The NFT to transfer
      * @param _data Additional data with no specified format, sent in call to `_to`
      */
-    function safeTransferFrom(
-        address _from,
-        address _to,
-        uint256 _tokenId,
-        bytes calldata _data
-    ) public {
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes calldata _data) public diamondPaused {
         address sender = LibMeta.msgSender();
         LibERC721.transferFrom(sender, _from, _to, _tokenId);
         LibERC721.checkOnERC721Received(sender, _from, _to, _tokenId, _data);
@@ -153,11 +147,7 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @param _to The new owner
      * @param _tokenId The NFT to transfer
      */
-    function safeTransferFrom(
-        address _from,
-        address _to,
-        uint256 _tokenId
-    ) external {
+    function safeTransferFrom(address _from, address _to, uint256 _tokenId) external diamondPaused {
         address sender = LibMeta.msgSender();
         LibERC721.transferFrom(sender, _from, _to, _tokenId);
         LibERC721.checkOnERC721Received(sender, _from, _to, _tokenId, "");
@@ -175,11 +165,7 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @param _to The new owner
      * @param _tokenId The NFT to transfer
      */
-    function transferFrom(
-        address _from,
-        address _to,
-        uint256 _tokenId
-    ) external {
+    function transferFrom(address _from, address _to, uint256 _tokenId) external diamondPaused {
         address sender = LibMeta.msgSender();
         LibERC721.transferFrom(sender, _from, _to, _tokenId);
 
@@ -194,7 +180,7 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @param _approved The new approved NFT controller
      * @param _tokenId The NFT to approve
      */
-    function approve(address _approved, uint256 _tokenId) external {
+    function approve(address _approved, uint256 _tokenId) external diamondPaused {
         address owner = s.fakeGotchiOwner[_tokenId];
         address sender = LibMeta.msgSender();
         require(owner == sender || s.operators[owner][sender], "ERC721: Not owner or operator of token.");
@@ -208,7 +194,7 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @param _operator Address to add to the set of authorized operators
      * @param _approved True if the operator is approved, false to revoke approval
      */
-    function setApprovalForAll(address _operator, bool _approved) external {
+    function setApprovalForAll(address _operator, bool _approved) external diamondPaused {
         address sender = LibMeta.msgSender();
         s.operators[sender][_operator] = _approved;
         emit LibERC721.ApprovalForAll(sender, _operator, _approved);
@@ -254,16 +240,11 @@ contract FakeGotchisNFTFacet is Modifiers {
         json = abi.encodePacked('"description":"', LibStrings.removeLineBreak(mData.description), '",', json);
         json = abi.encodePacked('{"name":"', mData.name, '",', json, "}");
 
-//        return string(abi.encodePacked(json)); // For test
+        //        return string(abi.encodePacked(json)); // For test
         return string(abi.encodePacked("data:application/json;base64,", Base64.encode(json)));
     }
 
-    function safeBatchTransfer(
-        address _from,
-        address _to,
-        uint256[] calldata _tokenIds,
-        bytes calldata _data
-    ) external {
+    function safeBatchTransfer(address _from, address _to, uint256[] calldata _tokenIds, bytes calldata _data) external diamondPaused {
         for (uint256 index = 0; index < _tokenIds.length; index++) {
             safeTransferFrom(_from, _to, _tokenIds[index], _data);
         }
@@ -273,7 +254,7 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @dev Burns `tokenId`.
      * The caller must own `tokenId` or be an approved operator.
      */
-    function burnTokens(uint256[] calldata _tokenIds) public {
+    function burnTokens(uint256[] calldata _tokenIds) public diamondPaused {
         for (uint256 i = 0; i < _tokenIds.length; i++) {
             LibERC721.transferFrom(
                 LibMeta.msgSender(),
