@@ -15,6 +15,7 @@ export const excludedAddresses = [
 ];
 
 export const vault = "0xdd564df884fd4e217c9ee6f65b4ba6e5641eac63";
+export const gbmDiamond = "0xD5543237C656f25EEA69f1E247b8Fa59ba353306";
 
 const FILES = {
   //all normal fakegotchi card holders
@@ -23,6 +24,10 @@ const FILES = {
   fakegotchiCardContractHolders: `${__dirname}/cloneData/fakegotchiCardContractHolders.json`,
   //all contracts with owners holding fakegotchicards
   fakegotchiCardContractHoldersWithOwners: `${__dirname}/cloneData/fakegotchiCardContractHoldersWithOwners.json`,
+  //all safe contracts
+  safeContractsGotchiCards: `${__dirname}/cloneData/gotchiCardsSafe.json`,
+  //all gbm contracts
+  gbmContracts: `${__dirname}/cloneData/gbmContractsGotchiCards.json`,
 
   //all fakegotchis nft holders
   fakeGotchisNFTHolders: `${__dirname}/cloneData/fakeGotchisNFTHolders.json`,
@@ -30,6 +35,10 @@ const FILES = {
   fakeGotchisNFTContractHolders: `${__dirname}/cloneData/fakeGotchisNFTContractHolders.json`,
   //all contracts with owners holding fakegotchis nfts
   fakeGotchisNFTContractHoldersWithOwners: `${__dirname}/cloneData/fakeGotchisNFTContractHoldersWithOwners.json`,
+  //all safe contracts
+  safeContractsGotchisNFTs: `${__dirname}/cloneData/gotchisNFTSafe.json`,
+  //all gbm contracts
+  gbmContractsGotchisNFTs: `${__dirname}/cloneData/gbmContractsGotchisNFTs.json`,
 };
 
 const alchemy = new Alchemy(config);
@@ -80,6 +89,10 @@ async function main() {
     contractEOAsNFTs: [] as ContractEOAHolder[],
     existingData: {} as Record<string, TokenHolder>,
     existingDataNFTs: {} as Record<string, TokenHolder>,
+    gnosisSafeContracts: [] as TokenHolder[],
+    gnosisSafeContractsNFTs: [] as TokenHolder[],
+    gbmContracts: [] as TokenHolder[],
+    gbmContractsNFTs: [] as TokenHolder[],
   };
 
   // Load existing data
@@ -95,22 +108,61 @@ async function main() {
     );
   }
 
+  if (existsSync(FILES.fakegotchiCardContractHoldersWithOwners)) {
+    state.contractEOAs = JSON.parse(
+      fs.readFileSync(FILES.fakegotchiCardContractHoldersWithOwners, "utf8")
+    );
+  }
+
+  if (existsSync(FILES.safeContractsGotchiCards)) {
+    state.gnosisSafeContracts = JSON.parse(
+      fs.readFileSync(FILES.safeContractsGotchiCards, "utf8")
+    );
+  }
+
+  if (existsSync(FILES.gbmContracts)) {
+    state.gbmContracts = JSON.parse(
+      fs.readFileSync(FILES.gbmContracts, "utf8")
+    );
+  }
+
+  if (existsSync(FILES.fakeGotchisNFTHolders)) {
+    state.existingDataNFTs = JSON.parse(
+      fs.readFileSync(FILES.fakeGotchisNFTHolders, "utf8")
+    );
+  }
+
+  if (existsSync(FILES.fakeGotchisNFTContractHolders)) {
+    state.contractHoldersNFTs = JSON.parse(
+      fs.readFileSync(FILES.fakeGotchisNFTContractHolders, "utf8")
+    );
+  }
+
+  if (existsSync(FILES.fakeGotchisNFTContractHoldersWithOwners)) {
+    state.contractEOAsNFTs = JSON.parse(
+      fs.readFileSync(FILES.fakeGotchisNFTContractHoldersWithOwners, "utf8")
+    );
+  }
+
+  if (existsSync(FILES.safeContractsGotchisNFTs)) {
+    state.gnosisSafeContractsNFTs = JSON.parse(
+      fs.readFileSync(FILES.safeContractsGotchisNFTs, "utf8")
+    );
+  }
+
+  if (existsSync(FILES.gbmContractsGotchisNFTs)) {
+    state.gbmContractsNFTs = JSON.parse(
+      fs.readFileSync(FILES.gbmContractsGotchisNFTs, "utf8")
+    );
+  }
+
   console.log(`Processing ${holders.length} FG card holders`);
+  await processHoldersWithRetry(holders, state, "card");
+
   console.log(`Processing ${holdersNFTs.length} FG NFT holders`);
+  await processHoldersWithRetry(holdersNFTs, state, "nft");
 
-  // Process card holders
-  for (let i = 0; i < holders.length; i++) {
-    await processHolder(holders[i], state, "card");
-    console.log(`Processed ${i + 1} of ${holders.length} FG card holders`);
-    writeFiles(state, "card");
-  }
-
-  // Process NFT holders
-  for (let i = 0; i < holdersNFTs.length; i++) {
-    await processHolder(holdersNFTs[i], state, "nft");
-    console.log(`Processed ${i + 1} of ${holdersNFTs.length} FG NFT holders`);
-    writeFiles(state, "nft");
-  }
+  console.log("All processing complete!");
 }
 
 async function processHolder(
@@ -120,7 +172,7 @@ async function processHolder(
 ) {
   const { ownerAddress } = holder;
 
-  //skip excluded addresses
+  // Skip excluded addresses
   if (excludedAddresses.includes(ownerAddress)) {
     return;
   }
@@ -143,6 +195,12 @@ async function processHolder(
       const eoaHolders =
         type === "card" ? state.contractEOAs : state.contractEOAsNFTs;
       eoaHolders.push({ contractOwner, tokens: holder });
+    } else if (await isSafe(ownerAddress)) {
+      const safeHolders =
+        type === "card"
+          ? state.gnosisSafeContracts
+          : state.gnosisSafeContractsNFTs;
+      safeHolders.push(holder);
     } else {
       const contractHolders =
         type === "card" ? state.contractHolders : state.contractHoldersNFTs;
@@ -166,6 +224,14 @@ function writeFiles(state: any, type: "card" | "nft") {
       FILES.fakegotchiCardContractHoldersWithOwners,
       JSON.stringify(state.contractEOAs, null, 2)
     );
+    fs.writeFileSync(
+      FILES.safeContractsGotchiCards,
+      JSON.stringify(state.gnosisSafeContracts, null, 2)
+    );
+    fs.writeFileSync(
+      FILES.gbmContracts,
+      JSON.stringify(state.gbmContracts, null, 2)
+    );
   } else {
     fs.writeFileSync(
       FILES.fakeGotchisNFTHolders,
@@ -179,7 +245,24 @@ function writeFiles(state: any, type: "card" | "nft") {
       FILES.fakeGotchisNFTContractHoldersWithOwners,
       JSON.stringify(state.contractEOAsNFTs, null, 2)
     );
+    fs.writeFileSync(
+      FILES.safeContractsGotchisNFTs,
+      JSON.stringify(state.gnosisSafeContractsNFTs, null, 2)
+    );
+    fs.writeFileSync(
+      FILES.gbmContractsGotchisNFTs,
+      JSON.stringify(state.gbmContractsNFTs, null, 2)
+    );
   }
+
+  //add some logs showing the number of holders in each category
+  console.log(`Number of holders in vault: ${state.vaultHolders.length}`);
+  console.log(
+    `Number of holders in unknown contracts: ${state.contractHolders.length}`
+  );
+  console.log(`Number of holders in eoa: ${state.contractEOAs.length}`);
+  console.log(`Number of holders in safe: ${state.gnosisSafeContracts.length}`);
+  console.log(`Number of holders in gbm: ${state.gbmContracts.length}`);
 }
 
 //a simple fn that gets the owner of an arbitrary contract
@@ -193,6 +276,96 @@ export const getOwner = async (contractAddress: string) => {
     return "";
   }
 };
+
+export const isSafe = async (contractAddress: string): Promise<boolean> => {
+  try {
+    const safe = await ethers.getContractAt("ISafe", contractAddress);
+    const version = await safe.VERSION();
+    return version === "1.3.0";
+  } catch (error) {
+    return false;
+  }
+};
+
+// Add retry functionality for processing holders
+async function processHoldersWithRetry(
+  holders: TokenHolder[],
+  state: any,
+  type: "card" | "nft",
+  startIndex = 0,
+  batchSize = 10
+) {
+  const maxRetries = 3;
+  const totalHolders = holders.length;
+
+  const progressFile = `${__dirname}/cloneData/${type}_progress.json`;
+
+  // Load progress if it exists
+  let currentIndex = startIndex;
+  if (existsSync(progressFile)) {
+    try {
+      const progress = JSON.parse(fs.readFileSync(progressFile, "utf8"));
+      currentIndex = progress.currentIndex;
+      console.log(`Resuming from index ${currentIndex}`);
+    } catch (error) {
+      console.log(`Error reading progress file: ${error}`);
+    }
+  }
+
+  while (currentIndex < totalHolders) {
+    const endIndex = Math.min(currentIndex + batchSize, totalHolders);
+    console.log(
+      `Processing batch ${currentIndex} to ${
+        endIndex - 1
+      } of ${totalHolders} ${type} holders`
+    );
+
+    for (let i = currentIndex; i < endIndex; i++) {
+      let retries = 0;
+      let success = false;
+
+      while (!success && retries < maxRetries) {
+        try {
+          await processHolder(holders[i], state, type);
+          success = true;
+        } catch (error) {
+          retries++;
+          console.log(
+            `Error processing holder ${i}, retry ${retries}: ${error}`
+          );
+
+          if (retries >= maxRetries) {
+            console.log(
+              `Failed to process holder ${i} after ${maxRetries} retries`
+            );
+          } else {
+            // Wait before retrying
+            await new Promise((resolve) => setTimeout(resolve, 2000 * retries));
+          }
+        }
+      }
+
+      // Save progress after each holder
+      fs.writeFileSync(progressFile, JSON.stringify({ currentIndex: i + 1 }));
+      console.log(`Processed ${i + 1} of ${totalHolders} ${type} holders`);
+    }
+
+    // Write files after each batch
+    writeFiles(state, type);
+    currentIndex = endIndex;
+  }
+
+  // Clean up progress file when done
+  if (existsSync(progressFile)) {
+    fs.unlinkSync(progressFile);
+  }
+}
+
 if (require.main === module) {
-  main();
+  main()
+    .then(() => process.exit(0))
+    .catch((error) => {
+      console.error(error);
+      process.exit(1);
+    });
 }
