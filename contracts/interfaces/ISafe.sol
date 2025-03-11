@@ -1,3 +1,3 @@
 interface ISafe {
-  function VERSION() external view returns (string memory);
+    function VERSION() external view returns (string memory);
 }

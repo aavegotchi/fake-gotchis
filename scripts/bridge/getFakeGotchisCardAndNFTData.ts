@@ -17,28 +17,31 @@ export const excludedAddresses = [
 export const vault = "0xdd564df884fd4e217c9ee6f65b4ba6e5641eac63";
 export const gbmDiamond = "0xD5543237C656f25EEA69f1E247b8Fa59ba353306";
 
+export const fgCardDir = `${__dirname}/cloneData/FGCard`;
+export const fgNFTsDir = `${__dirname}/cloneData/FGNFT`;
+
 const FILES = {
   //all normal fakegotchi card holders
-  fakegotchiCardHolders: `${__dirname}/cloneData/fakegotchiCardHolders.json`,
+  fakegotchiCardHolders: `${fgCardDir}/fakegotchiCardHolders.json`,
   //all contracts without owners holding fakegotchicards
-  fakegotchiCardContractHolders: `${__dirname}/cloneData/fakegotchiCardContractHolders.json`,
+  fakegotchiCardContractHolders: `${fgCardDir}/fakegotchiCardContractHolders.json`,
   //all contracts with owners holding fakegotchicards
-  fakegotchiCardContractHoldersWithOwners: `${__dirname}/cloneData/fakegotchiCardContractHoldersWithOwners.json`,
+  fakegotchiCardContractHoldersWithOwners: `${fgCardDir}/fakegotchiCardContractHoldersWithOwners.json`,
   //all safe contracts
-  safeContractsGotchiCards: `${__dirname}/cloneData/gotchiCardsSafe.json`,
+  safeContractsGotchiCards: `${fgCardDir}/gotchiCardsSafe.json`,
   //all gbm contracts
-  gbmContracts: `${__dirname}/cloneData/gbmContractsGotchiCards.json`,
+  gbmContracts: `${fgCardDir}/gbmContractsGotchiCards.json`,
 
   //all fakegotchis nft holders
-  fakeGotchisNFTHolders: `${__dirname}/cloneData/fakeGotchisNFTHolders.json`,
+  fakeGotchisNFTHolders: `${fgNFTsDir}/fakeGotchisNFTHolders.json`,
   //all contracts without owners holding fakegotchis nfts
-  fakeGotchisNFTContractHolders: `${__dirname}/cloneData/fakeGotchisNFTContractHolders.json`,
+  fakeGotchisNFTContractHolders: `${fgNFTsDir}/fakeGotchisNFTContractHolders.json`,
   //all contracts with owners holding fakegotchis nfts
-  fakeGotchisNFTContractHoldersWithOwners: `${__dirname}/cloneData/fakeGotchisNFTContractHoldersWithOwners.json`,
+  fakeGotchisNFTContractHoldersWithOwners: `${fgNFTsDir}/fakeGotchisNFTContractHoldersWithOwners.json`,
   //all safe contracts
-  safeContractsGotchisNFTs: `${__dirname}/cloneData/gotchisNFTSafe.json`,
+  safeContractsGotchisNFTs: `${fgNFTsDir}/gotchisNFTSafe.json`,
   //all gbm contracts
-  gbmContractsGotchisNFTs: `${__dirname}/cloneData/gbmContractsGotchisNFTs.json`,
+  gbmContractsGotchisNFTs: `${fgNFTsDir}/gbmContractsGotchisNFTs.json`,
 };
 
 const alchemy = new Alchemy(config);
@@ -48,6 +51,13 @@ interface TokenHolder {
   tokenBalances: {
     tokenId: string;
     balance: string;
+  }[];
+}
+
+interface SafeDetails {
+  safeAddress: string;
+  tokenBalances: {
+    tokenId: string;
   }[];
 }
 
@@ -89,8 +99,8 @@ async function main() {
     contractEOAsNFTs: [] as ContractEOAHolder[],
     existingData: {} as Record<string, TokenHolder>,
     existingDataNFTs: {} as Record<string, TokenHolder>,
-    gnosisSafeContracts: [] as TokenHolder[],
-    gnosisSafeContractsNFTs: [] as TokenHolder[],
+    gnosisSafeContracts: [] as SafeDetails[],
+    gnosisSafeContractsNFTs: [] as SafeDetails[],
     gbmContracts: [] as TokenHolder[],
     gbmContractsNFTs: [] as TokenHolder[],
   };
@@ -196,11 +206,18 @@ async function processHolder(
         type === "card" ? state.contractEOAs : state.contractEOAsNFTs;
       eoaHolders.push({ contractOwner, tokens: holder });
     } else if (await isSafe(ownerAddress)) {
+      //get the safe details
+
+      //construct the safe details object
+      const safeDetailsObject = {
+        safeAddress: ownerAddress,
+        tokenBalances: holder.tokenBalances,
+      };
       const safeHolders =
         type === "card"
           ? state.gnosisSafeContracts
           : state.gnosisSafeContractsNFTs;
-      safeHolders.push(holder);
+      safeHolders.push(safeDetailsObject);
     } else {
       const contractHolders =
         type === "card" ? state.contractHolders : state.contractHoldersNFTs;
@@ -257,12 +274,11 @@ function writeFiles(state: any, type: "card" | "nft") {
 
   //add some logs showing the number of holders in each category
   console.log(`Number of holders in vault: ${state.vaultHolders.length}`);
+  console.log(`Number of unknown contracts: ${state.contractHolders.length}`);
   console.log(
-    `Number of holders in unknown contracts: ${state.contractHolders.length}`
+    `Number of contracts with valid eoa : ${state.contractEOAs.length}`
   );
-  console.log(`Number of holders in eoa: ${state.contractEOAs.length}`);
-  console.log(`Number of holders in safe: ${state.gnosisSafeContracts.length}`);
-  console.log(`Number of holders in gbm: ${state.gbmContracts.length}`);
+  console.log(`Number of safe contracts: ${state.gnosisSafeContracts.length}`);
 }
 
 //a simple fn that gets the owner of an arbitrary contract
@@ -286,6 +302,13 @@ export const isSafe = async (contractAddress: string): Promise<boolean> => {
     return false;
   }
 };
+
+// export const getSafeDetails = async (contractAddress: string) => {
+//   const safe = await ethers.getContractAt("ISafe", contractAddress);
+//   const threshold = await safe.getThreshold();
+//   const owners = await safe.getOwners();
+//   return { threshold, owners };
+// };
 
 // Add retry functionality for processing holders
 async function processHoldersWithRetry(

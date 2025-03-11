@@ -2,6 +2,7 @@ import { varsForNetwork } from "../../constants";
 import { ethers } from "hardhat";
 import { MetadataStructOutput } from "../../typechain-types/contracts/FakeGotchisNFTDiamond/facets/MetaDataFacet.sol/MetadataFacet";
 import fs from "fs";
+import { fgNFTsDir } from "./getFakeGotchisCardAndNFTData";
 
 interface Metadata {
   publisher: string;
@@ -73,7 +74,7 @@ async function main() {
   console.log("Starting metadata fetch...");
 
   const c = await varsForNetwork(ethers);
-  const METADATA_FILE = `${__dirname}/cloneData/gotchiNFTMetadata.json`;
+  const METADATA_FILE = `${fgNFTsDir}/gotchiNFTMetadata.json`;
 
   const metadataFacet = await ethers.getContractAt(
     "MetadataFacet",
