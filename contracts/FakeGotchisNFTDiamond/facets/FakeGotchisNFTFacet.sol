@@ -269,4 +269,8 @@ contract FakeGotchisNFTFacet is Modifiers {
             }
         }
     }
+
+    function toggleDiamondPause() external onlyOwner {
+        s.diamondPaused = !s.diamondPaused;
+    }
 }

@@ -11,11 +11,11 @@ export async function upgrade() {
   const facets: FacetsAndAddSelectors[] = [
     {
       facetName: "FakeGotchisNFTFacet",
-      addSelectors: [],
+      addSelectors: [`function toggleDiamondPause() external`],
       removeSelectors: [],
     },
     {
-      facetName: "MetaDataFacet",
+      facetName: "MetadataFacet",
       addSelectors: [],
       removeSelectors: [],
     },

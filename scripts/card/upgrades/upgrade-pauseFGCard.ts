@@ -11,7 +11,7 @@ export async function upgrade() {
   const facets: FacetsAndAddSelectors[] = [
     {
       facetName: "FakeGotchisCardFacet",
-      addSelectors: [],
+      addSelectors: [`function toggleDiamondPause() external`],
       removeSelectors: [],
     },
   ];

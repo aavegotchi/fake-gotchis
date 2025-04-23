@@ -238,6 +238,10 @@ contract FakeGotchisCardFacet is Modifiers {
         }
     }
 
+    function toggleDiamondPause() external onlyOwner {
+        s.diamondPaused = !s.diamondPaused;
+    }
+
     /**
         @notice Handle the receipt of a single ERC1155 token type.
         @dev An ERC1155-compliant smart contract MUST call this function on the token recipient contract, at the end of a `safeTransferFrom` after the balance has been updated.
