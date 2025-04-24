@@ -52,7 +52,7 @@ contract FakeGotchisCardFacet is Modifiers {
      * @param _operator Address to add to the set of authorized operators
      * @param _approved True if the operator is approved, false to revoke approval
      */
-    function setApprovalForAll(address _operator, bool _approved) external diamondPaused {
+    function setApprovalForAll(address _operator, bool _approved) external whenNotPaused {
         address sender = LibMeta.msgSender();
         require(sender != _operator, "FGCard: setting approval status for self");
         s.operators[sender][_operator] = _approved;
@@ -75,7 +75,7 @@ contract FakeGotchisCardFacet is Modifiers {
      * @param _amount  Transfer amount
      * @param _data    Additional data with no specified format, MUST be sent unaltered in call to `onERC1155Received` on `_to`
      */
-    function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bytes calldata _data) external diamondPaused {
+    function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bytes calldata _data) external whenNotPaused {
         address sender = LibMeta.msgSender();
         require(sender == _from || s.operators[_from][sender] || sender == address(this), "FGCard: Not owner and not approved to transfer");
         _safeTransferFrom(_from, _to, _id, _amount, _data);
@@ -136,7 +136,7 @@ contract FakeGotchisCardFacet is Modifiers {
      * @param _amount  Transfer amount
      * @param _data    Additional data with no specified format, MUST be sent unaltered in call to `onERC1155Received` on `_to`
      */
-    function _safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bytes calldata _data) internal diamondPaused {
+    function _safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bytes calldata _data) internal whenNotPaused {
         require(_to != address(0), "FGCard: Can't transfer to 0 address");
         address sender = LibMeta.msgSender();
         uint256 bal = s.cards[_from][_id];
@@ -173,7 +173,7 @@ contract FakeGotchisCardFacet is Modifiers {
         uint256[] calldata _ids,
         uint256[] calldata _amounts,
         bytes calldata _data
-    ) internal diamondPaused {
+    ) internal whenNotPaused {
         require(_ids.length == _amounts.length, "FGCard: ids not same length as amounts");
         require(_to != address(0), "FGCard: Can't transfer to 0 address");
         address sender = LibMeta.msgSender();
