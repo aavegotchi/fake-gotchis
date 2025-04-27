@@ -59,6 +59,7 @@ struct AppStorage {
     mapping(address => string) publisherToName;
     //publisher => operator => whitelisted
     mapping(address => mapping(address => bool)) publishingOperators;
+    bool publishingPaused;
 }
 
 library LibAppStorage {
@@ -74,6 +75,11 @@ contract Modifiers {
 
     modifier onlyOwner() {
         LibDiamond.enforceIsContractOwner();
+        _;
+    }
+
+    modifier publishingNotPaused() {
+        require(!s.publishingPaused, "Publishing is paused");
         _;
     }
 }
