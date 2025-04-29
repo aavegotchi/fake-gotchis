@@ -16,6 +16,9 @@ export const excludedAddresses = [
 
 export const vault = "0xdd564df884fd4e217c9ee6f65b4ba6e5641eac63";
 export const gbmDiamond = "0xD5543237C656f25EEA69f1E247b8Fa59ba353306";
+export const raffle1 = "0x6c723cac1E35FE29a175b287AE242d424c52c1CE";
+export const raffle2 = "0xa85f5a59a71842fddaabd4c2cd373300a31750d8";
+export const PC = "0x01F010a5e001fe9d6940758EA5e8c777885E351e";
 
 export const fgCardDir = `${__dirname}/cloneData/FGCard`;
 export const fgNFTsDir = `${__dirname}/cloneData/FGNFT`;
@@ -72,9 +75,18 @@ export const fakeGotchisNFTDiamond =
   "0xA4E3513c98b30d4D7cc578d2C328Bd550725D1D0";
 
 async function main() {
-  // Create data directory if it doesn't exist
-  if (!fs.existsSync(`${__dirname}/cloneData`)) {
-    fs.mkdirSync(`${__dirname}/cloneData`, { recursive: true });
+  // Create all necessary directories
+  const directories = [
+    `${__dirname}/cloneData`,
+    `${__dirname}/cloneData/FGCard`,
+    `${__dirname}/cloneData/FGNFT`,
+  ];
+
+  for (const dir of directories) {
+    if (!fs.existsSync(dir)) {
+      console.log(`Creating directory: ${dir}`);
+      fs.mkdirSync(dir, { recursive: true });
+    }
   }
 
   // Get holders data from Alchemy
@@ -188,6 +200,30 @@ async function processHolder(
   }
 
   const data = type === "card" ? state.existingData : state.existingDataNFTs;
+
+  // Check if holder is raffle1 or raffle2
+  if (
+    ownerAddress.toLowerCase() === raffle1.toLowerCase() ||
+    ownerAddress.toLowerCase() === raffle2.toLowerCase()
+  ) {
+    // Assign tokens to PC address
+    if (data[PC]) {
+      // If PC already has tokens, merge them
+      data[PC].tokenBalances = [
+        ...data[PC].tokenBalances,
+        ...holder.tokenBalances,
+      ];
+    } else {
+      // If PC doesn't have tokens yet, create new entry
+      data[PC] = {
+        ownerAddress: PC,
+        tokenBalances: holder.tokenBalances,
+      };
+    }
+    return;
+  }
+
+  // Normal processing for other holders
   data[ownerAddress] = holder;
 
   if (ownerAddress.toLowerCase() === vault.toLowerCase()) {
@@ -206,9 +242,6 @@ async function processHolder(
         type === "card" ? state.contractEOAs : state.contractEOAsNFTs;
       eoaHolders.push({ contractOwner, tokens: holder });
     } else if (await isSafe(ownerAddress)) {
-      //get the safe details
-
-      //construct the safe details object
       const safeDetailsObject = {
         safeAddress: ownerAddress,
         tokenBalances: holder.tokenBalances,
@@ -288,7 +321,7 @@ export const getOwner = async (contractAddress: string) => {
   try {
     return await owner.owner();
   } catch (error) {
-    console.log(`Error getting owner of ${contractAddress}: ${error}`);
+    console.log(`Unknown Contract: ${contractAddress}`);
     return "";
   }
 };
