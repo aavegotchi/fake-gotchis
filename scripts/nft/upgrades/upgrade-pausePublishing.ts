@@ -1,17 +1,19 @@
 import { ethers, run } from "hardhat";
-import { varsForNetwork } from "../../../constants";
+import { maticVars, varsForNetwork } from "../../../constants";
 import {
   convertFacetAndSelectorsToString,
   DeployUpgradeTaskArgs,
   FacetsAndAddSelectors,
 } from "../../../tasks/deployUpgrade";
 import { diamondOwner } from "../../helperFunctions";
+import { MetadataFacetInterface } from "../../../typechain-types/contracts/FakeGotchisNFTDiamond/facets/MetaDataFacet.sol/MetadataFacet";
+import { MetadataFacet__factory } from "../../../typechain-types";
 
 export async function upgrade() {
   const facets: FacetsAndAddSelectors[] = [
     {
       facetName: "MetadataFacet",
-      addSelectors: [`function togglePublishingPaused() external`],
+      addSelectors: [`function togglePublishingPaused(bool _paused) external`],
       removeSelectors: [],
     },
   ];
@@ -20,12 +22,20 @@ export async function upgrade() {
 
   const c = await varsForNetwork(ethers);
 
+  let iface: MetadataFacetInterface = new ethers.utils.Interface(
+    MetadataFacet__factory.abi
+  ) as MetadataFacetInterface;
+
+  const calldata = iface.encodeFunctionData("togglePublishingPaused", [true]);
+
   const args: DeployUpgradeTaskArgs = {
     diamondUpgrader: await diamondOwner(c.fakeGotchiArt, ethers),
     diamondAddress: c.fakeGotchiArt,
     facetsAndAddSelectors: joined,
-    useLedger: false,
+    useLedger: true,
     useMultisig: false,
+    initAddress: maticVars.fakeGotchiArt,
+    initCalldata: calldata,
   };
 
   await run("deployUpgrade", args);
