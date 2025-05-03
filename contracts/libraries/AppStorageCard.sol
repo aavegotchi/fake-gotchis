@@ -12,6 +12,7 @@ struct CardAppStorage {
     mapping(uint256 => uint256) maxCards; // card id => max card amount
     mapping(address => mapping(address => bool)) operators;
     mapping(address => mapping(uint256 => uint256)) cards; // owner => card id
+    bool diamondPaused;
 }
 
 library LibAppStorageCard {
@@ -32,6 +33,14 @@ contract Modifiers {
 
     modifier onlyNftDiamond() {
         require(msg.sender == s.fakeGotchisNftDiamond, "LibDiamond: Must be NFT diamond");
+        _;
+    }
+
+    modifier whenNotPaused() {
+        ///we exempt diamond owner from the freeze
+        if (msg.sender != LibDiamond.contractOwner()) {
+            require(!s.diamondPaused, "AppStorage: Diamond paused");
+        }
         _;
     }
 }
