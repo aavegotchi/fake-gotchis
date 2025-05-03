@@ -141,7 +141,7 @@ task(
         hre.network.name === "mumbai"
       ) {
         if (useLedger) {
-          signer = new LedgerSigner(hre.ethers.provider);
+          signer = new LedgerSigner(hre.ethers.provider, "m/44'/60'/1'/0/0");
         } else signer = (await hre.ethers.getSigners())[0];
       } else {
         throw Error("Incorrect network selected");
