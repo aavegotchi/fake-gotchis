@@ -64,7 +64,11 @@ contract MetadataFacet is Modifiers {
         _addMetadata(mData, series, LibMeta.msgSender(), _publisher);
     }
 
-    function _addMetadata(MetadataInput memory mData, uint256 series, address _operator, address _publisher) internal {
+    function togglePublishingPaused(bool _paused) external onlyOwner {
+        s.publishingPaused = _paused;
+    }
+
+    function _addMetadata(MetadataInput memory mData, uint256 series, address _operator, address _publisher) internal publishingNotPaused {
         // check blocked
         require(!s.blocked[_publisher], "Metadata: Blocked address");
 
