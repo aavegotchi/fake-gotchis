@@ -273,4 +273,11 @@ contract MetadataFacet is Modifiers {
     function getMetadataIdCounter() public view returns (uint256) {
         return s.metadataIdCounter;
     }
+
+    function batchGetMetadata(uint256[] memory _ids) external view returns (uint256[] memory metadataIds) {
+        metadataIds = new uint256[](_ids.length);
+        for (uint256 i; i < _ids.length; i++) {
+            metadataIds[i] = s.fakeGotchis[_ids[i]];
+        }
+    }
 }
