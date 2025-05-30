@@ -112,8 +112,59 @@ async function main() {
     });
   }
 
-  console.log("Writing metadata to file...");
-  fs.writeFileSync(METADATA_FILE, JSON.stringify(metadataMap, null, 2));
+  console.log("\nFetching on-chain metadata order for all tokens...");
+  const erc1155Facet = await ethers.getContractAt(
+    "FakeGotchisNFTFacet",
+    c.fakeGotchiArt
+  );
+
+  const totalSupplyBN = await erc1155Facet.totalSupply();
+  const totalSupply = totalSupplyBN.toNumber();
+  console.log(`Fetching metadata IDs for ${totalSupply} tokens`);
+
+  // Get metadataId for each token ID (from 1 to totalSupply)
+  // Note: Smart contract functions usually return BigNumber, so conversion to number is needed.
+  const allOnChainMetadataIds_BN = await metadataFacet.batchGetMetadata(
+    Array.from({ length: totalSupply }, (_, i) => i + 1)
+  );
+  const allOnChainMetadataIds = allOnChainMetadataIds_BN.map((idBN) =>
+    idBN.toNumber()
+  );
+
+  console.log("Filtering metadata IDs to get unique, ordered sequence...");
+  const uniqueOrderedMetadataIds: number[] = [];
+  if (allOnChainMetadataIds.length > 0) {
+    uniqueOrderedMetadataIds.push(allOnChainMetadataIds[0]);
+    for (let idx = 1; idx < allOnChainMetadataIds.length; idx++) {
+      if (allOnChainMetadataIds[idx] !== allOnChainMetadataIds[idx - 1]) {
+        uniqueOrderedMetadataIds.push(allOnChainMetadataIds[idx]);
+      }
+    }
+  }
+  console.log(uniqueOrderedMetadataIds);
+  console.log(
+    `Found ${uniqueOrderedMetadataIds.length} unique metadata IDs in the on-chain sequence.`
+  );
+
+  // Prepare the final data for JSON: an array of [id, metadata] pairs, ordered by uniqueOrderedMetadataIds
+  const orderedMetadataArray: Array<[number, Metadata]> = [];
+  for (const id of uniqueOrderedMetadataIds) {
+    const metadata = metadataMap[id];
+    if (metadata) {
+      orderedMetadataArray.push([id, metadata]);
+    } else {
+      // This case should ideally not happen if metadataMap was populated correctly for all IDs in allOnChainMetadataIds
+      console.warn(
+        `Warning: Metadata ID ${id} from unique ordered list not found in fetched metadataMap. This item will be skipped.`
+      );
+    }
+  }
+
+  console.log("\nWriting ordered metadata array to file...");
+  fs.writeFileSync(
+    METADATA_FILE,
+    JSON.stringify(orderedMetadataArray, null, 2)
+  );
   console.log("Done!");
 }
 

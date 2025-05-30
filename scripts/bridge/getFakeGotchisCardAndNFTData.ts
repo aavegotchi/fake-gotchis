@@ -234,6 +234,14 @@ async function processHolder(
     return;
   }
 
+  if (ownerAddress.toLowerCase() === gbmDiamond.toLowerCase()) {
+    const holders =
+      type === "card" ? state.gbmContracts : state.gbmContractsNFTs;
+    holders.push(holder);
+    delete data[ownerAddress];
+    return;
+  }
+
   const code = await ethers.provider.getCode(ownerAddress);
   if (code !== "0x") {
     const contractOwner = await getOwner(ownerAddress);
