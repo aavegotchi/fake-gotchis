@@ -3,6 +3,7 @@ import { ethers } from "hardhat";
 import { MetadataStructOutput } from "../../typechain-types/contracts/FakeGotchisNFTDiamond/facets/MetaDataFacet.sol/MetadataFacet";
 import fs from "fs";
 import { fgNFTsDir } from "./getFakeGotchisCardAndNFTData";
+import { writeBlockNumber } from "./paths";
 
 interface Metadata {
   publisher: string;
@@ -81,6 +82,7 @@ async function main() {
     c.fakeGotchiArt
   );
 
+  await writeBlockNumber("fakegotchiNFTMetadata", ethers);
   const batchSize = 200;
   const counter = (await metadataFacet.getMetadataIdCounter()).toNumber();
   const totalBatches = Math.ceil(counter / batchSize);

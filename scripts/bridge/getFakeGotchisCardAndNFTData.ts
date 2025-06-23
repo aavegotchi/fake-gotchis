@@ -1,6 +1,7 @@
 import { Alchemy, Network } from "alchemy-sdk";
 import fs, { existsSync } from "fs";
 import { ethers } from "hardhat";
+import { writeBlockNumber } from "./paths";
 
 const config = {
   apiKey: process.env.ALCHEMY_API_KEY,
@@ -90,6 +91,9 @@ async function main() {
   }
 
   // Get holders data from Alchemy
+
+  await writeBlockNumber("fakegotchiCard", ethers);
+  await writeBlockNumber("fakegotchiNFT", ethers);
   const [responseCards, responseNFTs] = await Promise.all([
     alchemy.nft.getOwnersForContract(fakeGotchisCardDiamondAddress, {
       withTokenBalances: true,
