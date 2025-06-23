@@ -45,7 +45,7 @@ async function setAavegotchiAddress() {
   console.log("Setting operator");
 
   const tx = await metadataFacet.togglePublishingOperator(
-    "0x94cb5C277FCC64C274Bd30847f0821077B231022",
+    "0xc0C3a547231ea6aeBC543826bC55895B015467b3",
     true
   );
 

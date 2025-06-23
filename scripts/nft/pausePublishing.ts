@@ -1,7 +1,8 @@
 import { ethers } from "hardhat";
 import { varsForNetwork } from "../../constants";
 import { MetadataFacet } from "../../typechain-types";
-import { diamondOwner } from "../helperFunctions";
+import { diamondOwner, gasPrice } from "../helperFunctions";
+import { LedgerSigner } from "@anders-t/ethers-ledger";
 
 export async function pausePublishing() {
   const c = await varsForNetwork(ethers);
@@ -13,13 +14,14 @@ export async function pausePublishing() {
   let cardFacet = (await ethers.getContractAt(
     "MetadataFacet",
     c.fakeGotchiArt,
-    await (
-      await ethers.getSigners()
-    )[0]
+    new LedgerSigner(ethers.provider, "m/44'/60'/1'/0/0")
   )) as MetadataFacet;
 
-  const paused = await cardFacet.togglePublishingPaused();
-  console.log("publishing paused:", paused);
+  const tx = await cardFacet.togglePublishingPaused(false, {
+    gasPrice: gasPrice,
+  });
+  await tx.wait();
+  console.log("publishing adjusted: ", tx.hash);
 }
 
 if (require.main === module) {
