@@ -62,10 +62,13 @@ function mapMetadataToInterface(
 async function fetchMetadataBatch(
   metadataFacet: any,
   start: number,
-  size: number
+  size: number,
+  blockNumber: number
 ) {
   const ids = Array.from({ length: size }, (_, j) => start + j);
-  const batch = await metadataFacet.getMetadataBatch(ids);
+  const batch = await metadataFacet.getMetadataBatch(ids, {
+    blockTag: blockNumber,
+  });
   return batch.map((metadata: MetadataStructOutput, index: number) =>
     mapMetadataToInterface(metadata, ids[index])
   );
@@ -82,9 +85,13 @@ async function main() {
     c.fakeGotchiArt
   );
 
-  await writeBlockNumber("fakegotchiNFTMetadata", ethers);
+  const blockNumber = await writeBlockNumber("fakegotchiNFTMetadata", ethers);
   const batchSize = 200;
-  const counter = (await metadataFacet.getMetadataIdCounter()).toNumber();
+  const counter = (
+    await metadataFacet.getMetadataIdCounter({
+      blockTag: blockNumber,
+    })
+  ).toNumber();
   const totalBatches = Math.ceil(counter / batchSize);
   const lastBatchSize = counter % batchSize || batchSize;
 
@@ -107,7 +114,8 @@ async function main() {
     const batchResults = await fetchMetadataBatch(
       metadataFacet,
       start,
-      currentBatchSize
+      currentBatchSize,
+      blockNumber
     );
     batchResults.forEach(([id, metadata]: [number, Metadata]) => {
       metadataMap[id] = metadata;
@@ -127,7 +135,8 @@ async function main() {
   // Get metadataId for each token ID (from 1 to totalSupply)
   // Note: Smart contract functions usually return BigNumber, so conversion to number is needed.
   const allOnChainMetadataIds_BN = await metadataFacet.batchGetMetadata(
-    Array.from({ length: totalSupply }, (_, i) => i + 1)
+    Array.from({ length: totalSupply }, (_, i) => i + 1),
+    { blockTag: blockNumber }
   );
   const allOnChainMetadataIds = allOnChainMetadataIds_BN.map((idBN) =>
     idBN.toNumber()

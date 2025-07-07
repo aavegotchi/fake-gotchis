@@ -1,5 +1,6 @@
 export const DATA_DIR = `${__dirname}/cloneData`;
 export const BLOCKNUMBERFILE = `${DATA_DIR}/blockNumber.json`;
+export let BLOCK_NUMBER = 73121283; //leave this blank to use latest block number
 
 import fs from "fs";
 
@@ -13,11 +14,18 @@ export async function writeBlockNumber(
   assetType: "fakegotchiCard" | "fakegotchiNFT" | "fakegotchiNFTMetadata",
   ethers: any
 ) {
-  const blockNumber = await ethers.provider.getBlockNumber();
+  let blockNumber = await ethers.provider.getBlockNumber();
+  if (BLOCK_NUMBER) {
+    blockNumber = BLOCK_NUMBER;
+  }
   console.log(
     `Using anchor Block number for ${assetType} data: ${blockNumber}`
   );
   //create the file if it doesn't exist
+  //create the directory if it doesn't exist
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
   if (!fs.existsSync(BLOCKNUMBERFILE)) {
     fs.writeFileSync(
       BLOCKNUMBERFILE,
@@ -31,4 +39,5 @@ export async function writeBlockNumber(
   //direct update the block number
   blockNumberObject[assetType] = blockNumber;
   fs.writeFileSync(BLOCKNUMBERFILE, JSON.stringify(blockNumberObject, null, 2));
+  return blockNumber;
 }

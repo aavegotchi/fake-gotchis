@@ -92,14 +92,16 @@ async function main() {
 
   // Get holders data from Alchemy
 
-  await writeBlockNumber("fakegotchiCard", ethers);
+  const blockNumber = await writeBlockNumber("fakegotchiCard", ethers);
   await writeBlockNumber("fakegotchiNFT", ethers);
   const [responseCards, responseNFTs] = await Promise.all([
     alchemy.nft.getOwnersForContract(fakeGotchisCardDiamondAddress, {
       withTokenBalances: true,
+      block: blockNumber,
     }),
     alchemy.nft.getOwnersForContract(fakeGotchisNFTDiamond, {
       withTokenBalances: true,
+      block: blockNumber,
     }),
   ]);
 
