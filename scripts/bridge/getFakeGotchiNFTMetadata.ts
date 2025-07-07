@@ -132,10 +132,9 @@ async function main() {
   const totalSupply = totalSupplyBN.toNumber();
   console.log(`Fetching metadata IDs for ${totalSupply} tokens`);
 
-  // Get metadataId for each token ID (from 1 to totalSupply)
-  // Note: Smart contract functions usually return BigNumber, so conversion to number is needed.
+  // Get metadataId for each token ID (from 0 to totalSupply - 1)s
   const allOnChainMetadataIds_BN = await metadataFacet.batchGetMetadata(
-    Array.from({ length: totalSupply }, (_, i) => i + 1),
+    Array.from({ length: totalSupply }, (_, i) => i),
     { blockTag: blockNumber }
   );
   const allOnChainMetadataIds = allOnChainMetadataIds_BN.map((idBN) =>
@@ -176,6 +175,21 @@ async function main() {
     METADATA_FILE,
     JSON.stringify(orderedMetadataArray, null, 2)
   );
+  console.log(`Metadata saved to ${METADATA_FILE}`);
+
+  // Generate tokenId -> metadataId mapping and write to file
+  console.log("\nGenerating tokenId to metadataId mapping...");
+  const tokenMetadataArray = allOnChainMetadataIds.map((metadataId, index) => ({
+    tokenId: index,
+    metadataId,
+  }));
+
+  const TOKEN_METADATA_FILE = `${fgNFTsDir}/tokenMetadata.json`;
+  fs.writeFileSync(
+    TOKEN_METADATA_FILE,
+    JSON.stringify(tokenMetadataArray, null, 2)
+  );
+  console.log(`Token metadata mapping saved to ${TOKEN_METADATA_FILE}`);
   console.log("Done!");
 }
 
