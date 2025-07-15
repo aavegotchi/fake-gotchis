@@ -11,8 +11,8 @@ const config = {
 export const excludedAddresses = [
   "0x0000000000000000000000000000000000000000",
   "0x0000000000000000000000000000000000000001",
-  "0x000000000000000000000000000000000000dEaD",
-  "0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF",
+  "0x000000000000000000000000000000000000dead",
+  "0xffffffffffffffffffffffffffffffffffffffff",
 ];
 
 export const vault = "0xdd564df884fd4e217c9ee6f65b4ba6e5641eac63";
@@ -54,7 +54,7 @@ interface TokenHolder {
   ownerAddress: string;
   tokenBalances: {
     tokenId: string;
-    balance: string;
+    balance: string | number;
   }[];
 }
 
@@ -106,6 +106,13 @@ async function main() {
   ]);
 
   const holders = responseCards.owners;
+
+  //temporarily store card data in a file
+  fs.writeFileSync(
+    `${fgCardDir}/cardData.json`,
+    JSON.stringify(responseCards, null, 2)
+  );
+
   const holdersNFTs = responseNFTs.owners;
 
   const state = {
@@ -198,10 +205,20 @@ async function processHolder(
   state: any,
   type: "card" | "nft"
 ) {
+  //convert tokenId from hex to decimal for FG Cards and NFTs
+  holder.tokenBalances = holder.tokenBalances.map((tb) => ({
+    ...tb,
+    tokenId:
+      typeof tb.tokenId === "string" && tb.tokenId.startsWith("0x")
+        ? parseInt(tb.tokenId, 16).toString()
+        : tb.tokenId.toString(),
+  }));
+
   const { ownerAddress } = holder;
 
-  // Skip excluded addresses
-  if (excludedAddresses.includes(ownerAddress)) {
+  // Skip excluded addresses using lowercase comparison
+  //this is to avoid issues with addresses that have different case
+  if (excludedAddresses.includes(ownerAddress.toLowerCase())) {
     return;
   }
 
@@ -349,13 +366,6 @@ export const isSafe = async (contractAddress: string): Promise<boolean> => {
     return false;
   }
 };
-
-// export const getSafeDetails = async (contractAddress: string) => {
-//   const safe = await ethers.getContractAt("ISafe", contractAddress);
-//   const threshold = await safe.getThreshold();
-//   const owners = await safe.getOwners();
-//   return { threshold, owners };
-// };
 
 // Add retry functionality for processing holders
 async function processHoldersWithRetry(
