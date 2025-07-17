@@ -1,7 +1,7 @@
 import { Alchemy, Network } from "alchemy-sdk";
 import fs, { existsSync } from "fs";
 import { ethers } from "hardhat";
-import { writeBlockNumber } from "./paths";
+import { isRealContract, writeBlockNumber } from "./paths";
 
 const config = {
   apiKey: process.env.ALCHEMY_API_KEY,
@@ -246,9 +246,6 @@ async function processHolder(
     return;
   }
 
-  // Normal processing for other holders
-  data[ownerAddress] = holder;
-
   if (ownerAddress.toLowerCase() === vault.toLowerCase()) {
     const holders =
       type === "card" ? state.vaultHolders : state.vaultHoldersNFTs;
@@ -265,8 +262,8 @@ async function processHolder(
     return;
   }
 
-  const code = await ethers.provider.getCode(ownerAddress);
-  if (code !== "0x") {
+  const isContract = await isRealContract(ethers.provider, ownerAddress);
+  if (isContract) {
     const contractOwner = await getOwner(ownerAddress);
     if (contractOwner) {
       const eoaHolders =
@@ -289,6 +286,9 @@ async function processHolder(
     }
     delete data[ownerAddress];
   }
+
+  // Normal processing for other holders
+  data[ownerAddress] = holder;
 }
 
 function writeFiles(state: any, type: "card" | "nft") {
