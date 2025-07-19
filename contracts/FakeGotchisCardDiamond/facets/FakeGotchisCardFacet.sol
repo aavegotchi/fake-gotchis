@@ -59,7 +59,11 @@ contract FakeGotchisCardFacet is Modifiers {
         emit LibERC1155.ApprovalForAll(sender, _operator, _approved);
     }
 
-    function burn(address _cardOwner, uint256 _cardSeriesId, uint256 _amount) external onlyNftDiamond {
+    function burn(
+        address _cardOwner,
+        uint256 _cardSeriesId,
+        uint256 _amount
+    ) external onlyNftDiamond {
         // TODO: check new series started, check s.nextCardId > 0
         // burn card
         LibERC1155._burn(_cardOwner, _cardSeriesId, _amount);
@@ -75,7 +79,13 @@ contract FakeGotchisCardFacet is Modifiers {
      * @param _amount  Transfer amount
      * @param _data    Additional data with no specified format, MUST be sent unaltered in call to `onERC1155Received` on `_to`
      */
-    function safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bytes calldata _data) external whenNotPaused {
+    function safeTransferFrom(
+        address _from,
+        address _to,
+        uint256 _id,
+        uint256 _amount,
+        bytes calldata _data
+    ) external whenNotPaused {
         address sender = LibMeta.msgSender();
         require(sender == _from || s.operators[_from][sender] || sender == address(this), "FGCard: Not owner and not approved to transfer");
         _safeTransferFrom(_from, _to, _id, _amount, _data);
@@ -91,7 +101,13 @@ contract FakeGotchisCardFacet is Modifiers {
      * @param _amounts Transfer amounts per token type (order and length must match _ids array)
      * @param _data    Additional data with no specified format, MUST be sent unaltered in call to the `ERC1155TokenReceiver` hook(s) on `_to`
      */
-    function safeBatchTransferFrom(address _from, address _to, uint256[] calldata _ids, uint256[] calldata _amounts, bytes calldata _data) external {
+    function safeBatchTransferFrom(
+        address _from,
+        address _to,
+        uint256[] calldata _ids,
+        uint256[] calldata _amounts,
+        bytes calldata _data
+    ) external {
         address sender = LibMeta.msgSender();
         require(sender == _from || s.operators[_from][sender], "FGCard: Not owner and not approved to transfer");
         _safeBatchTransferFrom(_from, _to, _ids, _amounts, _data);
@@ -136,7 +152,13 @@ contract FakeGotchisCardFacet is Modifiers {
      * @param _amount  Transfer amount
      * @param _data    Additional data with no specified format, MUST be sent unaltered in call to `onERC1155Received` on `_to`
      */
-    function _safeTransferFrom(address _from, address _to, uint256 _id, uint256 _amount, bytes calldata _data) internal whenNotPaused {
+    function _safeTransferFrom(
+        address _from,
+        address _to,
+        uint256 _id,
+        uint256 _amount,
+        bytes calldata _data
+    ) internal whenNotPaused {
         require(_to != address(0), "FGCard: Can't transfer to 0 address");
         address sender = LibMeta.msgSender();
         uint256 bal = s.cards[_from][_id];
@@ -238,8 +260,11 @@ contract FakeGotchisCardFacet is Modifiers {
         }
     }
 
-    function toggleDiamondPause() external onlyOwner {
-        s.diamondPaused = !s.diamondPaused;
+    event DiamondPauseToggled(bool _paused);
+
+    function toggleDiamondPause(bool _paused) external onlyOwner {
+        s.diamondPaused = _paused;
+        emit DiamondPauseToggled(_paused);
     }
 
     /**
@@ -251,10 +276,10 @@ contract FakeGotchisCardFacet is Modifiers {
         @return           `bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))`
     */
     function onERC1155Received(
-        address /*_operator*/,
-        address /*_from*/,
-        uint256 /*_id*/,
-        uint256 /*_value*/,
+        address, /*_operator*/
+        address, /*_from*/
+        uint256, /*_id*/
+        uint256, /*_value*/
         bytes calldata /*_data*/
     ) external pure returns (bytes4) {
         return LibERC1155.ERC1155_ACCEPTED;

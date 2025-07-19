@@ -38,10 +38,11 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @return receivers - address of who should be sent the royalty payment
      * @return royaltyAmounts - the royalty payment amount for _salePrice
      */
-    function multiRoyaltyInfo(
-        uint256 _tokenId,
-        uint256 _salePrice
-    ) external view returns (address[] memory receivers, uint256[] memory royaltyAmounts) {
+    function multiRoyaltyInfo(uint256 _tokenId, uint256 _salePrice)
+        external
+        view
+        returns (address[] memory receivers, uint256[] memory royaltyAmounts)
+    {
         Metadata memory mData = s.metadata[s.fakeGotchis[_tokenId]];
         receivers = new address[](2);
         royaltyAmounts = new uint256[](2);
@@ -129,7 +130,12 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @param _tokenId The NFT to transfer
      * @param _data Additional data with no specified format, sent in call to `_to`
      */
-    function safeTransferFrom(address _from, address _to, uint256 _tokenId, bytes calldata _data) public whenNotPaused {
+    function safeTransferFrom(
+        address _from,
+        address _to,
+        uint256 _tokenId,
+        bytes calldata _data
+    ) public whenNotPaused {
         address sender = LibMeta.msgSender();
         LibERC721.transferFrom(sender, _from, _to, _tokenId);
         LibERC721.checkOnERC721Received(sender, _from, _to, _tokenId, _data);
@@ -147,7 +153,11 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @param _to The new owner
      * @param _tokenId The NFT to transfer
      */
-    function safeTransferFrom(address _from, address _to, uint256 _tokenId) external whenNotPaused {
+    function safeTransferFrom(
+        address _from,
+        address _to,
+        uint256 _tokenId
+    ) external whenNotPaused {
         address sender = LibMeta.msgSender();
         LibERC721.transferFrom(sender, _from, _to, _tokenId);
         LibERC721.checkOnERC721Received(sender, _from, _to, _tokenId, "");
@@ -165,7 +175,11 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @param _to The new owner
      * @param _tokenId The NFT to transfer
      */
-    function transferFrom(address _from, address _to, uint256 _tokenId) external whenNotPaused {
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _tokenId
+    ) external whenNotPaused {
         address sender = LibMeta.msgSender();
         LibERC721.transferFrom(sender, _from, _to, _tokenId);
 
@@ -244,7 +258,12 @@ contract FakeGotchisNFTFacet is Modifiers {
         return string(abi.encodePacked("data:application/json;base64,", Base64.encode(json)));
     }
 
-    function safeBatchTransfer(address _from, address _to, uint256[] calldata _tokenIds, bytes calldata _data) external whenNotPaused {
+    function safeBatchTransfer(
+        address _from,
+        address _to,
+        uint256[] calldata _tokenIds,
+        bytes calldata _data
+    ) external whenNotPaused {
         for (uint256 index = 0; index < _tokenIds.length; index++) {
             safeTransferFrom(_from, _to, _tokenIds[index], _data);
         }
@@ -270,7 +289,10 @@ contract FakeGotchisNFTFacet is Modifiers {
         }
     }
 
-    function toggleDiamondPause() external onlyOwner {
-        s.diamondPaused = !s.diamondPaused;
+    event DiamondPauseToggled(bool _paused);
+
+    function toggleDiamondPause(bool _paused) external onlyOwner {
+        s.diamondPaused = _paused;
+        emit DiamondPauseToggled(_paused);
     }
 }
