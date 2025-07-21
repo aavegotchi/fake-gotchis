@@ -68,7 +68,7 @@ contract MetadataFacet is Modifiers {
         s.publishingPaused = _paused;
     }
 
-    function _addMetadata(MetadataInput memory mData, uint256 series, address _operator, address _publisher) internal publishingNotPaused {
+    function _addMetadata(MetadataInput memory mData, uint256 series, address _operator, address _publisher) internal whenNotPaused {
         // check blocked
         require(!s.blocked[_publisher], "Metadata: Blocked address");
 
@@ -149,7 +149,7 @@ contract MetadataFacet is Modifiers {
         return s.blocked[_address];
     }
 
-    function mint(uint256 _id) external {
+    function mint(uint256 _id) external whenNotPaused {
         Metadata memory mData = s.metadata[_id];
         require(mData.status != METADATA_STATUS_DECLINED, "Metadata: Declined");
         require(mData.status != METADATA_STATUS_PAUSED, "Metadata: Paused for review");
@@ -256,7 +256,7 @@ contract MetadataFacet is Modifiers {
         emit ReviewPass(_id, msg.sender);
     }
 
-    function like(uint256 _id) external {
+    function like(uint256 _id) external whenNotPaused {
         validateMetadata(_id);
 
         address _sender = LibMeta.msgSender();

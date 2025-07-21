@@ -52,7 +52,7 @@ contract FakeGotchisCardFacet is Modifiers {
      * @param _operator Address to add to the set of authorized operators
      * @param _approved True if the operator is approved, false to revoke approval
      */
-    function setApprovalForAll(address _operator, bool _approved) external {
+    function setApprovalForAll(address _operator, bool _approved) external whenNotPaused {
         address sender = LibMeta.msgSender();
         require(sender != _operator, "FGCard: setting approval status for self");
         s.operators[sender][_operator] = _approved;
@@ -85,7 +85,7 @@ contract FakeGotchisCardFacet is Modifiers {
         uint256 _id,
         uint256 _amount,
         bytes calldata _data
-    ) external {
+    ) external whenNotPaused {
         address sender = LibMeta.msgSender();
         require(sender == _from || s.operators[_from][sender] || sender == address(this), "FGCard: Not owner and not approved to transfer");
         _safeTransferFrom(_from, _to, _id, _amount, _data);
@@ -158,7 +158,7 @@ contract FakeGotchisCardFacet is Modifiers {
         uint256 _id,
         uint256 _amount,
         bytes calldata _data
-    ) internal {
+    ) internal whenNotPaused {
         require(_to != address(0), "FGCard: Can't transfer to 0 address");
         address sender = LibMeta.msgSender();
         uint256 bal = s.cards[_from][_id];
@@ -195,7 +195,7 @@ contract FakeGotchisCardFacet is Modifiers {
         uint256[] calldata _ids,
         uint256[] calldata _amounts,
         bytes calldata _data
-    ) internal {
+    ) internal whenNotPaused {
         require(_ids.length == _amounts.length, "FGCard: ids not same length as amounts");
         require(_to != address(0), "FGCard: Can't transfer to 0 address");
         address sender = LibMeta.msgSender();
@@ -258,6 +258,13 @@ contract FakeGotchisCardFacet is Modifiers {
             address owner = _owners[i];
             bals[i] = s.cards[owner][id];
         }
+    }
+
+    event DiamondPauseToggled(bool _paused);
+
+    function toggleDiamondPause(bool _paused) external onlyOwner {
+        s.diamondPaused = _paused;
+        emit DiamondPauseToggled(_paused);
     }
 
     /**

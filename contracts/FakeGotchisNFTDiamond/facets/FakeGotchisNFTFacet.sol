@@ -135,7 +135,7 @@ contract FakeGotchisNFTFacet is Modifiers {
         address _to,
         uint256 _tokenId,
         bytes calldata _data
-    ) public {
+    ) public whenNotPaused {
         address sender = LibMeta.msgSender();
         LibERC721.transferFrom(sender, _from, _to, _tokenId);
         LibERC721.checkOnERC721Received(sender, _from, _to, _tokenId, _data);
@@ -157,7 +157,7 @@ contract FakeGotchisNFTFacet is Modifiers {
         address _from,
         address _to,
         uint256 _tokenId
-    ) external {
+    ) external whenNotPaused {
         address sender = LibMeta.msgSender();
         LibERC721.transferFrom(sender, _from, _to, _tokenId);
         LibERC721.checkOnERC721Received(sender, _from, _to, _tokenId, "");
@@ -179,7 +179,7 @@ contract FakeGotchisNFTFacet is Modifiers {
         address _from,
         address _to,
         uint256 _tokenId
-    ) external {
+    ) external whenNotPaused {
         address sender = LibMeta.msgSender();
         LibERC721.transferFrom(sender, _from, _to, _tokenId);
 
@@ -194,7 +194,7 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @param _approved The new approved NFT controller
      * @param _tokenId The NFT to approve
      */
-    function approve(address _approved, uint256 _tokenId) external {
+    function approve(address _approved, uint256 _tokenId) external whenNotPaused {
         address owner = s.fakeGotchiOwner[_tokenId];
         address sender = LibMeta.msgSender();
         require(owner == sender || s.operators[owner][sender], "ERC721: Not owner or operator of token.");
@@ -208,7 +208,7 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @param _operator Address to add to the set of authorized operators
      * @param _approved True if the operator is approved, false to revoke approval
      */
-    function setApprovalForAll(address _operator, bool _approved) external {
+    function setApprovalForAll(address _operator, bool _approved) external whenNotPaused {
         address sender = LibMeta.msgSender();
         s.operators[sender][_operator] = _approved;
         emit LibERC721.ApprovalForAll(sender, _operator, _approved);
@@ -254,7 +254,7 @@ contract FakeGotchisNFTFacet is Modifiers {
         json = abi.encodePacked('"description":"', LibStrings.removeLineBreak(mData.description), '",', json);
         json = abi.encodePacked('{"name":"', mData.name, '",', json, "}");
 
-//        return string(abi.encodePacked(json)); // For test
+        //        return string(abi.encodePacked(json)); // For test
         return string(abi.encodePacked("data:application/json;base64,", Base64.encode(json)));
     }
 
@@ -263,7 +263,7 @@ contract FakeGotchisNFTFacet is Modifiers {
         address _to,
         uint256[] calldata _tokenIds,
         bytes calldata _data
-    ) external {
+    ) external whenNotPaused {
         for (uint256 index = 0; index < _tokenIds.length; index++) {
             safeTransferFrom(_from, _to, _tokenIds[index], _data);
         }
@@ -273,7 +273,7 @@ contract FakeGotchisNFTFacet is Modifiers {
      * @dev Burns `tokenId`.
      * The caller must own `tokenId` or be an approved operator.
      */
-    function burnTokens(uint256[] calldata _tokenIds) public {
+    function burnTokens(uint256[] calldata _tokenIds) public whenNotPaused {
         for (uint256 i = 0; i < _tokenIds.length; i++) {
             LibERC721.transferFrom(
                 LibMeta.msgSender(),
@@ -287,5 +287,12 @@ contract FakeGotchisNFTFacet is Modifiers {
                 IERC721Marketplace(s.aavegotchiDiamond).updateERC721Listing(address(this), _tokenIds[i], LibMeta.msgSender());
             }
         }
+    }
+
+    event DiamondPauseToggled(bool _paused);
+
+    function toggleDiamondPause(bool _paused) external onlyOwner {
+        s.diamondPaused = _paused;
+        emit DiamondPauseToggled(_paused);
     }
 }
