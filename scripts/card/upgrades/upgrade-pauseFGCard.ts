@@ -24,7 +24,7 @@ export async function upgrade() {
     diamondUpgrader: await diamondOwner(c.fakeGotchiCards, ethers),
     diamondAddress: c.fakeGotchiCards,
     facetsAndAddSelectors: joined,
-    useLedger: false,
+    useLedger: true,
     useMultisig: false,
   };
 
