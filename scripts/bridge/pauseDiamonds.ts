@@ -1,16 +1,26 @@
 import { ethers, network } from "hardhat";
 import { LedgerSigner } from "@anders-t/ethers-ledger";
 import { maticVars } from "../../constants";
-import { impersonate } from "../helperFunctions";
+import { gasPrice, impersonate } from "../helperFunctions";
+
+import { mine } from "@nomicfoundation/hardhat-network-helpers";
 
 export async function lockDiamonds() {
   let signer;
 
   const testing = ["hardhat", "localhost"].includes(network.name);
-  let FGCard;
-  let FGNFT;
+  let FGCard = await ethers.getContractAt(
+    "FakeGotchisCardFacet",
+    maticVars.fakeGotchiCards
+  );
+  let FGNFT = await ethers.getContractAt(
+    "FakeGotchisNFTFacet",
+    maticVars.fakeGotchiArt
+  );
 
   if (testing) {
+    await mine();
+
     const FGcardowner = await getOwner(maticVars.fakeGotchiCards);
     FGCard = await ethers.getContractAt(
       "FakeGotchisCardFacet",
@@ -29,10 +39,19 @@ export async function lockDiamonds() {
     signer = new LedgerSigner(ethers.provider, "m/44'/60'/1'/0/0");
   } else throw Error("Incorrect network selected");
 
-  let tx = await FGCard.toggleDiamondPause(true);
+  console.log("Pausing FGCard Diamond");
+
+  let tx = await FGCard.connect(signer!).toggleDiamondPause(true, {
+    gasPrice: gasPrice,
+  });
   await tx.wait();
   console.log("FakeGotchis Card diamond paused at txn", tx.hash);
-  tx = await FGNFT.toggleDiamondPause(true);
+
+  console.log("Pausing FGNFT Diamond");
+
+  tx = await FGNFT.connect(signer!).toggleDiamondPause(true, {
+    gasPrice: gasPrice,
+  });
   await tx.wait();
   console.log("FakeGotchis NFT diamond paused at txn", tx.hash);
   console.log("Diamonds paused");

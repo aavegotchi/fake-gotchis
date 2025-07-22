@@ -2,7 +2,7 @@ import { upgrade as upgradeFGCard } from "../card/upgrades/upgrade-pauseFGCard";
 import { upgrade as upgradeFGNFT } from "../nft/upgrades/upgrade-pauseFGNFT";
 
 export async function main() {
-  await upgradeFGCard();
+  // await upgradeFGCard();
   await upgradeFGNFT();
 }
 

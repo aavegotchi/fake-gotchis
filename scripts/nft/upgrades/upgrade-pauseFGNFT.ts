@@ -5,13 +5,15 @@ import {
   DeployUpgradeTaskArgs,
   FacetsAndAddSelectors,
 } from "../../../tasks/deployUpgrade";
-import { diamondOwner } from "../../helperFunctions";
+import { mine } from "@nomicfoundation/hardhat-network-helpers";
 
 export async function upgrade() {
+  // await mine();
+
   const facets: FacetsAndAddSelectors[] = [
     {
       facetName: "FakeGotchisNFTFacet",
-      addSelectors: [`function toggleDiamondPause(bool _paused) external`],
+      addSelectors: [],
       removeSelectors: [],
     },
     {
@@ -26,7 +28,7 @@ export async function upgrade() {
   const c = await varsForNetwork(ethers);
 
   const args: DeployUpgradeTaskArgs = {
-    diamondUpgrader: await diamondOwner(c.fakeGotchiArt, ethers),
+    diamondUpgrader: "0x01F010a5e001fe9d6940758EA5e8c777885E351e",
     diamondAddress: c.fakeGotchiArt,
     facetsAndAddSelectors: joined,
     useLedger: true,
