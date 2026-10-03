@@ -54,11 +54,27 @@
     "standard": "^17.0.0"
   },
   "resolutions": {
-    "@fastify/busboy": "3.2.2",
-    "elliptic": "6.6.1"
+    "**/alchemy-sdk/axios": "0.34.0",
+    "axios": "1.20.0",
+    "undici": "6.29.0",
+    "adm-zip": "0.6.1",
+    "tmp": "0.2.7",
+    "serialize-javascript": "7.1.2",
+    "elliptic": "6.6.1",
+    "**/@ethersproject/providers/ws": "8.22.0"
   },
   "overrides": {
-    "@fastify/busboy": "3.2.2",
+    "alchemy-sdk": {
+      "axios": "0.34.0"
+    },
+    "axios": "1.20.0",
+    "undici": "6.29.0",
+    "adm-zip": "0.6.1",
+    "tmp": "0.2.7",
+    "serialize-javascript": "7.1.2",
+    "@ethersproject/providers": {
+      "ws": "8.22.0"
+    },
     "elliptic": "6.6.1"
   }
 }

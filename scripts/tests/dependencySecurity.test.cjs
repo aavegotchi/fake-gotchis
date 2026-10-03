@@ -3,7 +3,7 @@ const { test } = require("node:test");
 const { Response } = require("undici");
 const { Wallet, utils } = require("ethers");
 
-test("Undici parses fields and binary files with the patched Busboy", async () => {
+test("Undici parses fields and binary files with prototype-named headers", async () => {
   const boundary = "dependency-security-test";
   const bytes = Buffer.from([0, 1, 127, 255]);
   const body = Buffer.concat([

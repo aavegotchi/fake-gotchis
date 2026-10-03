@@ -122,5 +122,9 @@ npm test
 The contract suite runs on the local Hardhat fork at block 74231858. It needs
 only the RPC URL; live deployment networks are configured when their signing
 credentials are present. The dependency checks cover multipart parsing and
-ethers 5 signing after the Busboy and Elliptic overrides. `braces` still has an
-upstream advisory without a published fix.
+ethers 5 signing. Security overrides also keep Alchemy on patched Axios 0.x,
+Ledger clients on Axios 1.x, and ethers WebSockets on ws 8.x while retaining
+Hardhat's ws 7.x. Undici 6 removes the vulnerable Busboy dependency. Overrides
+for adm-zip, tmp, and serialize-javascript preserve the APIs used by Hardhat,
+solc, and Mocha. `braces` still has an upstream advisory without a published fix;
+it remains visible to npm audit and is not suppressed.
