@@ -1,6 +1,6 @@
 /* global task ethers */
 
-import "@nomiclabs/hardhat-waffle";
+import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-etherscan";
 import "hardhat-contract-sizer";
@@ -40,26 +40,34 @@ export default {
     localhost: {
       timeout: 16000000,
     },
-    matic: {
-      url: process.env.MATIC_URL,
-      accounts: [process.env.DEPLOYER],
-      // blockGasLimit: 20000000,
-      // gasPrice: 1000000000,
-      // maxFeePerGas: BigNumber.from("80").mul(1e9),
-      // maxPriorityFeePerGas: BigNumber.from("50").mul(1e9),
-      // gasLimit: 2000000,
-      timeout: 90000,
-    },
-    mumbai: {
-      url: process.env.MUMBAI_URL,
-      accounts: [process.env.SECRET],
-      // blockGasLimit: 20000000,
-      // gasPrice: 1000000000,
-      maxFeePerGas: BigNumber.from("80").mul(1e9),
-      maxPriorityFeePerGas: BigNumber.from("50").mul(1e9),
-      gasLimit: 2000000,
-      timeout: 90000,
-    },
+    ...(process.env.MATIC_URL && process.env.DEPLOYER
+      ? {
+          matic: {
+            url: process.env.MATIC_URL,
+            accounts: [process.env.DEPLOYER],
+            // blockGasLimit: 20000000,
+            // gasPrice: 1000000000,
+            // maxFeePerGas: BigNumber.from("80").mul(1e9),
+            // maxPriorityFeePerGas: BigNumber.from("50").mul(1e9),
+            // gasLimit: 2000000,
+            timeout: 90000,
+          },
+        }
+      : {}),
+    ...(process.env.MUMBAI_URL && process.env.SECRET
+      ? {
+          mumbai: {
+            url: process.env.MUMBAI_URL,
+            accounts: [process.env.SECRET],
+            // blockGasLimit: 20000000,
+            // gasPrice: 1000000000,
+            maxFeePerGas: BigNumber.from("80").mul(1e9),
+            maxPriorityFeePerGas: BigNumber.from("50").mul(1e9),
+            gasLimit: 2000000,
+            timeout: 90000,
+          },
+        }
+      : {}),
   },
   gasReporter: {
     currency: "USD",
