@@ -106,3 +106,21 @@ Contact:
 
 MIT license. See the license file.
 Anyone can use or modify this software for their purposes.
+
+## Dependency checks and contract tests
+
+Use Node.js 22 and install with `npm ci` or `yarn install --frozen-lockfile`.
+Keep both lockfiles updated when changing dependencies.
+
+Set `MATIC_URL` to a Polygon archive RPC endpoint, then run:
+
+```sh
+npm run test:dependencies
+npm test
+```
+
+The contract suite runs on the local Hardhat fork at block 74231858. It needs
+only the RPC URL; live deployment networks are configured when their signing
+credentials are present. The dependency checks cover multipart parsing and
+ethers 5 signing after the Busboy and Elliptic overrides. `braces` still has an
+upstream advisory without a published fix.

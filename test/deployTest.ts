@@ -93,7 +93,7 @@ describe("Deploy tests", async function () {
       publisherName: "e".repeat(30), // 30 bytes
       externalLink: "r".repeat(50), // 50 bytes
       description: "t".repeat(120), // 120 bytes
-      artist: ethers.constants.AddressZero,
+      artist: testAddress,
       artistName: "y".repeat(30), // 30 bytes,
       royalty: [400, 0] as [
         PromiseOrValue<BigNumberish>,
@@ -104,6 +104,15 @@ describe("Deploy tests", async function () {
       fileType: "f".repeat(20), // 20 bytes
       thumbnailType: "t".repeat(20), // 20 bytes
     };
+    await expect(nftFacet.toggleDiamondPause(true))
+      .to.emit(nftFacet, "DiamondPauseToggled")
+      .withArgs(true);
+    await expect(
+      metadataFacetWithUser.addMetadata(mData, cardSeriesId)
+    ).to.be.revertedWith("AppStorage: Diamond paused");
+    await expect(nftFacet.toggleDiamondPause(false))
+      .to.emit(nftFacet, "DiamondPauseToggled")
+      .withArgs(false);
     let receipt = await (
       await metadataFacetWithUser.addMetadata(mData, cardSeriesId)
     ).wait();

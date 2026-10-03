@@ -7,7 +7,8 @@ import {
   MetadataFacet,
   OwnershipFacet,
 } from "../typechain-types";
-import { upgrade } from "../scripts/nft/upgrades/upgrade-metadataFacet";
+import { upgradeFixture } from "./upgradeFixture";
+import { actionEligibilityFixture } from "./actionEligibilityFixture";
 import { varsForNetwork } from "../constants";
 
 describe("Fake Gotchis tests", async function () {
@@ -23,7 +24,7 @@ describe("Fake Gotchis tests", async function () {
   let metadataFacetWithGotchiOwner: MetadataFacet;
   let metadataFacetWithGotchiRenter: MetadataFacet;
   let metadataFacetWithNonActableUser: MetadataFacet;
-  const metadataId = 177;
+  let metadataId: any;
   let ownerAddress: any;
   let user: Signer; // FG Card Owner
   let userAddress: any;
@@ -38,9 +39,8 @@ describe("Fake Gotchis tests", async function () {
   before(async function () {
     this.timeout(20000000);
 
-    await upgrade();
-
     const c = await varsForNetwork(ethers);
+    await upgradeFixture(c.fakeGotchiArt, "MetadataFacet");
     let ownershipFacet = (await ethers.getContractAt(
       "OwnershipFacet",
       c.fakeGotchiArt
@@ -53,8 +53,8 @@ describe("Fake Gotchis tests", async function () {
     fakeGotchisNftDiamond = c.fakeGotchiArt;
 
     const signers = await ethers.getSigners();
-    user = signers[0];
-    const artist = signers[1];
+    user = signers[17];
+    const artist = signers[18];
     userAddress = await user.getAddress();
     artistAddress = await artist.getAddress();
 
@@ -69,7 +69,9 @@ describe("Fake Gotchis tests", async function () {
     )) as MetadataFacet;
 
     cardFacetWithOwner = await impersonate(
-      ownerAddress,
+      await (
+        await ethers.getContractAt("OwnershipFacet", fakeGotchisCardDiamond)
+      ).owner(),
       cardFacet,
       ethers,
       network
@@ -110,6 +112,65 @@ describe("Fake Gotchis tests", async function () {
       ethers,
       network
     );
+    const nftFacetWithOwner = await ethers.getContractAt(
+      "FakeGotchisNFTFacet",
+      fakeGotchisNftDiamond,
+      await ethers.getSigner(ownerAddress)
+    );
+    const eligibility = await actionEligibilityFixture(
+      [ghstHolderAddress],
+      [gotchiOwnerAddress],
+      gotchiRenterAddress
+    );
+    await (await nftFacetWithOwner.setGhstAddress(eligibility.address)).wait();
+    await (
+      await nftFacetWithOwner.setAavegotchiAddress(eligibility.address)
+    ).wait();
+
+    // Publish fresh pending metadata instead of relying on historical metadata 177.
+    const cardOwner = await cardFacetWithOwner.signer.getAddress();
+    await network.provider.send("hardhat_setBalance", [
+      cardOwner,
+      "0x100000000000000000000000",
+    ]);
+    const seriesReceipt = await (
+      await cardFacetWithOwner.startNewSeries(1)
+    ).wait();
+    const seriesId = seriesReceipt.events!.find(
+      (event) => event.event === "NewSeriesStarted"
+    )!.args!.id;
+    await (
+      await cardFacetWithOwner.safeTransferFrom(
+        cardOwner,
+        userAddress,
+        seriesId,
+        1,
+        []
+      )
+    ).wait();
+    const metadataReceipt = await (
+      await metadataFacetWithUser.addMetadata(
+        {
+          name: "Action fixture",
+          publisherName: "Action fixture publisher",
+          externalLink: "",
+          description: "Pending metadata for action eligibility tests",
+          artist: artistAddress,
+          artistName: "Fixture artist",
+          royalty: [400, 0],
+          editions: 1,
+          fileHash: "fixture",
+          fileType: "image/png",
+          thumbnailHash: "",
+          thumbnailType: "",
+        },
+        seriesId
+      )
+    ).wait();
+    metadataId = metadataReceipt.events!.find(
+      (event) => event.event === "MetadataActionLog"
+    )!.args!.id;
+    expect(await cardFacet.balanceOf(fgCardHolderAddress, 0)).to.be.gt(0);
     await network.provider.request({
       method: "hardhat_setBalance",
       params: [fgCardHolderAddress, "0x100000000000000000000000"],

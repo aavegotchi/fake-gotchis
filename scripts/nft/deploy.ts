@@ -67,7 +67,11 @@ export async function deployNftDiamond(cardAddress: string) {
     cut.push({
       facetAddress: facet.address,
       action: FacetCutAction.Add,
-      functionSelectors: getSelectors(facet),
+      functionSelectors: getSelectors(facet).filter(
+        (selector: string) =>
+          FacetName !== "MetadataFacet" ||
+          selector !== facet.interface.getSighash("toggleDiamondPause(bool)")
+      ),
     });
   }
 

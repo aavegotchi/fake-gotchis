@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { ethers, network } from "hardhat";
 import { BigNumber, utils } from "ethers";
 import { FakeGotchisCardFacet } from "../typechain-types";
-import { upgrade } from "../scripts/card/upgrades/upgrade-batchTransferTo";
+import { upgradeFixture } from "./upgradeFixture";
 import { varsForNetwork } from "../constants";
 
 describe("FAKE Gotchis Card safeBatchTransferTo tests", async function () {
@@ -20,7 +20,8 @@ describe("FAKE Gotchis Card safeBatchTransferTo tests", async function () {
   before(async function () {
     this.timeout(20000000);
 
-    await upgrade();
+    const c = await varsForNetwork(ethers);
+    await upgradeFixture(c.fakeGotchiCards, "FakeGotchisCardFacet");
 
     const signers = await ethers.getSigners();
     const user1 = signers[0];
@@ -30,7 +31,6 @@ describe("FAKE Gotchis Card safeBatchTransferTo tests", async function () {
     user2Address = await user2.getAddress();
     user3Address = await user3.getAddress();
 
-    const c = await varsForNetwork(ethers);
     cardFacet = (await ethers.getContractAt(
       "FakeGotchisCardFacet",
       c.fakeGotchiCards

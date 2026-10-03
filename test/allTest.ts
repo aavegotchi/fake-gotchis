@@ -13,6 +13,7 @@ import {
   MetadataFacet,
 } from "../typechain-types";
 import { PromiseOrValue } from "../typechain-types/common";
+import { actionEligibilityFixture } from "./actionEligibilityFixture";
 
 describe("Fake Gotchis tests", async function () {
   // contracts, contract addressees, signers
@@ -163,6 +164,15 @@ describe("Fake Gotchis tests", async function () {
       ethers,
       network
     );
+
+    const eligibility = await actionEligibilityFixture(
+      [ghstHolderAddress, ghstHolderAddress2],
+      [gotchiOwnerAddress, gotchiOwnerAddress2]
+    );
+    await (await nftFacetWithOwner.setGhstAddress(eligibility.address)).wait();
+    await (
+      await nftFacetWithOwner.setAavegotchiAddress(eligibility.address)
+    ).wait();
 
     metaData = {
       fileHash,
@@ -662,7 +672,7 @@ describe("Fake Gotchis tests", async function () {
           metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
         ).to.be.revertedWith("Metadata: Sum of royalty splits not 400");
       });
-      it("Should revert if artist royalty split is not 0 for zero address", async function () {
+      it("Should revert if artist is zero address", async function () {
         const testMetaData = {
           ...metaData,
           royalty: [200, 200],
@@ -670,9 +680,7 @@ describe("Fake Gotchis tests", async function () {
         };
         await expect(
           metadataFacetWithUser.addMetadata(testMetaData, cardSeriesId)
-        ).to.be.revertedWith(
-          "Metadata: Artist royalty split must be 0 with zero address"
-        );
+        ).to.be.revertedWith("Metadata: Artist should exist");
       });
       it("Should revert if invalid editions value", async function () {
         const testMetaData = {
@@ -980,16 +988,16 @@ describe("Fake Gotchis tests", async function () {
         expect(savedMetaData.status).to.equal(1);
         expect(savedMetaData.flagCount).to.equal(prevFlagCount + 1);
       });
-      it("Should revert if flag paused metadata", async function () {
+      it("Should reject repeat flags while metadata is paused", async function () {
         await expect(
           metadataFacetWithGotchiOwner.flag(metadataId)
-        ).to.be.revertedWith("MetadataFacet: Can only flag in queue");
+        ).to.be.revertedWith("MetadataFacet: Already flagged");
         await expect(
           metadataFacetWithGHSTHolder.flag(metadataId)
-        ).to.be.revertedWith("MetadataFacet: Can only flag in queue");
+        ).to.be.revertedWith("MetadataFacet: Already flagged");
         await expect(
           metadataFacetWithUser3.flag(metadataId)
-        ).to.be.revertedWith("MetadataFacet: Can only flag in queue");
+        ).to.be.revertedWith("MetadataFacet: Already flagged");
       });
     });
     describe("passReview", async function () {
@@ -1071,7 +1079,7 @@ describe("Fake Gotchis tests", async function () {
       });
       it("Should revert if already mint", async function () {
         await expect(metadataFacetWithUser.mint(metadataId)).to.be.revertedWith(
-          "Already mint"
+          "Metadata: Already minted"
         );
       });
       it("Should revert if decline already approved metadata", async function () {
@@ -1277,7 +1285,10 @@ describe("Fake Gotchis tests", async function () {
       it("Should return json with metadata if valid token id", async function () {
         const tokenIds = await nftFacetWithUser.tokenIdsOfOwner(userAddress);
         const tokenURI = await nftFacetWithUser.tokenURI(tokenIds[0]);
-        const tokenURIObj = JSON.parse(tokenURI);
+        expect(tokenURI).to.match(/^data:application\/json;base64,/);
+        const tokenURIObj = JSON.parse(
+          Buffer.from(tokenURI.split(",")[1], "base64").toString("utf8")
+        );
         expect(tokenURIObj.name).to.equal(metaData.name);
         expect(tokenURIObj.description).to.equal(metaData.description);
       });
